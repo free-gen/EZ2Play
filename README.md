@@ -51,7 +51,7 @@ EZ2Play.exe --hotswap --nosplash
 ## Сборка из исходного кода
 
 **Требования:**
-- [.NET Framework 4.7.2 Developer Pack](https://dotnet.microsoft.com/en-us/download/dotnet-framework/net472)
+.NET Framework 4.7.2 Developer Pack
 
 ```bash
 git clone https://github.com/username/EZ2Play.git
