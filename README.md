@@ -47,3 +47,7 @@ EZ2Play.exe --hotswap --nosplash
 
 - Windows 10/11
 - .NET Framework 4.7.2+
+
+## Лицензия
+
+Этот проект распространяется под лицензией MIT - подробности в файле [LICENSE](LICENSE).
