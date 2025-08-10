@@ -48,6 +48,21 @@ EZ2Play.exe --hotswap --nosplash
 - Windows 10/11
 - .NET Framework 4.7.2+
 
+## Сборка из исходного кода
+
+**Требования:**
+- [.NET Framework 4.7.2 Developer Pack](https://dotnet.microsoft.com/en-us/download/dotnet-framework/net472)
+
+```bash
+git clone https://github.com/username/EZ2Play.git
+cd EZ2Play
+dotnet restore
+dotnet build --configuration Release
+```
+
+**Зависимости:**
+- SharpDX.DirectInput (для поддержки геймпадов)
+
 ## Лицензия
 
 Этот проект распространяется под лицензией MIT - подробности в файле [LICENSE](LICENSE).
