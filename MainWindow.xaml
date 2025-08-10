@@ -1,0 +1,139 @@
+<Window x:Class="EZ2Play.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="EZ2Play" 
+        WindowStyle="None" 
+        WindowState="Maximized"
+        Background="{DynamicResource BackgroundBrush}"
+        UseLayoutRounding="True"
+        SnapsToDevicePixels="True">
+    
+    <Window.Resources>
+        <ImageBrush x:Key="BackgroundBrush" 
+                    Stretch="UniformToFill" 
+                    Opacity="1"
+                    RenderOptions.BitmapScalingMode="HighQuality"/>
+    </Window.Resources>
+
+    <Viewbox Stretch="Uniform" StretchDirection="DownOnly" SnapsToDevicePixels="True">
+        <Grid Width="2560" Height="1440">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="0.35*"/>
+                <ColumnDefinition Width="0.65*"/>
+            </Grid.ColumnDefinitions>
+            
+            <!-- Список -->
+            <ListBox x:Name="ItemsListBox" 
+                     Grid.Column="0"
+                     HorizontalAlignment="Stretch" 
+                     VerticalAlignment="Stretch"
+                     Margin="0,0,0,0"
+                     Background="{StaticResource BackgroundOverlayColor}"
+                     BorderThickness="0"
+                     ClipToBounds="True"
+                     Padding="50,15,50,15"
+                     ScrollViewer.HorizontalScrollBarVisibility="Hidden"
+                     ScrollViewer.VerticalScrollBarVisibility="Hidden"
+                     SelectionChanged="ItemsListBox_SelectionChanged">
+                <ListBox.ItemTemplate>
+                    <DataTemplate>
+                        <StackPanel Orientation="Horizontal">
+                            <Image Source="{Binding Icon}" Margin="0,0,20,0" RenderOptions.BitmapScalingMode="HighQuality"/>
+                            <TextBlock Text="{Binding Name}" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
+
+            <!-- Подсказки -->
+            <Border x:Name="BottomPanel"
+                    Grid.Column="1" 
+                    Background="{StaticResource BottomPanelColor}"
+                    HorizontalAlignment="Right"
+                    VerticalAlignment="Bottom"
+                    CornerRadius="10"
+                    Padding="20"
+                    Margin="0,0,70,50">
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Center">
+                        <StackPanel Orientation="Horizontal" Margin="20,0">
+                            <TextBlock Text="&#xF093;" Style="{StaticResource HintIconStyle}" Foreground="{StaticResource GreenAccentColor}"/>
+                            <TextBlock Text="Запуск" Style="{StaticResource HintTextStyle}"/>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Margin="20,0">
+                            <TextBlock Text="&#xF094;" Style="{StaticResource HintIconStyle}" Foreground="{StaticResource RedAccentColor}"/>
+                            <TextBlock Text="Выход" Style="{StaticResource HintTextStyle}"/>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Margin="20,0">
+                            <TextBlock Text="&#xF096;" Style="{StaticResource HintIconStyle}" Foreground="{StaticResource BlueAccentColor}"/>
+                            <TextBlock Text="Свап экрана" Style="{StaticResource HintTextStyle}"/>
+                        </StackPanel>
+                    </StackPanel>
+            </Border>
+
+            <!-- Инфо + время -->
+            <Grid x:Name="TopInfoPanel"
+                  Grid.Column="1"
+                  HorizontalAlignment="Stretch"
+                  VerticalAlignment="Top"
+                  Margin="70,50,70,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <TextBlock x:Name="TopRightAppNameText"
+                           Grid.Column="0"
+                           HorizontalAlignment="Left"
+                           Foreground="{StaticResource PrimaryTextColor}"
+                           Opacity="0.4"
+                           FontFamily="Segoe UI Semibold"
+                           FontSize="48"/>
+                <TextBlock x:Name="TopRightTimeText"
+                           Grid.Column="1"
+                           HorizontalAlignment="Right"
+                           Foreground="{StaticResource PrimaryTextColor}"
+                           Opacity="0.4"
+                           FontFamily="Segoe UI Semibold"
+                           FontSize="48"/>
+            </Grid>
+
+            <!-- Имя выбранного элемента -->
+            <!-- <TextBlock x:Name="SelectedNameText"
+                       Grid.Column="1"
+                       HorizontalAlignment="Center"
+                       VerticalAlignment="Center"
+                       Margin="0,0,0,0"
+                       Opacity="0.5"
+                       Foreground="{StaticResource PrimaryTextColor}"
+                       FontFamily="Segoe UI Semibold"
+                       FontSize="120"/> -->
+
+            <TextBlock x:Name="NoShortcutsMessage"
+                       Grid.ColumnSpan="2"
+                       HorizontalAlignment="Center"
+                       VerticalAlignment="Center"
+                       TextAlignment="Center"
+                       FontSize="48"
+                       Visibility="Collapsed"
+                       Style="{StaticResource HintTextStyle}">
+                <Run Text="Поместите ваши ярлыки в папку shortcuts"/>
+                <LineBreak/>
+                <Run Text="Для выхода нажмите [ ESC ]"/>
+            </TextBlock>
+
+            <!-- Текст при выходе -->
+            <TextBlock x:Name="ExitMessageText"
+                       Grid.ColumnSpan="2"
+                       HorizontalAlignment="Center"
+                       VerticalAlignment="Center"
+                       TextAlignment="Center"
+                       FontFamily="Segoe UI Semibold"
+                       FontSize="72"
+                       Foreground="White"
+                       Visibility="Hidden"
+                       Opacity="0.8">
+                <Run Text="Assembled by"/>
+                <Run x:Name="CompanyNameRun" Text=""/>
+            </TextBlock>
+        </Grid>
+    </Viewbox>
+</Window>

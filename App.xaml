@@ -1,0 +1,75 @@
+<Application x:Class="EZ2Play.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Application.Resources>
+
+        <SolidColorBrush x:Key="PrimaryTextColor" Color="White"/>
+        <SolidColorBrush x:Key="SecondaryTextColor" Color="White"/>
+        <SolidColorBrush x:Key="BackgroundOverlayColor" Color="#50000000"/>
+        <SolidColorBrush x:Key="BottomPanelColor" Color="#99000000"/>
+        <SolidColorBrush x:Key="SelectionBorderColor" Color="#AAFFFFFF"/>
+        <SolidColorBrush x:Key="SelectionBackgroundColor" Color="#20FFFFFF"/>
+        <SolidColorBrush x:Key="GreenAccentColor" Color="#50C83C"/>
+        <SolidColorBrush x:Key="RedAccentColor" Color="#DC1E1E"/>
+        <SolidColorBrush x:Key="BlueAccentColor" Color="#0A90C0"/>
+        
+        <FontFamily x:Key="SegoeMDL2Assets">Segoe MDL2 Assets</FontFamily>
+        
+        <PathGeometry x:Key="EnterKeyIcon" Figures="M60 50C54.46 50 50 54.46 50 60L50 140C50 145.54 54.46 150 60 150L240 150C245.54 150 250 145.54 250 140L250 60C250 54.46 245.54 50 240 50L60 50z M71.66 76.19L105.63 76.19L105.63 83.94L80.91 83.94L80.91 94.09L103.91 94.09L103.91 101.81L80.91 101.81L80.91 114.28L106.5 114.28L106.5 122L71.66 122L71.66 76.19z M162.59 77.09L162.59 88.81L168.59 88.81L168.59 95.81L162.59 95.81L162.59 109.19C162.59 111.9 162.65 113.48 162.75 113.94C162.88 114.38 163.14 114.74 163.53 115.03C163.95 115.32 164.45 115.47 165.03 115.47C165.84 115.47 167.02 115.19 168.56 114.63L169.31 121.44C167.27 122.31 164.96 122.75 162.38 122.75C160.79 122.75 159.36 122.49 158.09 121.97C156.82 121.43 155.89 120.74 155.28 119.91C154.7 119.05 154.29 117.91 154.06 116.47C153.88 115.45 153.78 113.39 153.78 110.28L153.78 95.81L149.75 95.81L149.75 88.81L153.78 88.81L153.78 82.22L162.59 77.09z M133.31 88.06C135.25 88.06 137.02 88.41 138.63 89.12C140.23 89.81 141.44 90.7 142.25 91.78C143.08 92.86 143.66 94.09 143.97 95.47C144.3 96.84 144.47 98.81 144.47 101.37L144.47 122L135.69 122L135.69 105.06C135.69 101.48 135.5 99.17 135.13 98.13C134.75 97.06 134.14 96.24 133.28 95.66C132.45 95.07 131.44 94.78 130.25 94.78C128.73 94.78 127.36 95.2 126.16 96.03C124.95 96.86 124.11 97.97 123.66 99.34C123.22 100.72 123 103.26 123 106.97L123 122L114.22 122L114.22 88.81L122.38 88.81L122.38 93.69C125.27 89.94 128.92 88.06 133.31 88.06z M187.34 88.06C192.28 88.06 196.18 89.7 199.03 92.97C201.89 96.22 203.25 101.21 203.13 107.94L181.13 107.94C181.19 110.54 181.9 112.57 183.25 114.03C184.6 115.47 186.29 116.19 188.31 116.19C189.69 116.19 190.84 115.81 191.78 115.06C192.72 114.31 193.43 113.1 193.91 111.44L202.65 112.91C201.53 116.11 199.75 118.56 197.31 120.25C194.89 121.92 191.86 122.75 188.22 122.75C182.45 122.75 178.18 120.86 175.41 117.09C173.22 114.07 172.13 110.26 172.13 105.66C172.13 100.16 173.56 95.85 176.44 92.75C179.31 89.63 182.95 88.06 187.34 88.06z M225.62 88.06C227.62 88.06 229.55 88.61 231.4 89.72L228.69 97.38C227.21 96.42 225.83 95.94 224.56 95.94C223.33 95.94 222.29 96.28 221.44 96.97C220.58 97.64 219.9 98.85 219.4 100.63C218.93 102.4 218.69 106.1 218.69 111.75L218.69 122L209.9 122L209.9 88.81L218.06 88.81L218.06 93.53C219.46 91.3 220.71 89.83 221.81 89.13C222.94 88.42 224.21 88.06 225.62 88.06z M187.87 94.78C185.96 94.78 184.37 95.48 183.12 96.88C181.87 98.27 181.26 100.17 181.28 102.56L194.4 102.56C194.34 100.02 193.69 98.09 192.44 96.78C191.19 95.45 189.66 94.78 187.87 94.78z"/>
+        <PathGeometry x:Key="EscKeyIcon" Figures="m60 50c-5.54 0-10 4.46-10 10v80c0 5.54 4.46 10 10 10h80c5.54 0 10-4.46 10-10v-80c0-5.54-4.46-10-10-10h-80zm0.73438 32.365h25.477v5.8125h-18.539v7.6172h17.25v5.7891h-17.25v9.3516h19.195v5.7891h-26.133v-34.359zm41.039 8.9062c3.4062 0 5.9375 0.55469 7.5938 1.6641s2.7969 2.75 3.4219 4.9219l-6.2109 1.1484c-0.26562-0.96875-0.77343-1.7109-1.5234-2.2266-0.73438-0.51562-1.7891-0.77344-3.1641-0.77344-1.7344 0-2.9766 0.24219-3.7266 0.72656-0.5 0.34375-0.75 0.78906-0.75 1.3359 0 0.46875 0.21875 0.86719 0.65625 1.1953 0.59375 0.4375 2.6406 1.0547 6.1406 1.8516 3.5156 0.79688 5.9688 1.7734 7.3594 2.9297 1.375 1.1719 2.0625 2.8047 2.0625 4.8984 0 2.2812-0.95312 4.2422-2.8594 5.8828-1.9062 1.6406-4.7266 2.4609-8.4609 2.4609-3.3906 0-6.0781-0.6875-8.0625-2.0625-1.9688-1.375-3.2578-3.2422-3.8672-5.6016l6.6094-1.0078c0.28125 1.2812 0.85156 2.2578 1.7109 2.9297 0.85938 0.65625 2.0625 0.98438 3.6094 0.98438 1.7031 0 2.9844-0.3125 3.8438-0.9375 0.57813-0.4375 0.86719-1.0234 0.86719-1.7578 0-0.5-0.15625-0.91406-0.46875-1.2422-0.32813-0.3125-1.0625-0.60157-2.2031-0.86719-5.3125-1.1719-8.6797-2.2422-10.102-3.2109-1.9688-1.3438-2.9531-3.2109-2.9531-5.6016 0-2.1562 0.85156-3.9688 2.5547-5.4375 1.7031-1.4688 4.3438-2.2031 7.9219-2.2031zm28.242 0c3.0313 0 5.4375 0.65625 7.2188 1.9688 1.7969 1.2969 3.0859 3.2812 3.8672 5.9531l-6.4922 1.1719c-0.21876-1.2969-0.71876-2.2734-1.5-2.9297-0.76563-0.65625-1.7656-0.98438-3-0.98438-1.6406 0-2.9531 0.57031-3.9375 1.7109-0.96876 1.125-1.4531 3.0156-1.4531 5.6719 0 2.9531 0.49219 5.0391 1.4766 6.2578 1 1.2188 2.3359 1.8281 4.0078 1.8281 1.25 0 2.2734-0.35156 3.0703-1.0547 0.79687-0.71875 1.3594-1.9453 1.6875-3.6797l6.4688 1.1016c-0.67188 2.9688-1.9609 5.2109-3.8672 6.7266-1.9062 1.5156-4.4609 2.2734-7.6641 2.2734-3.6406 0-6.5469-1.1484-8.7188-3.4453-2.1562-2.2969-3.2344-5.4766-3.2344-9.5391 0-4.1094 1.0859-7.3047 3.2578-9.5859 2.1719-2.2969 5.1094-3.4453 8.8125-3.4453z"/>
+        <PathGeometry x:Key="XKeyIcon" Figures="M 60 50 C 54.46 50 50 54.46 50 60 L 50 140 C 50 145.54 54.46 150 60 150 L 140 150 C 145.54 150 150 145.54 150 140 L 150 60 C 150 54.46 145.54 50 140 50 L 60 50 z M 76.541016 72.931641 L 89.15625 72.931641 L 99.875 90.103516 L 110.375 72.931641 L 122.87891 72.931641 L 106.25391 98.890625 L 124.51953 126.37891 L 111.50391 126.37891 L 99.65625 107.89453 L 87.769531 126.37891 L 74.828125 126.37891 L 93.09375 98.488281 L 76.541016 72.931641 z"/>
+        
+        <Style TargetType="ListBoxItem">
+            <Setter Property="Foreground" Value="{StaticResource PrimaryTextColor}"/>
+            <Setter Property="FontSize" Value="30"/>
+            <Setter Property="FontFamily" Value="Segoe UI"/>
+            <Setter Property="Margin" Value="0"/>
+            <Setter Property="Padding" Value="0"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ListBoxItem">
+                        <Border Background="Transparent" 
+                                BorderThickness="2" 
+                                CornerRadius="10"
+                                Margin="5"
+                                Padding="15"
+                                x:Name="SelectionBorder">
+                            <ContentPresenter />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter TargetName="SelectionBorder" Property="BorderBrush" Value="{Binding Source={x:Static Application.Current}, Path=GlowBrush}"/>
+                                <Setter TargetName="SelectionBorder" Property="Background" Value="{StaticResource SelectionBackgroundColor}"/>
+                            </Trigger>
+                            <Trigger Property="IsSelected" Value="False">
+                                <Setter TargetName="SelectionBorder" Property="BorderBrush" Value="Transparent"/>
+                                <Setter TargetName="SelectionBorder" Property="Background" Value="Transparent"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        
+        <Style x:Key="HintTextStyle" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="{StaticResource PrimaryTextColor}"/>
+            <Setter Property="FontSize" Value="30"/>
+            <Setter Property="FontFamily" Value="Segoe UI"/>
+            <Setter Property="Margin" Value="20,0,0,0"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="RenderTransform">
+                <Setter.Value>
+                    <TranslateTransform Y="-1"/>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        
+        <Style x:Key="HintIconStyle" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="{StaticResource PrimaryTextColor}"/>
+            <Setter Property="FontSize" Value="35"/>
+            <Setter Property="FontFamily" Value="{StaticResource SegoeMDL2Assets}"/>
+            <Setter Property="Margin" Value="0"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+        </Style>
+    </Application.Resources>
+</Application>
