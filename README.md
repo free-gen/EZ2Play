@@ -39,8 +39,8 @@ EZ2Play.exe --nosplash
 # Запуск с логированием
 EZ2Play.exe --log
 
-# Быстрое переключение дисплея
-EZ2Play.exe --hotswap
+# Быстрое переключение дисплея без заставки
+EZ2Play.exe --hotswap --nosplash
 ```
 
 ## Системные требования
