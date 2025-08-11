@@ -9,6 +9,10 @@ namespace EZ2Play
     {
         public static LinearGradientBrush GlowBrush { get; set; }
         public static bool EnableLogging { get; private set; } = false;
+        public static bool UseCustomBackground { get; private set; } = false;
+        public static bool UseCustomLogoImage { get; private set; } = false;
+        public static string CustomLogo { get; private set; } = null;
+        public static string CustomSlogan { get; private set; } = null;
         private SplashScreen _splashScreen;
         private MainWindow _mainWindow;
 
@@ -29,6 +33,24 @@ namespace EZ2Play
                 else if (string.Equals(arg, "--hotswap", StringComparison.OrdinalIgnoreCase))
                 {
                     hotSwap = true;
+                }
+                else if (string.Equals(arg, "--custombg", StringComparison.OrdinalIgnoreCase))
+                {
+                    UseCustomBackground = true;
+                }
+                else if (string.Equals(arg, "--customlogo", StringComparison.OrdinalIgnoreCase))
+                {
+                    UseCustomLogoImage = true;
+                }
+                else if (arg.StartsWith("--customlogo-", StringComparison.OrdinalIgnoreCase))
+                {
+                    string logoText = arg.Substring("--customlogo-".Length);
+                    CustomLogo = logoText.Replace("_", " ");
+                }
+                else if (arg.StartsWith("--customslogan-", StringComparison.OrdinalIgnoreCase))
+                {
+                    string sloganText = arg.Substring("--customslogan-".Length);
+                    CustomSlogan = sloganText.Replace("_", " ");
                 }
             }
             

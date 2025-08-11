@@ -29,6 +29,7 @@ namespace EZ2Play
         private Sound _audioManager;
         private Input _Input;
         private SelectorAnimation _glowAnimation;
+        private ImageSource _customBackgroundImage;
         public bool IsGamepadConnected { get; private set; }
         [DllImport("user32.dll")]
         private static extern bool ShowCursor(bool bShow);
@@ -50,6 +51,7 @@ namespace EZ2Play
             _Input = new Input();
             _glowAnimation = new SelectorAnimation();
             App.GlowBrush = _glowAnimation.GetAnimatedBrush();
+            LoadCustomBackgroundImage();
             LoadShortcuts();
             SetupInputEvents();
 
@@ -278,12 +280,20 @@ namespace EZ2Play
         {
             try
             {
-                if (_selectedIndex >= 0 && _selectedIndex < _shortcuts.Length)
+                var backgroundBrush = (ImageBrush)Resources["BackgroundBrush"];
+
+                // Если используется пользовательский фон, устанавливаем его
+                if (App.UseCustomBackground && _customBackgroundImage != null)
+                {
+                    backgroundBrush.ImageSource = _customBackgroundImage;
+                    Log("Using custom background image");
+                }
+                // Иначе используем динамический фон от иконки ярлыка
+                else if (_selectedIndex >= 0 && _selectedIndex < _shortcuts.Length)
                 {
                     var selectedShortcut = _shortcuts[_selectedIndex];
                     if (selectedShortcut.Icon != null)
                     {
-                        var backgroundBrush = (ImageBrush)Resources["BackgroundBrush"];
                         var blurredImage = CreateBlurredImage(selectedShortcut.Icon);
                         backgroundBrush.ImageSource = blurredImage;
                     }
@@ -320,6 +330,39 @@ namespace EZ2Play
             {
                 Log($"Error creating blurred image: {ex.Message}");
                 return originalImage;
+            }
+        }
+
+        private void LoadCustomBackgroundImage()
+        {
+            if (!App.UseCustomBackground)
+                return;
+
+            try
+            {
+                string[] possibleFiles = { "bg.jpg", "bg.png" };
+                string appDirectory = AppDomain.CurrentDomain.BaseDirectory;
+
+                foreach (string fileName in possibleFiles)
+                {
+                    string fullPath = Path.Combine(appDirectory, fileName);
+                    if (File.Exists(fullPath))
+                    {
+                        Log($"Found custom background: {fullPath}");
+                        _customBackgroundImage = new BitmapImage(new Uri(fullPath));
+                        break;
+                    }
+                }
+
+                if (_customBackgroundImage == null)
+                {
+                    Log("Custom background requested but no bg.jpg or bg.png found in application directory");
+                }
+            }
+            catch (Exception ex)
+            {
+                Log($"Error loading custom background: {ex.Message}");
+                _customBackgroundImage = null;
             }
         }
 

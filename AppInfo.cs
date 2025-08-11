@@ -22,7 +22,7 @@ namespace EZ2Play
 
         public static string GetVersion(bool shortFormat = false)
         {
-            return "1.0.0.0";
+            return "1.1.0.0";
         }
 
         public static string GetCompanyName()

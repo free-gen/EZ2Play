@@ -3,6 +3,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
+using System.Windows.Media.Imaging;
 using System.Windows.Threading;
 using System.Threading;
 using System.Threading.Tasks;
@@ -19,6 +20,7 @@ namespace EZ2Play
 
         private TextBlock _SplashAppName;
         private TextBlock _SplashAppSlogan;
+        private System.Windows.Controls.Image _SplashLogoImage;
         private FontFamily _fontFamily = new FontFamily("Segoe UI");
         private bool _isAnimationComplete = false;
 
@@ -60,21 +62,30 @@ namespace EZ2Play
                 HorizontalAlignment = HorizontalAlignment.Center
             };
 
-            _SplashAppName = new TextBlock
+            // Создаем лого - либо изображение, либо текст
+            if (App.UseCustomLogoImage && TryLoadLogoImage())
             {
-                Text = AppInfo.GetProductName(),
-                FontSize = 120,
-                FontFamily = _fontFamily,
-                FontWeight = FontWeights.ExtraBold,
-                Foreground = Brushes.White,
-                HorizontalAlignment = HorizontalAlignment.Center,
-                VerticalAlignment = VerticalAlignment.Center,
-                Opacity = 0,
-            };
+                textContainer.Children.Add(_SplashLogoImage);
+            }
+            else
+            {
+                _SplashAppName = new TextBlock
+                {
+                    Text = App.CustomLogo ?? AppInfo.GetProductName(),
+                    FontSize = 120,
+                    FontFamily = _fontFamily,
+                    FontWeight = FontWeights.ExtraBold,
+                    Foreground = Brushes.White,
+                    HorizontalAlignment = HorizontalAlignment.Center,
+                    VerticalAlignment = VerticalAlignment.Center,
+                    Opacity = 0,
+                };
+                textContainer.Children.Add(_SplashAppName);
+            }
 
             _SplashAppSlogan = new TextBlock
             {
-                Text = AppInfo.GetProductSlogan(),
+                Text = App.CustomSlogan ?? AppInfo.GetProductSlogan(),
                 FontSize = 80,
                 FontFamily = _fontFamily,
                 FontWeight = FontWeights.Light,
@@ -84,11 +95,37 @@ namespace EZ2Play
                 Opacity = 0
             };
 
-            textContainer.Children.Add(_SplashAppName);
             textContainer.Children.Add(_SplashAppSlogan);
             grid.Children.Add(textContainer);
 
             Content = grid;
+        }
+
+        private bool TryLoadLogoImage()
+        {
+            try
+            {
+                string logoPath = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "logo.png");
+                if (System.IO.File.Exists(logoPath))
+                {
+                    _SplashLogoImage = new System.Windows.Controls.Image
+                    {
+                        Source = new BitmapImage(new Uri(logoPath)),
+                        MaxHeight = 200, // Ограничиваем размер изображения
+                        HorizontalAlignment = HorizontalAlignment.Center,
+                        VerticalAlignment = VerticalAlignment.Center,
+                        Opacity = 0
+                    };
+                    RenderOptions.SetBitmapScalingMode(_SplashLogoImage, BitmapScalingMode.HighQuality);
+                    return true;
+                }
+            }
+            catch (Exception ex)
+            {
+                // Логирование ошибки, если нужно
+                System.Diagnostics.Debug.WriteLine($"Error loading logo.png: {ex.Message}");
+            }
+            return false;
         }
 
         public void PlaySplashAnimation()
@@ -105,12 +142,13 @@ namespace EZ2Play
             // Пользователь видит только черный фон перед началом анимации
             await Task.Delay(500);
 
-            // Анимация появления названия приложения
-            // Текст плавно появляется из прозрачного состояния до полной видимости
-            AnimateTextAppearance(_SplashAppName, 1.0, 1000, () =>
+            // Анимация появления названия приложения (текст или изображение)
+            // Элемент плавно появляется из прозрачного состояния до полной видимости
+            var logoElement = _SplashLogoImage ?? (UIElement)_SplashAppName;
+            AnimateTextAppearance(logoElement, 1.0, 1000, () =>
             {
                 // Пауза после появления названия приложения
-                // Пользователь читает текст перед его исчезновением
+                // Пользователь видит элемент перед его исчезновением
                 var timer = new DispatcherTimer
                 {
                     Interval = TimeSpan.FromMilliseconds(500)
@@ -119,8 +157,8 @@ namespace EZ2Play
                 {
                     timer.Stop();
                     // Анимация исчезновения названия приложения
-                    // Текст плавно исчезает до полной прозрачности
-                    AnimateTextDisappearance(_SplashAppName, 500, () =>
+                    // Элемент плавно исчезает до полной прозрачности
+                    AnimateTextDisappearance(logoElement, 500, () =>
                     {
                         // Пауза между исчезновением названия приложения и появлением "Simple way to game"
                         // Экран остается пустым между текстами
@@ -162,7 +200,7 @@ namespace EZ2Play
             });
         }
 
-        private void AnimateTextAppearance(TextBlock textBlock, double targetOpacity, int durationMs, Action onCompleted = null)
+        private void AnimateTextAppearance(UIElement element, double targetOpacity, int durationMs, Action onCompleted = null)
         {
             var animation = new DoubleAnimation
             {
@@ -177,10 +215,10 @@ namespace EZ2Play
                 animation.Completed += (s, e) => onCompleted();
             }
 
-            textBlock.BeginAnimation(UIElement.OpacityProperty, animation);
+            element.BeginAnimation(UIElement.OpacityProperty, animation);
         }
 
-        private void AnimateTextDisappearance(TextBlock textBlock, int durationMs, Action onCompleted = null)
+        private void AnimateTextDisappearance(UIElement element, int durationMs, Action onCompleted = null)
         {
             var animation = new DoubleAnimation
             {
@@ -195,7 +233,7 @@ namespace EZ2Play
                 animation.Completed += (s, e) => onCompleted();
             }
 
-            textBlock.BeginAnimation(UIElement.OpacityProperty, animation);
+            element.BeginAnimation(UIElement.OpacityProperty, animation);
         }
 
         public void CloseSplash()
