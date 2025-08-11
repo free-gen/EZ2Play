@@ -5,8 +5,8 @@
 
         <SolidColorBrush x:Key="PrimaryTextColor" Color="White"/>
         <SolidColorBrush x:Key="SecondaryTextColor" Color="White"/>
-        <SolidColorBrush x:Key="BackgroundOverlayColor" Color="#50000000"/>
-        <SolidColorBrush x:Key="BottomPanelColor" Color="#99000000"/>
+        <SolidColorBrush x:Key="BackgroundOverlayColor" Color="#C8000000"/>
+        <SolidColorBrush x:Key="BottomPanelColor" Color="#C8000000"/>
         <SolidColorBrush x:Key="SelectionBorderColor" Color="#AAFFFFFF"/>
         <SolidColorBrush x:Key="SelectionBackgroundColor" Color="#20FFFFFF"/>
         <SolidColorBrush x:Key="GreenAccentColor" Color="#50C83C"/>
