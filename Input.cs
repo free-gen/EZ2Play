@@ -24,8 +24,8 @@ namespace EZ2Play
         private DateTime _lastGamepadInput = DateTime.MinValue;
         private DateTime _lastKeyboardInput = DateTime.MinValue;
         
-        private const int INITIAL_DELAY = 300; // Начальная задержка в мс
-        private const int REPEAT_DELAY = 200; // Задержка повтора в мс
+        private const int INITIAL_DELAY = 100; // Начальная задержка в мс
+        private const int REPEAT_DELAY = 150; // Задержка повтора в мс
         private const int FAST_REPEAT_DELAY = 100; // Быстрая задержка повтора в мс
 
         public event Action<int> OnMoveSelection;

@@ -22,9 +22,26 @@
                 <ColumnDefinition Width="0.65*"/>
             </Grid.ColumnDefinitions>
             
+            <!-- Размытый фон под списком -->
+            <Border x:Name="ListBoxBlurredBackground" 
+                    Grid.Column="0"
+                    Panel.ZIndex="0"
+                    Visibility="Collapsed">
+                <Border.Background>
+                    <ImageBrush x:Name="BlurredListBackgroundBrush" 
+                                Stretch="UniformToFill"
+                                Viewbox="0,0,0.35,1"
+                                ViewboxUnits="RelativeToBoundingBox"/>
+                </Border.Background>
+                <Border.Effect>
+                    <BlurEffect Radius="20"/>
+                </Border.Effect>
+            </Border>
+            
             <!-- Список -->
             <ListBox x:Name="ItemsListBox" 
                      Grid.Column="0"
+                     Panel.ZIndex="1"
                      HorizontalAlignment="Stretch" 
                      VerticalAlignment="Stretch"
                      Margin="0,0,0,0"

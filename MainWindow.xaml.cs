@@ -26,6 +26,7 @@ namespace EZ2Play
         private int _selectedIndex = 0;
         private bool _isExternalDisplay = false;
         private bool _hasMultipleDisplays = false;
+        private bool _wasLaunchedWithHotswap = false;
         private Sound _audioManager;
         private Input _Input;
         private SelectorAnimation _glowAnimation;
@@ -44,6 +45,9 @@ namespace EZ2Play
         {
             InitializeComponent();
             Log("MainWindow constructor started...");
+            
+            _wasLaunchedWithHotswap = hotSwap;
+            Log($"Application launched with hotswap: {_wasLaunchedWithHotswap}");
             
             CheckMultipleDisplays();
             
@@ -281,12 +285,22 @@ namespace EZ2Play
             try
             {
                 var backgroundBrush = (ImageBrush)Resources["BackgroundBrush"];
+                var listBoxBlurredBackground = this.FindName("ListBoxBlurredBackground") as Border;
+                var blurredListBackgroundBrush = this.FindName("BlurredListBackgroundBrush") as ImageBrush;
 
                 // Если используется пользовательский фон, устанавливаем его
                 if (App.UseCustomBackground && _customBackgroundImage != null)
                 {
                     backgroundBrush.ImageSource = _customBackgroundImage;
-                    Log("Using custom background image");
+                    
+                    // Показываем размытый фон под ListBox и устанавливаем тот же источник
+                    if (listBoxBlurredBackground != null && blurredListBackgroundBrush != null)
+                    {
+                        blurredListBackgroundBrush.ImageSource = _customBackgroundImage;
+                        listBoxBlurredBackground.Visibility = Visibility.Visible;
+                    }
+                    
+                    Log("Using custom background image with blurred ListBox area");
                 }
                 // Иначе используем динамический фон от иконки ярлыка
                 else if (_selectedIndex >= 0 && _selectedIndex < _shortcuts.Length)
@@ -296,6 +310,20 @@ namespace EZ2Play
                     {
                         var blurredImage = CreateBlurredImage(selectedShortcut.Icon);
                         backgroundBrush.ImageSource = blurredImage;
+                    }
+                    
+                    // Скрываем размытый фон под ListBox для динамического фона
+                    if (listBoxBlurredBackground != null)
+                    {
+                        listBoxBlurredBackground.Visibility = Visibility.Collapsed;
+                    }
+                }
+                else
+                {
+                    // Скрываем размытый фон если нет фона
+                    if (listBoxBlurredBackground != null)
+                    {
+                        listBoxBlurredBackground.Visibility = Visibility.Collapsed;
                     }
                 }
             }
@@ -506,11 +534,13 @@ namespace EZ2Play
                 var topInfoPanel = this.FindName("TopInfoPanel") as Grid;
                 var selectedNameText = this.FindName("SelectedNameText") as TextBlock;
                 var noShortcutsMessage = this.FindName("NoShortcutsMessage") as TextBlock;
+                var listBoxBlurredBackground = this.FindName("ListBoxBlurredBackground") as Border;
 
                 if (itemsListBox != null) itemsListBox.Visibility = Visibility.Collapsed;
                 if (bottomPanel != null) bottomPanel.Visibility = Visibility.Collapsed;
                 if (topInfoPanel != null) topInfoPanel.Visibility = Visibility.Collapsed;
                 if (selectedNameText != null) selectedNameText.Visibility = Visibility.Collapsed;
+                if (listBoxBlurredBackground != null) listBoxBlurredBackground.Visibility = Visibility.Collapsed;
                 if (noShortcutsMessage != null) noShortcutsMessage.Visibility = Visibility.Collapsed;
 
                 var companyName = AppInfo.GetCompanyName();
@@ -590,6 +620,32 @@ namespace EZ2Play
 
         protected override void OnClosed(EventArgs e)
         {
+            // Если приложение было запущено с --hotswap, переключаем монитор обратно при выходе
+            if (_wasLaunchedWithHotswap && _hasMultipleDisplays)
+            {
+                try
+                {
+                    Log("Application was launched with hotswap, switching display back on exit");
+                    
+                    // Переключаем обратно на противоположный дисплей
+                    var argument = _isExternalDisplay ? "/internal" : "/external";
+                    
+                    Log($"Switching display back to: {(_isExternalDisplay ? "internal" : "external")}");
+                    
+                    Process.Start(new ProcessStartInfo
+                    {
+                        FileName = "DisplaySwitch.exe",
+                        Arguments = argument,
+                        UseShellExecute = true,
+                        CreateNoWindow = true
+                    });
+                }
+                catch (Exception ex)
+                {
+                    Log($"Error switching display back on exit: {ex.Message}");
+                }
+            }
+            
             _glowAnimation?.StopAnimation();
             _Input?.Dispose();
             _audioManager?.Dispose();
