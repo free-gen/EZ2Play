@@ -1,4 +1,4 @@
-# EZ2Play
+# EZ2Play Launcher
 
 ![EZ2Play Screenshot](attach.png)
 
