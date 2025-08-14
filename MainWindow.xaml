@@ -17,113 +17,333 @@
 
     <Viewbox Stretch="Uniform" StretchDirection="DownOnly" SnapsToDevicePixels="True">
         <Grid Width="2560" Height="1440">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="0.35*"/>
-                <ColumnDefinition Width="0.65*"/>
-            </Grid.ColumnDefinitions>
-            
-            <!-- Размытый фон под списком -->
-            <Border x:Name="ListBoxBlurredBackground" 
-                    Grid.Column="0"
-                    Panel.ZIndex="0"
-                    Visibility="Collapsed">
-                <Border.Background>
-                    <ImageBrush x:Name="BlurredListBackgroundBrush" 
-                                Stretch="UniformToFill"
-                                Viewbox="0,0,0.35,1"
-                                ViewboxUnits="RelativeToBoundingBox"/>
-                </Border.Background>
-                <Border.Effect>
-                    <BlurEffect Radius="20"/>
-                </Border.Effect>
-            </Border>
-            
-            <!-- Список -->
-            <ListBox x:Name="ItemsListBox" 
-                     Grid.Column="0"
-                     Panel.ZIndex="1"
-                     HorizontalAlignment="Stretch" 
-                     VerticalAlignment="Stretch"
-                     Margin="0,0,0,0"
-                     Background="{StaticResource BackgroundOverlayColor}"
-                     BorderThickness="0"
-                     ClipToBounds="True"
-                     Padding="50,15,50,15"
-                     ScrollViewer.HorizontalScrollBarVisibility="Hidden"
-                     ScrollViewer.VerticalScrollBarVisibility="Hidden"
-                     SelectionChanged="ItemsListBox_SelectionChanged">
-                <ListBox.ItemTemplate>
-                    <DataTemplate>
-                        <StackPanel Orientation="Horizontal">
-                            <Image Source="{Binding Icon}" Margin="0,0,20,0" RenderOptions.BitmapScalingMode="HighQuality"/>
-                            <TextBlock Text="{Binding Name}" VerticalAlignment="Center"/>
-                        </StackPanel>
-                    </DataTemplate>
-                </ListBox.ItemTemplate>
-            </ListBox>
-
-            <!-- Подсказки -->
-            <Border x:Name="BottomPanel"
-                    Grid.Column="1" 
-                    Background="{StaticResource BottomPanelColor}"
-                    HorizontalAlignment="Right"
-                    VerticalAlignment="Bottom"
-                    CornerRadius="10"
-                    Padding="20"
-                    Margin="0,0,70,50">
-                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Center">
-                        <StackPanel Orientation="Horizontal" Margin="20,0">
-                            <TextBlock Text="&#xF093;" Style="{StaticResource HintIconStyle}" Foreground="{StaticResource GreenAccentColor}"/>
-                            <TextBlock Text="Запуск" Style="{StaticResource HintTextStyle}"/>
-                        </StackPanel>
-                        <StackPanel Orientation="Horizontal" Margin="20,0">
-                            <TextBlock Text="&#xF094;" Style="{StaticResource HintIconStyle}" Foreground="{StaticResource RedAccentColor}"/>
-                            <TextBlock Text="Выход" Style="{StaticResource HintTextStyle}"/>
-                        </StackPanel>
-                        <StackPanel Orientation="Horizontal" Margin="20,0">
-                            <TextBlock Text="&#xF096;" Style="{StaticResource HintIconStyle}" Foreground="{StaticResource BlueAccentColor}"/>
-                            <TextBlock Text="Свап экрана" Style="{StaticResource HintTextStyle}"/>
-                        </StackPanel>
-                    </StackPanel>
-            </Border>
-
-            <!-- Инфо + время -->
-            <Grid x:Name="TopInfoPanel"
-                  Grid.Column="1"
-                  HorizontalAlignment="Stretch"
-                  VerticalAlignment="Top"
-                  Margin="70,50,70,0">
+            <!-- Вертикальный режим -->
+            <Grid x:Name="VerticalModeGrid" Visibility="Visible">
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="0.35*"/>
+                    <ColumnDefinition Width="0.65*"/>
                 </Grid.ColumnDefinitions>
-                <TextBlock x:Name="TopRightAppNameText"
-                           Grid.Column="0"
-                           HorizontalAlignment="Left"
+                
+                <!-- Размытый фон под списком (вертикальный режим) -->
+                <Border x:Name="VerticalListBoxBlurredBackground" 
+                        Grid.Column="0"
+                        Panel.ZIndex="0"
+                        Visibility="Collapsed">
+                    <Border.Background>
+                        <ImageBrush x:Name="VerticalBlurredListBackgroundBrush" 
+                                    Stretch="UniformToFill"
+                                    Viewbox="0,0,0.35,1"
+                                    ViewboxUnits="RelativeToBoundingBox"/>
+                    </Border.Background>
+                    <Border.Effect>
+                        <BlurEffect Radius="20"/>
+                    </Border.Effect>
+                </Border>
+                
+                <!-- Список (вертикальный режим) -->
+                <ListBox x:Name="VerticalItemsListBox" 
+                         Grid.Column="0"
+                         Panel.ZIndex="1"
+                         HorizontalAlignment="Stretch" 
+                         VerticalAlignment="Stretch"
+                         Margin="0,0,0,0"
+                         Background="{StaticResource BackgroundOverlayColor}"
+                         BorderThickness="0"
+                         ClipToBounds="True"
+                         Padding="50,15,50,15"
+                         ScrollViewer.HorizontalScrollBarVisibility="Hidden"
+                         ScrollViewer.VerticalScrollBarVisibility="Hidden"
+                         SelectionChanged="ItemsListBox_SelectionChanged">
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <StackPanel Orientation="Horizontal">
+                                <Image Source="{Binding Icon}" Margin="0,0,20,0" RenderOptions.BitmapScalingMode="HighQuality"/>
+                                <TextBlock Text="{Binding Name}" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+
+                <!-- Подсказки (вертикальный режим) -->
+                <Border x:Name="VerticalBottomPanel"
+                        Grid.Column="1" 
+                        Background="{StaticResource BottomPanelColor}"
+                        HorizontalAlignment="Right"
+                        VerticalAlignment="Bottom"
+                        CornerRadius="10"
+                        Padding="20"
+                        Margin="0,0,70,50">
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Center">
+                            <StackPanel Orientation="Horizontal" Margin="20,0">
+                                <TextBlock Text="&#xF093;" Style="{StaticResource HintIconStyle}" Foreground="{StaticResource GreenAccentColor}"/>
+                                <TextBlock Text="Запуск" Style="{StaticResource HintTextStyle}"/>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" Margin="20,0">
+                                <TextBlock Text="&#xF094;" Style="{StaticResource HintIconStyle}" Foreground="{StaticResource RedAccentColor}"/>
+                                <TextBlock Text="Выход" Style="{StaticResource HintTextStyle}"/>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" Margin="20,0">
+                                <TextBlock Text="&#xF096;" Style="{StaticResource HintIconStyle}" Foreground="{StaticResource BlueAccentColor}"/>
+                                <TextBlock Text="Свап экрана" Style="{StaticResource HintTextStyle}"/>
+                            </StackPanel>
+                        </StackPanel>
+                </Border>
+
+                <!-- Инфо + время (вертикальный режим) -->
+                <Grid x:Name="VerticalTopInfoPanel"
+                      Grid.Column="1"
+                      HorizontalAlignment="Stretch"
+                      VerticalAlignment="Top"
+                      Margin="70,50,70,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock x:Name="VerticalTopRightAppNameText"
+                               Grid.Column="0"
+                               HorizontalAlignment="Left"
+                               Foreground="{StaticResource PrimaryTextColor}"
+                               Opacity="0.4"
+                               FontFamily="Segoe UI Semibold"
+                               FontSize="48"/>
+                    <TextBlock x:Name="VerticalTopRightTimeText"
+                               Grid.Column="1"
+                               HorizontalAlignment="Right"
+                               Foreground="{StaticResource PrimaryTextColor}"
+                               Opacity="0.4"
+                               FontFamily="Segoe UI Semibold"
+                               FontSize="48"/>
+                </Grid>
+            </Grid>
+            
+            <!-- Горизонтальный режим -->
+            <Grid x:Name="HorizontalModeGrid" Visibility="Collapsed">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="0.15*"/>
+                    <RowDefinition Height="0.25*"/>
+                    <RowDefinition Height="0.5*"/>
+                    <RowDefinition Height="0.2*"/>
+                </Grid.RowDefinitions>
+                
+                <!-- Общий градиент для верхней части -->
+                <Border Grid.Row="0" 
+                        Grid.RowSpan="2"
+                        HorizontalAlignment="Stretch"
+                        VerticalAlignment="Stretch">
+                    <Border.Background>
+                        <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                            <GradientStop Color="#C0000000" Offset="0"/>
+                            <GradientStop Color="#40000000" Offset="0.7"/>
+                            <GradientStop Color="#00000000" Offset="1"/>
+                        </LinearGradientBrush>
+                    </Border.Background>
+                </Border>
+                
+                <!-- Инфо + время (горизонтальный режим) -->
+                <Grid x:Name="HorizontalTopInfoPanel"
+                      Grid.Row="0"
+                      HorizontalAlignment="Stretch"
+                      VerticalAlignment="Stretch"
+                      Margin="0,0,0,0"
+                      Background="Transparent">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock x:Name="HorizontalTopRightAppNameText"
+                               Grid.Column="0"
+                               HorizontalAlignment="Left"
+                               VerticalAlignment="Center"
+                               Foreground="{StaticResource PrimaryTextColor}"
+                               Opacity="0.4"
+                               FontFamily="Segoe UI Semibold"
+                               FontSize="48"
+                               Margin="70,0,0,0"/>
+                    <TextBlock x:Name="HorizontalTopRightTimeText"
+                               Grid.Column="1"
+                               HorizontalAlignment="Right"
+                               VerticalAlignment="Center"
+                               Foreground="{StaticResource PrimaryTextColor}"
+                               Opacity="0.4"
+                               FontFamily="Segoe UI Semibold"
+                               FontSize="48"
+                               Margin="0,0,70,0"/>
+                </Grid>
+                
+                <!-- Список (горизонтальный режим) -->
+                <ListBox x:Name="HorizontalItemsListBox" 
+                         Grid.Row="1"
+                         HorizontalAlignment="Stretch" 
+                         VerticalAlignment="Stretch"
+                         Margin="0,0,0,0"
+                         Background="Transparent"
+                         BorderThickness="0"
+                         ClipToBounds="False"
+                         Padding="0,0,0,0"
+                         ScrollViewer.HorizontalScrollBarVisibility="Hidden"
+                         ScrollViewer.VerticalScrollBarVisibility="Hidden"
+                         SelectionChanged="ItemsListBox_SelectionChanged"
+                         ItemContainerStyle="{StaticResource HorizontalListBoxItemStyle}">
+                    <ListBox.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <StackPanel Orientation="Horizontal"/>
+                        </ItemsPanelTemplate>
+                    </ListBox.ItemsPanel>
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <Grid Margin="0">
+                                <Image Source="{Binding Icon}" 
+                                       Width="220" 
+                                       Height="220" 
+                                       RenderOptions.BitmapScalingMode="HighQuality"
+                                       Stretch="UniformToFill"
+                                       x:Name="CoverImage"
+                                       VerticalAlignment="Top">
+                                    <Image.OpacityMask>
+                                        <VisualBrush>
+                                            <VisualBrush.Visual>
+                                                <Border Background="Black" 
+                                                        CornerRadius="10" 
+                                                        Width="220" 
+                                                        Height="220"
+                                                        x:Name="OpacityMaskBorder"/>
+                                            </VisualBrush.Visual>
+                                        </VisualBrush>
+                                    </Image.OpacityMask>
+                                </Image>
+                            </Grid>
+                            <DataTemplate.Triggers>
+                                <DataTrigger Binding="{Binding RelativeSource={RelativeSource AncestorType=ListBoxItem}, Path=IsSelected}" Value="True">
+                                    <DataTrigger.EnterActions>
+                                        <BeginStoryboard>
+                                            <Storyboard>
+                                                <DoubleAnimation Storyboard.TargetName="CoverImage"
+                                                               Storyboard.TargetProperty="Width"
+                                                               To="256"
+                                                               Duration="0:0:0.3">
+                                                    <DoubleAnimation.EasingFunction>
+                                                        <CubicEase EasingMode="EaseOut"/>
+                                                    </DoubleAnimation.EasingFunction>
+                                                </DoubleAnimation>
+                                                <DoubleAnimation Storyboard.TargetName="CoverImage"
+                                                               Storyboard.TargetProperty="Height"
+                                                               To="256"
+                                                               Duration="0:0:0.3">
+                                                    <DoubleAnimation.EasingFunction>
+                                                        <CubicEase EasingMode="EaseOut"/>
+                                                    </DoubleAnimation.EasingFunction>
+                                                </DoubleAnimation>
+                                                <DoubleAnimation Storyboard.TargetName="OpacityMaskBorder"
+                                                               Storyboard.TargetProperty="Width"
+                                                               To="256"
+                                                               Duration="0:0:0.3">
+                                                    <DoubleAnimation.EasingFunction>
+                                                        <CubicEase EasingMode="EaseOut"/>
+                                                    </DoubleAnimation.EasingFunction>
+                                                </DoubleAnimation>
+                                                <DoubleAnimation Storyboard.TargetName="OpacityMaskBorder"
+                                                               Storyboard.TargetProperty="Height"
+                                                               To="256"
+                                                               Duration="0:0:0.3">
+                                                    <DoubleAnimation.EasingFunction>
+                                                        <CubicEase EasingMode="EaseOut"/>
+                                                    </DoubleAnimation.EasingFunction>
+                                                </DoubleAnimation>
+                                            </Storyboard>
+                                        </BeginStoryboard>
+                                    </DataTrigger.EnterActions>
+                                    <DataTrigger.ExitActions>
+                                        <BeginStoryboard>
+                                            <Storyboard>
+                                                <DoubleAnimation Storyboard.TargetName="CoverImage"
+                                                               Storyboard.TargetProperty="Width"
+                                                               To="220"
+                                                               Duration="0:0:0.3">
+                                                    <DoubleAnimation.EasingFunction>
+                                                        <CubicEase EasingMode="EaseOut"/>
+                                                    </DoubleAnimation.EasingFunction>
+                                                </DoubleAnimation>
+                                                <DoubleAnimation Storyboard.TargetName="CoverImage"
+                                                               Storyboard.TargetProperty="Height"
+                                                               To="220"
+                                                               Duration="0:0:0.3">
+                                                    <DoubleAnimation.EasingFunction>
+                                                        <CubicEase EasingMode="EaseOut"/>
+                                                    </DoubleAnimation.EasingFunction>
+                                                </DoubleAnimation>
+                                                <DoubleAnimation Storyboard.TargetName="OpacityMaskBorder"
+                                                               Storyboard.TargetProperty="Width"
+                                                               To="220"
+                                                               Duration="0:0:0.3">
+                                                    <DoubleAnimation.EasingFunction>
+                                                        <CubicEase EasingMode="EaseOut"/>
+                                                    </DoubleAnimation.EasingFunction>
+                                                </DoubleAnimation>
+                                                <DoubleAnimation Storyboard.TargetName="OpacityMaskBorder"
+                                                               Storyboard.TargetProperty="Height"
+                                                               To="220"
+                                                               Duration="0:0:0.3">
+                                                    <DoubleAnimation.EasingFunction>
+                                                        <CubicEase EasingMode="EaseOut"/>
+                                                    </DoubleAnimation.EasingFunction>
+                                                </DoubleAnimation>
+                                            </Storyboard>
+                                        </BeginStoryboard>
+                                    </DataTrigger.ExitActions>
+                                </DataTrigger>
+                            </DataTemplate.Triggers>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+                
+                <!-- Название выбранной игры (горизонтальный режим) -->
+                <TextBlock x:Name="HorizontalSelectedGameTitle"
+                           Grid.Row="2"
+                           Background="Transparent"
+                           HorizontalAlignment="Stretch"
+                           VerticalAlignment="Stretch"
+                           Padding="200,400,0,0"
                            Foreground="{StaticResource PrimaryTextColor}"
-                           Opacity="0.4"
                            FontFamily="Segoe UI Semibold"
-                           FontSize="48"/>
-                <TextBlock x:Name="TopRightTimeText"
-                           Grid.Column="1"
-                           HorizontalAlignment="Right"
-                           Foreground="{StaticResource PrimaryTextColor}"
-                           Opacity="0.4"
-                           FontFamily="Segoe UI Semibold"
-                           FontSize="48"/>
+                           FontSize="108"
+                           TextAlignment="Left"
+                           TextWrapping="Wrap">
+                    <TextBlock.Effect>
+                        <DropShadowEffect Color="Black" 
+                                          Direction="315" 
+                                          ShadowDepth="3" 
+                                          Opacity="0.6" 
+                                          BlurRadius="8"/>
+                    </TextBlock.Effect>
+                </TextBlock>
+                
+                <!-- Подсказки (горизонтальный режим) -->
+                <Border x:Name="HorizontalBottomPanel"
+                        Grid.Row="3"
+                        Background="{StaticResource BottomPanelColor}"
+                        HorizontalAlignment="Right"
+                        VerticalAlignment="Bottom"
+                        CornerRadius="10"
+                        Padding="20"
+                        Margin="0,0,70,50">
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                            <StackPanel Orientation="Horizontal" Margin="20,0">
+                                <TextBlock Text="&#xF093;" Style="{StaticResource HintIconStyle}" Foreground="{StaticResource GreenAccentColor}"/>
+                                <TextBlock Text="Запуск" Style="{StaticResource HintTextStyle}"/>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" Margin="20,0">
+                                <TextBlock Text="&#xF094;" Style="{StaticResource HintIconStyle}" Foreground="{StaticResource RedAccentColor}"/>
+                                <TextBlock Text="Выход" Style="{StaticResource HintTextStyle}"/>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" Margin="20,0">
+                                <TextBlock Text="&#xF096;" Style="{StaticResource HintIconStyle}" Foreground="{StaticResource BlueAccentColor}"/>
+                                <TextBlock Text="Свап экрана" Style="{StaticResource HintTextStyle}"/>
+                            </StackPanel>
+                        </StackPanel>
+                </Border>
             </Grid>
 
-            <!-- Имя выбранного элемента -->
-            <!-- <TextBlock x:Name="SelectedNameText"
-                       Grid.Column="1"
-                       HorizontalAlignment="Center"
-                       VerticalAlignment="Center"
-                       Margin="0,0,0,0"
-                       Opacity="0.5"
-                       Foreground="{StaticResource PrimaryTextColor}"
-                       FontFamily="Segoe UI Semibold"
-                       FontSize="120"/> -->
-
+            <!-- Сообщение об отсутствии ярлыков -->
             <TextBlock x:Name="NoShortcutsMessage"
                        Grid.ColumnSpan="2"
                        HorizontalAlignment="Center"
@@ -137,6 +357,21 @@
                 <Run Text="Для выхода нажмите [ ESC ]"/>
             </TextBlock>
 
+            <!-- Блюр фона при выходе -->
+            <Border x:Name="ExitOverlay"
+                    Grid.ColumnSpan="2"
+                    Visibility="Hidden"
+                    Panel.ZIndex="10">
+                <Border.Background>
+                    <ImageBrush x:Name="ExitBlurredBackgroundBrush" 
+                                Stretch="UniformToFill"
+                                Opacity="0"/>
+                </Border.Background>
+                <Border.Effect>
+                    <BlurEffect x:Name="ExitBlurEffect" Radius="0"/>
+                </Border.Effect>
+            </Border>
+
             <!-- Текст при выходе -->
             <TextBlock x:Name="ExitMessageText"
                        Grid.ColumnSpan="2"
@@ -147,7 +382,8 @@
                        FontSize="72"
                        Foreground="White"
                        Visibility="Hidden"
-                       Opacity="0.8">
+                       Opacity="0.8"
+                       Panel.ZIndex="11">
                 <Run Text="Assembled by"/>
                 <Run x:Name="CompanyNameRun" Text=""/>
             </TextBlock>

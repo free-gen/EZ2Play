@@ -20,7 +20,8 @@ namespace EZ2Play
                 catch { /* Ignore */ }
             }
         }
-        private const int IconSize = 64; // Размер иконки в пикселях
+        private const int IconSize = 64; // Размер иконки в пикселях (вертикальный режим)
+        private const int HorizontalIconSize = 256; // Размер иконки в пикселях (горизонтальный режим)
 
         [DllImport("shell32.dll", CharSet = CharSet.Auto)]
         private static extern IntPtr SHGetFileInfo(string pszPath, uint dwFileAttributes, 
@@ -191,6 +192,11 @@ namespace EZ2Play
 
         public static ImageSource GetIconForShortcut(string shortcutPath)
         {
+            return GetIconForShortcut(shortcutPath, IconSize);
+        }
+
+        public static ImageSource GetIconForShortcut(string shortcutPath, int iconSize)
+        {
             try
             {
                 // Получаем путь к иконке из ярлыка
@@ -211,10 +217,10 @@ namespace EZ2Play
                         defaultIndex = shinfo.iIcon;
                     }
 
-                    var hdIcon = ExtractHdIconFromFile(iconPath, defaultIndex, IconSize);
+                    var hdIcon = ExtractHdIconFromFile(iconPath, defaultIndex, iconSize);
                     if (hdIcon != IntPtr.Zero)
                     {
-                        var bitmapSource = ConvertIconToBitmapSource(hdIcon, IconSize);
+                        var bitmapSource = ConvertIconToBitmapSource(hdIcon, iconSize);
                         DestroyIcon(hdIcon);
                         return bitmapSource;
                     }
@@ -234,10 +240,10 @@ namespace EZ2Play
                         
                         if (!string.IsNullOrWhiteSpace(targetPath) && targetPath.Length > 0 && File.Exists(targetPath))
                         {
-                            var hdIcon = ExtractHdIconFromFile(targetPath + ",0", 0, IconSize);
+                            var hdIcon = ExtractHdIconFromFile(targetPath + ",0", 0, iconSize);
                             if (hdIcon != IntPtr.Zero)
                             {
-                                var bitmapSource = ConvertIconToBitmapSource(hdIcon, IconSize);
+                                var bitmapSource = ConvertIconToBitmapSource(hdIcon, iconSize);
                                 DestroyIcon(hdIcon);
                                 return bitmapSource;
                             }

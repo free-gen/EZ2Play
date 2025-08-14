@@ -24,6 +24,7 @@ namespace EZ2Play
         private const string LogFile = "EZ2Play.log";
         private ShortcutInfo[] _shortcuts = Array.Empty<ShortcutInfo>();
         private int _selectedIndex = 0;
+        private bool _isHorizontalMode = false;
         private bool _isExternalDisplay = false;
         private bool _hasMultipleDisplays = false;
         private bool _wasLaunchedWithHotswap = false;
@@ -47,14 +48,18 @@ namespace EZ2Play
             Log("MainWindow constructor started...");
             
             _wasLaunchedWithHotswap = hotSwap;
-            Log($"Application launched with hotswap: {_wasLaunchedWithHotswap}");
+            _isHorizontalMode = App.IsHorizontalMode;
+            Log($"Application launched with hotswap: {_wasLaunchedWithHotswap}, horizontal mode: {_isHorizontalMode}");
             
+            SetupLayoutMode();
             CheckMultipleDisplays();
             
             _audioManager = new Sound();
             _Input = new Input();
+            _Input.SetHorizontalMode(_isHorizontalMode);
             _glowAnimation = new SelectorAnimation();
             App.GlowBrush = _glowAnimation.GetAnimatedBrush();
+            App.HorizontalGlowBrush = _glowAnimation.GetHorizontalAnimatedBrush();
             LoadCustomBackgroundImage();
             LoadShortcuts();
             SetupInputEvents();
@@ -83,6 +88,35 @@ namespace EZ2Play
                         ToggleDisplay();
                     }
                 }), System.Windows.Threading.DispatcherPriority.Background);
+            }
+        }
+
+        private void SetupLayoutMode()
+        {
+            try
+            {
+                var verticalGrid = this.FindName("VerticalModeGrid") as Grid;
+                var horizontalGrid = this.FindName("HorizontalModeGrid") as Grid;
+                
+                if (verticalGrid != null && horizontalGrid != null)
+                {
+                    if (_isHorizontalMode)
+                    {
+                        verticalGrid.Visibility = Visibility.Collapsed;
+                        horizontalGrid.Visibility = Visibility.Visible;
+                        Log("Switched to horizontal layout mode");
+                    }
+                    else
+                    {
+                        verticalGrid.Visibility = Visibility.Visible;
+                        horizontalGrid.Visibility = Visibility.Collapsed;
+                        Log("Using vertical layout mode");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Log($"Error setting up layout mode: {ex.Message}");
             }
         }
 
@@ -118,7 +152,8 @@ namespace EZ2Play
         {
             try
             {
-                var bottomPanel = this.FindName("BottomPanel") as Border;
+                var bottomPanelName = _isHorizontalMode ? "HorizontalBottomPanel" : "VerticalBottomPanel";
+                var bottomPanel = this.FindName(bottomPanelName) as Border;
                 if (bottomPanel?.Child is StackPanel mainStackPanel)
                 {
                     if (mainStackPanel.Children.Count >= 3)
@@ -161,26 +196,36 @@ namespace EZ2Play
             try
             {
                 var shortcutsDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "shortcuts");
+                var listBoxName = _isHorizontalMode ? "HorizontalItemsListBox" : "VerticalItemsListBox";
+                var itemsListBox = this.FindName(listBoxName) as ListBox;
+                
                 if (!Directory.Exists(shortcutsDir))
                 {
                     Directory.CreateDirectory(shortcutsDir);
                     Log("Created shortcuts directory");
                     _shortcuts = Array.Empty<ShortcutInfo>();
-                    ItemsListBox.ItemsSource = _shortcuts;
+                    if (itemsListBox != null)
+                    {
+                        itemsListBox.ItemsSource = _shortcuts;
+                    }
                     UpdateEmptyState(true);
                     return;
                 }
 
+                var iconSize = _isHorizontalMode ? 256 : 64;
                 _shortcuts = Directory.GetFiles(shortcutsDir, "*.lnk")
                     .Select(lnkPath => new ShortcutInfo
                     {
                         Name = Path.GetFileNameWithoutExtension(lnkPath),
-                        Icon = IconExtractor.GetIconForShortcut(lnkPath)
+                        Icon = IconExtractor.GetIconForShortcut(lnkPath, iconSize)
                     })
                     .ToArray();
 
-                ItemsListBox.ItemsSource = _shortcuts;
-                if (_shortcuts.Length > 0) ItemsListBox.SelectedIndex = 0;
+                if (itemsListBox != null)
+                {
+                    itemsListBox.ItemsSource = _shortcuts;
+                    if (_shortcuts.Length > 0) itemsListBox.SelectedIndex = 0;
+                }
                 Log($"Loaded {_shortcuts.Length} shortcuts");
                 
                 UpdateEmptyState(_shortcuts.Length == 0);
@@ -197,11 +242,13 @@ namespace EZ2Play
         {
             try
             {
-                var bottomPanel = this.FindName("BottomPanel") as Border;
+                var bottomPanelName = _isHorizontalMode ? "HorizontalBottomPanel" : "VerticalBottomPanel";
+                var topInfoPanelName = _isHorizontalMode ? "HorizontalTopInfoPanel" : "VerticalTopInfoPanel";
+                
+                var bottomPanel = this.FindName(bottomPanelName) as Border;
                 var noShortcutsMessage = this.FindName("NoShortcutsMessage") as TextBlock;
-                var topInfoPanel = this.FindName("TopInfoPanel") as Grid;
-                var selectedNameText = this.FindName("SelectedNameText") as TextBlock;
-
+                var topInfoPanel = this.FindName(topInfoPanelName) as Grid;
+                
                 if (bottomPanel != null)
                 {
                     bottomPanel.Visibility = isEmpty ? Visibility.Collapsed : Visibility.Visible;
@@ -210,13 +257,19 @@ namespace EZ2Play
                 {
                     topInfoPanel.Visibility = isEmpty ? Visibility.Collapsed : Visibility.Visible;
                 }
-                if (selectedNameText != null)
-                {
-                    selectedNameText.Visibility = isEmpty ? Visibility.Collapsed : Visibility.Visible;
-                }
                 if (noShortcutsMessage != null)
                 {
                     noShortcutsMessage.Visibility = isEmpty ? Visibility.Visible : Visibility.Collapsed;
+                }
+                
+                // Для горизонтального режима управляем видимостью названия игры
+                if (_isHorizontalMode)
+                {
+                    var selectedGameTitle = this.FindName("HorizontalSelectedGameTitle") as TextBlock;
+                    if (selectedGameTitle != null)
+                    {
+                        selectedGameTitle.Visibility = isEmpty ? Visibility.Collapsed : Visibility.Visible;
+                    }
                 }
             }
             catch (Exception ex)
@@ -244,8 +297,11 @@ namespace EZ2Play
         {
             try
             {
-                var appNameTb = this.FindName("TopRightAppNameText") as TextBlock;
-                var timeTb = this.FindName("TopRightTimeText") as TextBlock;
+                var appNameTextName = _isHorizontalMode ? "HorizontalTopRightAppNameText" : "VerticalTopRightAppNameText";
+                var timeTextName = _isHorizontalMode ? "HorizontalTopRightTimeText" : "VerticalTopRightTimeText";
+                
+                var appNameTb = this.FindName(appNameTextName) as TextBlock;
+                var timeTb = this.FindName(timeTextName) as TextBlock;
                 if (appNameTb == null || timeTb == null) return;
                 
                 var time = DateTime.Now.ToString("HH:mm");
@@ -269,8 +325,13 @@ namespace EZ2Play
             }
             
             _selectedIndex = newIndex;
-            ItemsListBox.SelectedIndex = _selectedIndex;
-            ItemsListBox.ScrollIntoView(ItemsListBox.SelectedItem);
+            var listBoxName = _isHorizontalMode ? "HorizontalItemsListBox" : "VerticalItemsListBox";
+            var itemsListBox = this.FindName(listBoxName) as ListBox;
+            if (itemsListBox != null)
+            {
+                itemsListBox.SelectedIndex = _selectedIndex;
+                itemsListBox.ScrollIntoView(itemsListBox.SelectedItem);
+            }
             
             Dispatcher.BeginInvoke(new Action(() =>
             {
@@ -285,8 +346,16 @@ namespace EZ2Play
             try
             {
                 var backgroundBrush = (ImageBrush)Resources["BackgroundBrush"];
-                var listBoxBlurredBackground = this.FindName("ListBoxBlurredBackground") as Border;
-                var blurredListBackgroundBrush = this.FindName("BlurredListBackgroundBrush") as ImageBrush;
+                
+                // Для вертикального режима используем размытый фон под списком
+                Border listBoxBlurredBackground = null;
+                ImageBrush blurredListBackgroundBrush = null;
+                
+                if (!_isHorizontalMode)
+                {
+                    listBoxBlurredBackground = this.FindName("VerticalListBoxBlurredBackground") as Border;
+                    blurredListBackgroundBrush = this.FindName("VerticalBlurredListBackgroundBrush") as ImageBrush;
+                }
 
                 // Если используется пользовательский фон, устанавливаем его
                 if (App.UseCustomBackground && _customBackgroundImage != null)
@@ -396,9 +465,10 @@ namespace EZ2Play
 
         private void ItemsListBox_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
         {
-            if (ItemsListBox.SelectedIndex >= 0)
+            var listBox = sender as ListBox;
+            if (listBox != null && listBox.SelectedIndex >= 0)
             {
-                _selectedIndex = ItemsListBox.SelectedIndex;
+                _selectedIndex = listBox.SelectedIndex;
                 UpdateBackground();
                 UpdateSelectedNameTopRight();
             }
@@ -408,16 +478,23 @@ namespace EZ2Play
         {
             try
             {
-                var tb = this.FindName("SelectedNameText") as TextBlock;
-                if (tb == null) return;
-                if (_selectedIndex >= 0 && _selectedIndex < _shortcuts.Length)
+                if (_isHorizontalMode)
                 {
-                    tb.Text = _shortcuts[_selectedIndex].Name;
+                    // В горизонтальном режиме обновляем название игры под списком
+                    var selectedGameTitle = this.FindName("HorizontalSelectedGameTitle") as TextBlock;
+                    if (selectedGameTitle != null)
+                    {
+                        if (_selectedIndex >= 0 && _selectedIndex < _shortcuts.Length)
+                        {
+                            selectedGameTitle.Text = _shortcuts[_selectedIndex].Name;
+                        }
+                        else
+                        {
+                            selectedGameTitle.Text = string.Empty;
+                        }
+                    }
                 }
-                else
-                {
-                    tb.Text = string.Empty;
-                }
+                // В вертикальном режиме можно было бы обновлять SelectedNameText, но он закомментирован в оригинальном XAML
             }
             catch {}
         }
@@ -529,19 +606,65 @@ namespace EZ2Play
         {
             try
             {
-                var itemsListBox = this.FindName("ItemsListBox") as ListBox;
-                var bottomPanel = this.FindName("BottomPanel") as Border;
-                var topInfoPanel = this.FindName("TopInfoPanel") as Grid;
-                var selectedNameText = this.FindName("SelectedNameText") as TextBlock;
+                var listBoxName = _isHorizontalMode ? "HorizontalItemsListBox" : "VerticalItemsListBox";
+                var bottomPanelName = _isHorizontalMode ? "HorizontalBottomPanel" : "VerticalBottomPanel";
+                var topInfoPanelName = _isHorizontalMode ? "HorizontalTopInfoPanel" : "VerticalTopInfoPanel";
+                
+                var itemsListBox = this.FindName(listBoxName) as ListBox;
+                var bottomPanel = this.FindName(bottomPanelName) as Border;
+                var topInfoPanel = this.FindName(topInfoPanelName) as Grid;
                 var noShortcutsMessage = this.FindName("NoShortcutsMessage") as TextBlock;
-                var listBoxBlurredBackground = this.FindName("ListBoxBlurredBackground") as Border;
+                var listBoxBlurredBackground = this.FindName("VerticalListBoxBlurredBackground") as Border;
+                var selectedGameTitle = this.FindName("HorizontalSelectedGameTitle") as TextBlock;
+                var exitOverlay = this.FindName("ExitOverlay") as Border;
 
                 if (itemsListBox != null) itemsListBox.Visibility = Visibility.Collapsed;
                 if (bottomPanel != null) bottomPanel.Visibility = Visibility.Collapsed;
                 if (topInfoPanel != null) topInfoPanel.Visibility = Visibility.Collapsed;
-                if (selectedNameText != null) selectedNameText.Visibility = Visibility.Collapsed;
+                if (selectedGameTitle != null) selectedGameTitle.Visibility = Visibility.Collapsed;
                 if (listBoxBlurredBackground != null) listBoxBlurredBackground.Visibility = Visibility.Collapsed;
                 if (noShortcutsMessage != null) noShortcutsMessage.Visibility = Visibility.Collapsed;
+
+                // Показываем блюр overlay
+                if (exitOverlay != null)
+                {
+                    exitOverlay.Visibility = Visibility.Visible;
+                    
+                    // Копируем текущий фон для блюра
+                    var backgroundBrush = (ImageBrush)Resources["BackgroundBrush"];
+                    var exitBlurredBackgroundBrush = this.FindName("ExitBlurredBackgroundBrush") as ImageBrush;
+                    var exitBlurEffect = this.FindName("ExitBlurEffect") as BlurEffect;
+                    
+                    if (exitBlurredBackgroundBrush != null && backgroundBrush != null)
+                    {
+                        exitBlurredBackgroundBrush.ImageSource = backgroundBrush.ImageSource;
+                        
+                        // Анимация появления фона
+                        var backgroundAnimation = new DoubleAnimation
+                        {
+                            From = 0.0,
+                            To = 1.0,
+                            Duration = TimeSpan.FromMilliseconds(300),
+                            EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut }
+                        };
+                        
+                        exitBlurredBackgroundBrush.BeginAnimation(ImageBrush.OpacityProperty, backgroundAnimation);
+                    }
+                    
+                    // Анимация блюра
+                    if (exitBlurEffect != null)
+                    {
+                        var blurAnimation = new DoubleAnimation
+                        {
+                            From = 0.0,
+                            To = 50.0,
+                            Duration = TimeSpan.FromMilliseconds(600),
+                            EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut }
+                        };
+                        
+                        exitBlurEffect.BeginAnimation(BlurEffect.RadiusProperty, blurAnimation);
+                    }
+                }
 
                 var companyName = AppInfo.GetCompanyName();
                 var companyNameRun = this.FindName("CompanyNameRun") as System.Windows.Documents.Run;
@@ -564,7 +687,7 @@ namespace EZ2Play
                         EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut }
                     };
 
-                    animation.BeginAnimation(UIElement.OpacityProperty, animation);
+                    exitMessageText.BeginAnimation(UIElement.OpacityProperty, animation);
                 }
             }
             catch (Exception ex)
@@ -714,7 +837,8 @@ namespace EZ2Play
             IsGamepadConnected = isConnected;
             try
             {
-                var bottomPanel = this.FindName("BottomPanel") as Border;
+                var bottomPanelName = _isHorizontalMode ? "HorizontalBottomPanel" : "VerticalBottomPanel";
+                var bottomPanel = this.FindName(bottomPanelName) as Border;
                 if (bottomPanel?.Child is StackPanel mainStackPanel && mainStackPanel.Children.Count >= 3)
                 {
                     UpdateHintItem(mainStackPanel.Children[0] as StackPanel, isConnected, "\uF093", "EnterKeyIcon", "GreenAccentColor");

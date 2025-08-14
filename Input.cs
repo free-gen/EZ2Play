@@ -19,6 +19,9 @@ namespace EZ2Play
         
         private bool _upKeyPressed = false;
         private bool _downKeyPressed = false;
+        private bool _leftKeyPressed = false;
+        private bool _rightKeyPressed = false;
+        private bool _isHorizontalMode = false;
         private DateTime _keyHoldStart = DateTime.MinValue;
         private DateTime _gamepadHoldStart = DateTime.MinValue;
         private DateTime _lastGamepadInput = DateTime.MinValue;
@@ -47,6 +50,11 @@ namespace EZ2Play
             InitializeGamepad();
             InitializeKeyboardTimer();
             InitializeGamepadCheckTimer();
+        }
+
+        public void SetHorizontalMode(bool isHorizontal)
+        {
+            _isHorizontalMode = isHorizontal;
         }
 
         private void UpdateConnectionState(bool isConnected)
@@ -170,15 +178,31 @@ namespace EZ2Play
             
             var repeatDelay = holdDuration > 2000 ? FAST_REPEAT_DELAY : REPEAT_DELAY;
 
-            if (_upKeyPressed && timeSinceLastInput >= repeatDelay)
+            if (_isHorizontalMode)
             {
-                _lastKeyboardInput = now;
-                OnMoveSelection?.Invoke(-1);
+                if (_leftKeyPressed && timeSinceLastInput >= repeatDelay)
+                {
+                    _lastKeyboardInput = now;
+                    OnMoveSelection?.Invoke(-1);
+                }
+                else if (_rightKeyPressed && timeSinceLastInput >= repeatDelay)
+                {
+                    _lastKeyboardInput = now;
+                    OnMoveSelection?.Invoke(1);
+                }
             }
-            else if (_downKeyPressed && timeSinceLastInput >= repeatDelay)
+            else
             {
-                _lastKeyboardInput = now;
-                OnMoveSelection?.Invoke(1);
+                if (_upKeyPressed && timeSinceLastInput >= repeatDelay)
+                {
+                    _lastKeyboardInput = now;
+                    OnMoveSelection?.Invoke(-1);
+                }
+                else if (_downKeyPressed && timeSinceLastInput >= repeatDelay)
+                {
+                    _lastKeyboardInput = now;
+                    OnMoveSelection?.Invoke(1);
+                }
             }
         }
 
@@ -194,6 +218,8 @@ namespace EZ2Play
 
                 bool upPressed = state.PointOfViewControllers[0] == 0 || state.Y < 16384;
                 bool downPressed = state.PointOfViewControllers[0] == 18000 || state.Y > 49152;
+                bool leftPressed = state.PointOfViewControllers[0] == 27000 || state.X < 16384;
+                bool rightPressed = state.PointOfViewControllers[0] == 9000 || state.X > 49152;
                 bool selectPressed = state.Buttons[0];
                 bool backPressed = state.Buttons[1];
                 bool xButtonPressed = state.Buttons[2];
@@ -201,15 +227,33 @@ namespace EZ2Play
                 var now = DateTime.Now;
                 var gamepadHoldDuration = (now - _gamepadHoldStart).TotalMilliseconds;
 
-                if (upPressed || downPressed)
+                bool navigationPressed;
+                if (_isHorizontalMode)
+                {
+                    navigationPressed = leftPressed || rightPressed;
+                }
+                else
+                {
+                    navigationPressed = upPressed || downPressed;
+                }
+
+                if (navigationPressed)
                 {
                     if (_gamepadHoldStart == DateTime.MinValue)
                     {
                         _gamepadHoldStart = now;
                         _lastGamepadInput = now;
                         
-                        if (upPressed) OnMoveSelection?.Invoke(-1);
-                        else if (downPressed) OnMoveSelection?.Invoke(1);
+                        if (_isHorizontalMode)
+                        {
+                            if (leftPressed) OnMoveSelection?.Invoke(-1);
+                            else if (rightPressed) OnMoveSelection?.Invoke(1);
+                        }
+                        else
+                        {
+                            if (upPressed) OnMoveSelection?.Invoke(-1);
+                            else if (downPressed) OnMoveSelection?.Invoke(1);
+                        }
                     }
                     else
                     {
@@ -222,8 +266,16 @@ namespace EZ2Play
                             if (timeSinceLastInput >= repeatDelay)
                             {
                                 _lastGamepadInput = now;
-                                if (upPressed) OnMoveSelection?.Invoke(-1);
-                                else if (downPressed) OnMoveSelection?.Invoke(1);
+                                if (_isHorizontalMode)
+                                {
+                                    if (leftPressed) OnMoveSelection?.Invoke(-1);
+                                    else if (rightPressed) OnMoveSelection?.Invoke(1);
+                                }
+                                else
+                                {
+                                    if (upPressed) OnMoveSelection?.Invoke(-1);
+                                    else if (downPressed) OnMoveSelection?.Invoke(1);
+                                }
                             }
                         }
                     }
@@ -272,7 +324,7 @@ namespace EZ2Play
                 switch (key)
                 {
                     case System.Windows.Input.Key.Up:
-                        if (!_upKeyPressed)
+                        if (!_isHorizontalMode && !_upKeyPressed)
                         {
                             _upKeyPressed = true;
                             _keyHoldStart = DateTime.Now;
@@ -281,9 +333,27 @@ namespace EZ2Play
                         }
                         break;
                     case System.Windows.Input.Key.Down:
-                        if (!_downKeyPressed)
+                        if (!_isHorizontalMode && !_downKeyPressed)
                         {
                             _downKeyPressed = true;
+                            _keyHoldStart = DateTime.Now;
+                            _lastKeyboardInput = DateTime.Now;
+                            OnMoveSelection?.Invoke(1);
+                        }
+                        break;
+                    case System.Windows.Input.Key.Left:
+                        if (_isHorizontalMode && !_leftKeyPressed)
+                        {
+                            _leftKeyPressed = true;
+                            _keyHoldStart = DateTime.Now;
+                            _lastKeyboardInput = DateTime.Now;
+                            OnMoveSelection?.Invoke(-1);
+                        }
+                        break;
+                    case System.Windows.Input.Key.Right:
+                        if (_isHorizontalMode && !_rightKeyPressed)
+                        {
+                            _rightKeyPressed = true;
                             _keyHoldStart = DateTime.Now;
                             _lastKeyboardInput = DateTime.Now;
                             OnMoveSelection?.Invoke(1);
@@ -315,6 +385,14 @@ namespace EZ2Play
                         break;
                     case System.Windows.Input.Key.Down:
                         _downKeyPressed = false;
+                        _keyHoldStart = DateTime.MinValue;
+                        break;
+                    case System.Windows.Input.Key.Left:
+                        _leftKeyPressed = false;
+                        _keyHoldStart = DateTime.MinValue;
+                        break;
+                    case System.Windows.Input.Key.Right:
+                        _rightKeyPressed = false;
                         _keyHoldStart = DateTime.MinValue;
                         break;
                 }

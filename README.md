@@ -1,14 +1,15 @@
 # EZ2Play Launcher
 
-![EZ2Play Screenshot](attach.png)
+![EZ2Play Screenshot](.image-01.png)
+![EZ2Play Screenshot](.image-02.png)
 
-![EZ2Play](https://img.shields.io/badge/Version-1.1.1.0-blue) ![Platform](https://img.shields.io/badge/Platform-Windows-lightgrey) ![Framework](https://img.shields.io/badge/Framework-WPF-purple)
+![EZ2Play](https://img.shields.io/badge/Version-1.2.0.0-blue) ![Platform](https://img.shields.io/badge/Platform-Windows-lightgrey) ![Framework](https://img.shields.io/badge/Framework-WPF-purple)
 
 EZ2Play - это простой WPF лаунчер без каких-либо настроек, который позволяет запускать игры и приложения с помощью простых ярлыков.
 
 ## Возможности
 
-- **Лаконичный дизайн**
+- **Два режима отображения** - вертикальный (список) и горизонтальный (обложки)
 - **Управление с геймпада либо клавиатуры**
 - **Быстрое переключение экрана** - опция доступна при наличии двух и более экранов
 - **Никаких настроек** - просто поместите ваши ярлыки в папку `shortcuts`
@@ -40,6 +41,7 @@ EZ2Play.exe [параметры]
 | `--nosplash` | Запуск без экрана-заставки |
 | `--log` | Включение детального логирования |
 | `--hotswap` | Автоматическое переключение дисплея при запуске и обратно при выходе |
+| `--horizontal` | Запуск в горизонтальном режиме (обложки) вместо вертикального (список) |
 
 ### Кастомизация
 
@@ -57,8 +59,14 @@ EZ2Play.exe [параметры]
 ### Примеры использования
 
 ```bash
+# Запуск в горизонтальном режиме (обложки)
+EZ2Play.exe --horizontal
+
 # Быстрое переключение дисплея без заставки
 EZ2Play.exe --hotswap --nosplash
+
+# Горизонтальный режим с кастомным фоном
+EZ2Play.exe --horizontal --custombg
 
 # Кастомная заставка с изображением лого
 EZ2Play.exe --customlogo
@@ -66,11 +74,8 @@ EZ2Play.exe --customlogo
 # Кастомные тексты заставки
 EZ2Play.exe --customlogo-WinStation --customslogan-Please_wait...
 
-# Кастомный фон
-EZ2Play.exe --custombg
-
 # Комбинирование параметров
-EZ2Play.exe --custombg --customlogo --customslogan-Please_wait...
+EZ2Play.exe --horizontal --custombg --customlogo --customslogan-Please_wait...
 ```
 
 ## Системные требования

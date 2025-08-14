@@ -8,11 +8,13 @@ namespace EZ2Play
     public partial class App : Application
     {
         public static LinearGradientBrush GlowBrush { get; set; }
+        public static LinearGradientBrush HorizontalGlowBrush { get; set; }
         public static bool EnableLogging { get; private set; } = false;
         public static bool UseCustomBackground { get; private set; } = false;
         public static bool UseCustomLogoImage { get; private set; } = false;
         public static string CustomLogo { get; private set; } = null;
         public static string CustomSlogan { get; private set; } = null;
+        public static bool IsHorizontalMode { get; private set; } = false;
         private SplashScreen _splashScreen;
         private MainWindow _mainWindow;
 
@@ -51,6 +53,10 @@ namespace EZ2Play
                 {
                     string sloganText = arg.Substring("--customslogan-".Length);
                     CustomSlogan = sloganText.Replace("_", " ");
+                }
+                else if (string.Equals(arg, "--horizontal", StringComparison.OrdinalIgnoreCase))
+                {
+                    IsHorizontalMode = true;
                 }
             }
             

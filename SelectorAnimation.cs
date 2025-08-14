@@ -12,12 +12,14 @@ namespace EZ2Play
         public double InitialDelaySeconds = 0.5;
         
         private LinearGradientBrush gradientBrush;
+        private LinearGradientBrush horizontalGradientBrush;
         private PointAnimationUsingKeyFrames animation;
         private PointAnimationUsingKeyFrames endPointAnimation;
 
         public SelectorAnimation()
         {
             InitializeGradient();
+            InitializeHorizontalGradient();
             InitializeAnimation();
         }
 
@@ -30,6 +32,18 @@ namespace EZ2Play
             gradientBrush.GradientStops.Add(new GradientStop(Color.FromArgb(128, 255, 255, 255), 0.0));
             gradientBrush.GradientStops.Add(new GradientStop(Color.FromArgb(200, 255, 255, 255), 0.5));
             gradientBrush.GradientStops.Add(new GradientStop(Color.FromArgb(128, 255, 255, 255), 1.0));
+        }
+
+        private void InitializeHorizontalGradient()
+        {
+            horizontalGradientBrush = new LinearGradientBrush();
+            horizontalGradientBrush.StartPoint = new Point(-0.5, 0);
+            horizontalGradientBrush.EndPoint = new Point(0, 0);
+
+            // Более яркий градиент для горизонтального режима
+            horizontalGradientBrush.GradientStops.Add(new GradientStop(Color.FromArgb(200, 255, 255, 255), 0.0));
+            horizontalGradientBrush.GradientStops.Add(new GradientStop(Color.FromArgb(255, 255, 255, 255), 0.5));
+            horizontalGradientBrush.GradientStops.Add(new GradientStop(Color.FromArgb(200, 255, 255, 255), 1.0));
         }
 
         private void InitializeAnimation()
@@ -69,6 +83,28 @@ namespace EZ2Play
             gradientBrush.BeginAnimation(LinearGradientBrush.EndPointProperty, endPointAnimation);
             
             return gradientBrush;
+        }
+
+        public LinearGradientBrush GetHorizontalAnimatedBrush()
+        {
+            var movementDuration = TimeSpan.FromSeconds(MovementSpeedSeconds);
+            var totalDuration = TimeSpan.FromSeconds(MovementSpeedSeconds + PauseDurationSeconds);
+
+            var horizontalEndPointAnimation = new PointAnimationUsingKeyFrames();
+            horizontalEndPointAnimation.RepeatBehavior = RepeatBehavior.Forever;
+            horizontalEndPointAnimation.AutoReverse = false;
+            horizontalEndPointAnimation.BeginTime = TimeSpan.FromSeconds(InitialDelaySeconds);
+            horizontalEndPointAnimation.AccelerationRatio = 0.0;
+            horizontalEndPointAnimation.DecelerationRatio = 0.0;
+
+            horizontalEndPointAnimation.KeyFrames.Add(new LinearPointKeyFrame(new Point(0, 0), TimeSpan.Zero));
+            horizontalEndPointAnimation.KeyFrames.Add(new LinearPointKeyFrame(new Point(2.0, 0), movementDuration));
+            horizontalEndPointAnimation.KeyFrames.Add(new LinearPointKeyFrame(new Point(4.0, 0), totalDuration));
+
+            horizontalGradientBrush.BeginAnimation(LinearGradientBrush.StartPointProperty, animation);
+            horizontalGradientBrush.BeginAnimation(LinearGradientBrush.EndPointProperty, horizontalEndPointAnimation);
+            
+            return horizontalGradientBrush;
         }
 
         public void StopAnimation()

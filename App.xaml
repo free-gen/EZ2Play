@@ -6,8 +6,8 @@
         <SolidColorBrush x:Key="PrimaryTextColor" Color="White"/>
         <SolidColorBrush x:Key="SecondaryTextColor" Color="White"/>
         <SolidColorBrush x:Key="BackgroundOverlayColor" Color="#7D000000"/>
-        <SolidColorBrush x:Key="BottomPanelColor" Color="#80000000"/>
-        <SolidColorBrush x:Key="SelectionBorderColor" Color="#AAFFFFFF"/>
+        <SolidColorBrush x:Key="BottomPanelColor" Color="#C8000000"/>
+        <SolidColorBrush x:Key="GameListColor" Color="#AAFFFFFF"/>
         <SolidColorBrush x:Key="SelectionBackgroundColor" Color="#20FFFFFF"/>
         <SolidColorBrush x:Key="GreenAccentColor" Color="#50C83C"/>
         <SolidColorBrush x:Key="RedAccentColor" Color="#DC1E1E"/>
@@ -44,6 +44,84 @@
                             <Trigger Property="IsSelected" Value="False">
                                 <Setter TargetName="SelectionBorder" Property="BorderBrush" Value="Transparent"/>
                                 <Setter TargetName="SelectionBorder" Property="Background" Value="Transparent"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        
+        <!-- Стиль для горизонтального режима -->
+        <Style x:Key="HorizontalListBoxItemStyle" TargetType="ListBoxItem">
+            <Setter Property="Foreground" Value="{StaticResource PrimaryTextColor}"/>
+            <Setter Property="FontSize" Value="30"/>
+            <Setter Property="FontFamily" Value="Segoe UI"/>
+            <Setter Property="Margin" Value="0"/>
+            <Setter Property="Padding" Value="0"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ListBoxItem">
+                        <Grid Width="240" Height="240" 
+                              HorizontalAlignment="Center" 
+                              VerticalAlignment="Top"
+                              Margin="15,0"
+                              x:Name="SelectorContainer">
+                            <ContentPresenter Margin="10"/>
+                            <Border Background="Transparent" 
+                                    BorderThickness="3" 
+                                    CornerRadius="10"
+                                    x:Name="SelectionBorder"/>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter TargetName="SelectionBorder" Property="BorderBrush" Value="{Binding Source={x:Static Application.Current}, Path=HorizontalGlowBrush}"/>
+                                <Trigger.EnterActions>
+                                    <BeginStoryboard>
+                                        <Storyboard>
+                                            <DoubleAnimation Storyboard.TargetName="SelectorContainer"
+                                                           Storyboard.TargetProperty="Width"
+                                                           To="276"
+                                                           Duration="0:0:0.3">
+                                                <DoubleAnimation.EasingFunction>
+                                                    <CubicEase EasingMode="EaseOut"/>
+                                                </DoubleAnimation.EasingFunction>
+                                            </DoubleAnimation>
+                                            <DoubleAnimation Storyboard.TargetName="SelectorContainer"
+                                                           Storyboard.TargetProperty="Height"
+                                                           To="276"
+                                                           Duration="0:0:0.3">
+                                                <DoubleAnimation.EasingFunction>
+                                                    <CubicEase EasingMode="EaseOut"/>
+                                                </DoubleAnimation.EasingFunction>
+                                            </DoubleAnimation>
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </Trigger.EnterActions>
+                                <Trigger.ExitActions>
+                                    <BeginStoryboard>
+                                        <Storyboard>
+                                            <DoubleAnimation Storyboard.TargetName="SelectorContainer"
+                                                           Storyboard.TargetProperty="Width"
+                                                           To="240"
+                                                           Duration="0:0:0.3">
+                                                <DoubleAnimation.EasingFunction>
+                                                    <CubicEase EasingMode="EaseOut"/>
+                                                </DoubleAnimation.EasingFunction>
+                                            </DoubleAnimation>
+                                            <DoubleAnimation Storyboard.TargetName="SelectorContainer"
+                                                           Storyboard.TargetProperty="Height"
+                                                           To="240"
+                                                           Duration="0:0:0.3">
+                                                <DoubleAnimation.EasingFunction>
+                                                    <CubicEase EasingMode="EaseOut"/>
+                                                </DoubleAnimation.EasingFunction>
+                                            </DoubleAnimation>
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </Trigger.ExitActions>
+                            </Trigger>
+                            <Trigger Property="IsSelected" Value="False">
+                                <Setter TargetName="SelectionBorder" Property="BorderBrush" Value="Transparent"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
