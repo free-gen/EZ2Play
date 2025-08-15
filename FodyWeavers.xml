@@ -1,5 +1,10 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Weavers xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="FodyWeavers.xsd">
-  <Costura IncludeDebugSymbols="false" CreateTemporaryAssemblies="false" />
+  <Costura IncludeDebugSymbols="false" CreateTemporaryAssemblies="false">
+    <Include>SharpDX</Include>
+    <Include>SharpDX.DirectInput</Include>
+    <Include>SharpDX.Core</Include>
+    <Include>SharpDX.Mathematics</Include>
+  </Costura>
   <!-- Costura спакует управляемые зависимости (SharpDX.*) внутрь exe -->
 </Weavers>

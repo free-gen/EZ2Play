@@ -3,7 +3,7 @@ using System.Windows;
 using System.Windows.Media;
 using System.Windows.Threading;
 
-namespace EZ2Play
+namespace EZ2Play.Main
 {
     public partial class App : Application
     {
@@ -15,48 +15,71 @@ namespace EZ2Play
         public static string CustomLogo { get; private set; } = null;
         public static string CustomSlogan { get; private set; } = null;
         public static bool IsHorizontalMode { get; private set; } = false;
-        private SplashScreen _splashScreen;
+        private EZ2Play.App.SplashScreen _splashScreen;
         private MainWindow _mainWindow;
 
         protected override void OnStartup(StartupEventArgs e)
         {
             bool noSplash = false;
             bool hotSwap = false;
-            foreach (var arg in e.Args)
+            
+            // Обработка аргументов с поддержкой кавычек
+            for (int i = 0; i < e.Args.Length; i++)
             {
+                string arg = e.Args[i];
+                
+                // Логирование
                 if (string.Equals(arg, "--log", StringComparison.OrdinalIgnoreCase))
                 {
                     EnableLogging = true;
                 }
+                // Запуск без заставки
                 else if (string.Equals(arg, "--nosplash", StringComparison.OrdinalIgnoreCase))
                 {
                     noSplash = true;
                 }
-                else if (string.Equals(arg, "--hotswap", StringComparison.OrdinalIgnoreCase))
+                // Запуск с переключением дисплея
+                else if (string.Equals(arg, "--swap", StringComparison.OrdinalIgnoreCase))
                 {
                     hotSwap = true;
                 }
-                else if (string.Equals(arg, "--custombg", StringComparison.OrdinalIgnoreCase))
+                // Пользовательский фон
+                else if (string.Equals(arg, "--bg", StringComparison.OrdinalIgnoreCase))
                 {
                     UseCustomBackground = true;
                 }
-                else if (string.Equals(arg, "--customlogo", StringComparison.OrdinalIgnoreCase))
+                // Пользовательский логотип
+                else if (string.Equals(arg, "--logo", StringComparison.OrdinalIgnoreCase))
                 {
                     UseCustomLogoImage = true;
                 }
-                else if (arg.StartsWith("--customlogo-", StringComparison.OrdinalIgnoreCase))
+                // Пользовательский текст логотипа
+                else if (arg.StartsWith("--logo-", StringComparison.OrdinalIgnoreCase))
                 {
-                    string logoText = arg.Substring("--customlogo-".Length);
-                    CustomLogo = logoText.Replace("_", " ");
+                    string logoText = arg.Substring("--logo-".Length);
+                    if (logoText.StartsWith("\"") && logoText.EndsWith("\""))
+                    {
+                        CustomLogo = logoText.Substring(1, logoText.Length - 2);
+                    }
                 }
-                else if (arg.StartsWith("--customslogan-", StringComparison.OrdinalIgnoreCase))
+                // Пользовательский текст слогана
+                else if (arg.StartsWith("--slogan-", StringComparison.OrdinalIgnoreCase))
                 {
-                    string sloganText = arg.Substring("--customslogan-".Length);
-                    CustomSlogan = sloganText.Replace("_", " ");
+                    string sloganText = arg.Substring("--slogan-".Length);
+                    if (sloganText.StartsWith("\"") && sloganText.EndsWith("\""))
+                    {
+                        CustomSlogan = sloganText.Substring(1, sloganText.Length - 2);
+                    }
                 }
-                else if (string.Equals(arg, "--horizontal", StringComparison.OrdinalIgnoreCase))
+                // Горизонтальный режим
+                else if (string.Equals(arg, "--wide", StringComparison.OrdinalIgnoreCase))
                 {
                     IsHorizontalMode = true;
+                }
+                // Английский язык
+                else if (string.Equals(arg, "--eng", StringComparison.OrdinalIgnoreCase))
+                {
+                    EZ2Play.App.Langs.SetLanguage(true);
                 }
             }
             
@@ -70,7 +93,7 @@ namespace EZ2Play
             }
             else
             {
-                _splashScreen = new SplashScreen();
+                _splashScreen = new EZ2Play.App.SplashScreen();
                 _splashScreen.SplashCompleted += OnSplashCompleted;
                 
                 _splashScreen.PlaySplashAnimation();

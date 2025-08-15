@@ -76,15 +76,15 @@
                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Center">
                             <StackPanel Orientation="Horizontal" Margin="20,0">
                                 <TextBlock Text="&#xF093;" Style="{StaticResource HintIconStyle}" Foreground="{StaticResource GreenAccentColor}"/>
-                                <TextBlock Text="Запуск" Style="{StaticResource HintTextStyle}"/>
+                                <TextBlock x:Name="VerticalLaunchText" Style="{StaticResource HintTextStyle}"/>
                             </StackPanel>
                             <StackPanel Orientation="Horizontal" Margin="20,0">
                                 <TextBlock Text="&#xF094;" Style="{StaticResource HintIconStyle}" Foreground="{StaticResource RedAccentColor}"/>
-                                <TextBlock Text="Выход" Style="{StaticResource HintTextStyle}"/>
+                                <TextBlock x:Name="VerticalExitText" Style="{StaticResource HintTextStyle}"/>
                             </StackPanel>
                             <StackPanel Orientation="Horizontal" Margin="20,0">
                                 <TextBlock Text="&#xF096;" Style="{StaticResource HintIconStyle}" Foreground="{StaticResource BlueAccentColor}"/>
-                                <TextBlock Text="Свап экрана" Style="{StaticResource HintTextStyle}"/>
+                                <TextBlock x:Name="VerticalScreenSwapText" Style="{StaticResource HintTextStyle}"/>
                             </StackPanel>
                         </StackPanel>
                 </Border>
@@ -192,106 +192,35 @@
                     <ListBox.ItemTemplate>
                         <DataTemplate>
                             <Grid Margin="0">
+                                <!-- Маска прозрачности (вынесена для анимации) -->
+                                <Border Background="Black" 
+                                        CornerRadius="10" 
+                                        Width="220" 
+                                        Height="220"
+                                        x:Name="OpacityMaskBorder"
+                                        Panel.ZIndex="1"/>
+                                
+                                <!-- Изображение обложки -->
                                 <Image Source="{Binding Icon}" 
                                        Width="220" 
                                        Height="220" 
                                        RenderOptions.BitmapScalingMode="HighQuality"
                                        Stretch="UniformToFill"
                                        x:Name="CoverImage"
-                                       VerticalAlignment="Top">
+                                       VerticalAlignment="Top"
+                                       Panel.ZIndex="2">
                                     <Image.OpacityMask>
                                         <VisualBrush>
                                             <VisualBrush.Visual>
                                                 <Border Background="Black" 
                                                         CornerRadius="10" 
                                                         Width="220" 
-                                                        Height="220"
-                                                        x:Name="OpacityMaskBorder"/>
+                                                        Height="220"/>
                                             </VisualBrush.Visual>
                                         </VisualBrush>
                                     </Image.OpacityMask>
                                 </Image>
                             </Grid>
-                            <DataTemplate.Triggers>
-                                <DataTrigger Binding="{Binding RelativeSource={RelativeSource AncestorType=ListBoxItem}, Path=IsSelected}" Value="True">
-                                    <DataTrigger.EnterActions>
-                                        <BeginStoryboard>
-                                            <Storyboard>
-                                                <DoubleAnimation Storyboard.TargetName="CoverImage"
-                                                               Storyboard.TargetProperty="Width"
-                                                               To="256"
-                                                               Duration="0:0:0.3">
-                                                    <DoubleAnimation.EasingFunction>
-                                                        <CubicEase EasingMode="EaseOut"/>
-                                                    </DoubleAnimation.EasingFunction>
-                                                </DoubleAnimation>
-                                                <DoubleAnimation Storyboard.TargetName="CoverImage"
-                                                               Storyboard.TargetProperty="Height"
-                                                               To="256"
-                                                               Duration="0:0:0.3">
-                                                    <DoubleAnimation.EasingFunction>
-                                                        <CubicEase EasingMode="EaseOut"/>
-                                                    </DoubleAnimation.EasingFunction>
-                                                </DoubleAnimation>
-                                                <DoubleAnimation Storyboard.TargetName="OpacityMaskBorder"
-                                                               Storyboard.TargetProperty="Width"
-                                                               To="256"
-                                                               Duration="0:0:0.3">
-                                                    <DoubleAnimation.EasingFunction>
-                                                        <CubicEase EasingMode="EaseOut"/>
-                                                    </DoubleAnimation.EasingFunction>
-                                                </DoubleAnimation>
-                                                <DoubleAnimation Storyboard.TargetName="OpacityMaskBorder"
-                                                               Storyboard.TargetProperty="Height"
-                                                               To="256"
-                                                               Duration="0:0:0.3">
-                                                    <DoubleAnimation.EasingFunction>
-                                                        <CubicEase EasingMode="EaseOut"/>
-                                                    </DoubleAnimation.EasingFunction>
-                                                </DoubleAnimation>
-                                            </Storyboard>
-                                        </BeginStoryboard>
-                                    </DataTrigger.EnterActions>
-                                    <DataTrigger.ExitActions>
-                                        <BeginStoryboard>
-                                            <Storyboard>
-                                                <DoubleAnimation Storyboard.TargetName="CoverImage"
-                                                               Storyboard.TargetProperty="Width"
-                                                               To="220"
-                                                               Duration="0:0:0.3">
-                                                    <DoubleAnimation.EasingFunction>
-                                                        <CubicEase EasingMode="EaseOut"/>
-                                                    </DoubleAnimation.EasingFunction>
-                                                </DoubleAnimation>
-                                                <DoubleAnimation Storyboard.TargetName="CoverImage"
-                                                               Storyboard.TargetProperty="Height"
-                                                               To="220"
-                                                               Duration="0:0:0.3">
-                                                    <DoubleAnimation.EasingFunction>
-                                                        <CubicEase EasingMode="EaseOut"/>
-                                                    </DoubleAnimation.EasingFunction>
-                                                </DoubleAnimation>
-                                                <DoubleAnimation Storyboard.TargetName="OpacityMaskBorder"
-                                                               Storyboard.TargetProperty="Width"
-                                                               To="220"
-                                                               Duration="0:0:0.3">
-                                                    <DoubleAnimation.EasingFunction>
-                                                        <CubicEase EasingMode="EaseOut"/>
-                                                    </DoubleAnimation.EasingFunction>
-                                                </DoubleAnimation>
-                                                <DoubleAnimation Storyboard.TargetName="OpacityMaskBorder"
-                                                               Storyboard.TargetProperty="Height"
-                                                               To="220"
-                                                               Duration="0:0:0.3">
-                                                    <DoubleAnimation.EasingFunction>
-                                                        <CubicEase EasingMode="EaseOut"/>
-                                                    </DoubleAnimation.EasingFunction>
-                                                </DoubleAnimation>
-                                            </Storyboard>
-                                        </BeginStoryboard>
-                                    </DataTrigger.ExitActions>
-                                </DataTrigger>
-                            </DataTemplate.Triggers>
                         </DataTemplate>
                     </ListBox.ItemTemplate>
                 </ListBox>
@@ -329,15 +258,15 @@
                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
                             <StackPanel Orientation="Horizontal" Margin="20,0">
                                 <TextBlock Text="&#xF093;" Style="{StaticResource HintIconStyle}" Foreground="{StaticResource GreenAccentColor}"/>
-                                <TextBlock Text="Запуск" Style="{StaticResource HintTextStyle}"/>
+                                <TextBlock x:Name="HorizontalLaunchText" Style="{StaticResource HintTextStyle}"/>
                             </StackPanel>
                             <StackPanel Orientation="Horizontal" Margin="20,0">
                                 <TextBlock Text="&#xF094;" Style="{StaticResource HintIconStyle}" Foreground="{StaticResource RedAccentColor}"/>
-                                <TextBlock Text="Выход" Style="{StaticResource HintTextStyle}"/>
+                                <TextBlock x:Name="HorizontalExitText" Style="{StaticResource HintTextStyle}"/>
                             </StackPanel>
                             <StackPanel Orientation="Horizontal" Margin="20,0">
                                 <TextBlock Text="&#xF096;" Style="{StaticResource HintIconStyle}" Foreground="{StaticResource BlueAccentColor}"/>
-                                <TextBlock Text="Свап экрана" Style="{StaticResource HintTextStyle}"/>
+                                <TextBlock x:Name="HorizontalScreenSwapText" Style="{StaticResource HintTextStyle}"/>
                             </StackPanel>
                         </StackPanel>
                 </Border>
@@ -352,9 +281,9 @@
                        FontSize="48"
                        Visibility="Collapsed"
                        Style="{StaticResource HintTextStyle}">
-                <Run Text="Поместите ваши ярлыки в папку shortcuts"/>
+                <Run x:Name="NoShortcutsMessage1"/>
                 <LineBreak/>
-                <Run Text="Для выхода нажмите [ ESC ]"/>
+                <Run x:Name="NoShortcutsMessage2"/>
             </TextBlock>
 
             <!-- Блюр фона при выходе -->
@@ -384,7 +313,7 @@
                        Visibility="Hidden"
                        Opacity="0.8"
                        Panel.ZIndex="11">
-                <Run Text="Assembled by"/>
+                <Run x:Name="ExitMessageRun"/>
                 <Run x:Name="CompanyNameRun" Text=""/>
             </TextBlock>
         </Grid>

@@ -1,4 +1,4 @@
-<Application x:Class="EZ2Play.App"
+<Application x:Class="EZ2Play.Main.App"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
     <Application.Resources>
@@ -61,64 +61,18 @@
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="ListBoxItem">
-                        <Grid Width="240" Height="240" 
-                              HorizontalAlignment="Center" 
+                        <Grid HorizontalAlignment="Center" 
                               VerticalAlignment="Top"
-                              Margin="15,0"
-                              x:Name="SelectorContainer">
+                              Margin="15,0">
                             <ContentPresenter Margin="10"/>
                             <Border Background="Transparent" 
-                                    BorderThickness="3" 
-                                    CornerRadius="10"
+                                    BorderThickness="5" 
+                                    CornerRadius="15"
                                     x:Name="SelectionBorder"/>
                         </Grid>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsSelected" Value="True">
                                 <Setter TargetName="SelectionBorder" Property="BorderBrush" Value="{Binding Source={x:Static Application.Current}, Path=HorizontalGlowBrush}"/>
-                                <Trigger.EnterActions>
-                                    <BeginStoryboard>
-                                        <Storyboard>
-                                            <DoubleAnimation Storyboard.TargetName="SelectorContainer"
-                                                           Storyboard.TargetProperty="Width"
-                                                           To="276"
-                                                           Duration="0:0:0.3">
-                                                <DoubleAnimation.EasingFunction>
-                                                    <CubicEase EasingMode="EaseOut"/>
-                                                </DoubleAnimation.EasingFunction>
-                                            </DoubleAnimation>
-                                            <DoubleAnimation Storyboard.TargetName="SelectorContainer"
-                                                           Storyboard.TargetProperty="Height"
-                                                           To="276"
-                                                           Duration="0:0:0.3">
-                                                <DoubleAnimation.EasingFunction>
-                                                    <CubicEase EasingMode="EaseOut"/>
-                                                </DoubleAnimation.EasingFunction>
-                                            </DoubleAnimation>
-                                        </Storyboard>
-                                    </BeginStoryboard>
-                                </Trigger.EnterActions>
-                                <Trigger.ExitActions>
-                                    <BeginStoryboard>
-                                        <Storyboard>
-                                            <DoubleAnimation Storyboard.TargetName="SelectorContainer"
-                                                           Storyboard.TargetProperty="Width"
-                                                           To="240"
-                                                           Duration="0:0:0.3">
-                                                <DoubleAnimation.EasingFunction>
-                                                    <CubicEase EasingMode="EaseOut"/>
-                                                </DoubleAnimation.EasingFunction>
-                                            </DoubleAnimation>
-                                            <DoubleAnimation Storyboard.TargetName="SelectorContainer"
-                                                           Storyboard.TargetProperty="Height"
-                                                           To="240"
-                                                           Duration="0:0:0.3">
-                                                <DoubleAnimation.EasingFunction>
-                                                    <CubicEase EasingMode="EaseOut"/>
-                                                </DoubleAnimation.EasingFunction>
-                                            </DoubleAnimation>
-                                        </Storyboard>
-                                    </BeginStoryboard>
-                                </Trigger.ExitActions>
                             </Trigger>
                             <Trigger Property="IsSelected" Value="False">
                                 <Setter TargetName="SelectionBorder" Property="BorderBrush" Value="Transparent"/>

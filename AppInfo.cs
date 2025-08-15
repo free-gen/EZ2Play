@@ -1,7 +1,7 @@
 using System;
 using System.Reflection;
 
-namespace EZ2Play
+namespace EZ2Play.App
 {
     public static class AppInfo
     {
@@ -22,7 +22,7 @@ namespace EZ2Play
 
         public static string GetVersion(bool shortFormat = false)
         {
-            return "1.2.0.0";
+            return "1.3.1.0";
         }
 
         public static string GetCompanyName()
