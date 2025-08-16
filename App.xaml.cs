@@ -23,6 +23,8 @@ namespace EZ2Play.Main
             bool noSplash = false;
             bool hotSwap = false;
             
+
+            
             // Обработка аргументов с поддержкой кавычек
             for (int i = 0; i < e.Args.Length; i++)
             {
@@ -69,6 +71,11 @@ namespace EZ2Play.Main
                     if (sloganText.StartsWith("\"") && sloganText.EndsWith("\""))
                     {
                         CustomSlogan = sloganText.Substring(1, sloganText.Length - 2);
+                    }
+                    else
+                    {
+                        // Если слоган не в кавычках, берем весь текст после --slogan-
+                        CustomSlogan = sloganText;
                     }
                 }
                 // Горизонтальный режим

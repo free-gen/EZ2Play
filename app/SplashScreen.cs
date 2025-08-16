@@ -132,8 +132,20 @@ namespace EZ2Play.App
         {
             if (_isAnimationComplete) return;
 
+            // Обновляем слоган перед показом анимации
+            UpdateSlogan();
+            
             Show();
             StartAnimationSequence();
+        }
+
+        private void UpdateSlogan()
+        {
+            if (_SplashAppSlogan != null)
+            {
+                var newSlogan = EZ2Play.Main.App.CustomSlogan ?? EZ2Play.App.AppInfo.GetProductSlogan();
+                _SplashAppSlogan.Text = newSlogan;
+            }
         }
 
         private async void StartAnimationSequence()
