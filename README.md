@@ -91,8 +91,6 @@ EZ2Play.exe --wide --bg --logo --slogan-"Пожалуйста, подождит�
 .NET Framework 4.7.2 Developer Pack
 
 ```bash
-git clone https://github.com/username/EZ2Play.git
-cd EZ2Play
 dotnet restore
 dotnet build --configuration Release
 ```
