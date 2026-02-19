@@ -3,7 +3,7 @@
 ![EZ2Play Screenshot](.image-01.png)
 ![EZ2Play Screenshot](.image-02.png)
 
-![EZ2Play](https://img.shields.io/badge/Version-1.3.1.0-blue) ![Platform](https://img.shields.io/badge/Platform-Windows-lightgrey) ![Framework](https://img.shields.io/badge/Framework-WPF-purple)
+![EZ2Play](https://img.shields.io/badge/Version-1.3.2.0-blue) ![Platform](https://img.shields.io/badge/Platform-Windows-lightgrey) ![Framework](https://img.shields.io/badge/Framework-WPF-purple)
 
 EZ2Play - это простой WPF лаунчер без каких-либо настроек, который позволяет запускать игры и приложения с помощью простых ярлыков.
 
