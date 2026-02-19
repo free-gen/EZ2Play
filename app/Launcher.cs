@@ -96,18 +96,18 @@ namespace EZ2Play.App
             try
             {
                 _audioManager?.PlayLaunchSound();
-                
-                var shortcutPath = Path.Combine("shortcuts", $"{_shortcuts[_selectedIndex].Name}.lnk");
+
+                var shortcutPath = _shortcuts[_selectedIndex].FullPath;
+
                 Process.Start(new ProcessStartInfo
                 {
                     FileName = shortcutPath,
-                    UseShellExecute = true,
-                    WorkingDirectory = AppDomain.CurrentDomain.BaseDirectory
+                    UseShellExecute = true
                 });
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Failed to launch: {ex.Message}", "Error", 
+                MessageBox.Show($"Failed to launch: {ex.Message}", "Error",
                     MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }

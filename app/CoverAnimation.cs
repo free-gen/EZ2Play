@@ -12,9 +12,7 @@ namespace EZ2Play.App
         private const double SelectedSize = 256.0;
         private const double AnimationDuration = 0.3;
 
-        /// <summary>
         /// Анимирует увеличение обложки при выборе
-        /// </summary>
         public static void AnimateSelection(Image coverImage, Border opacityMaskBorder, bool isSelected)
         {
             if (coverImage == null) return;
@@ -41,9 +39,7 @@ namespace EZ2Play.App
             }
         }
 
-        /// <summary>
         /// Быстрая анимация без плавности (для мгновенного изменения)
-        /// </summary>
         public static void SetSizeInstant(Image coverImage, Border opacityMaskBorder, bool isSelected)
         {
             if (coverImage == null) return;
@@ -60,9 +56,7 @@ namespace EZ2Play.App
             }
         }
 
-        /// <summary>
         /// Останавливает все анимации для элемента
-        /// </summary>
         public static void StopAnimations(Image coverImage, Border opacityMaskBorder)
         {
             if (coverImage != null)

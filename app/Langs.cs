@@ -13,6 +13,7 @@ namespace EZ2Play.App
             ["Launch"] = "Запуск",
             ["Exit"] = "Выход", 
             ["ScreenSwap"] = "Свап экрана",
+            // ["CreateCover"] = "Тест",
             
             ["NoShortcutsMessage1"] = "Поместите ваши ярлыки в папку shortcuts",
             ["NoShortcutsMessage2"] = "Для выхода нажмите [ ESC ]",
@@ -25,6 +26,7 @@ namespace EZ2Play.App
             ["Launch"] = "Launch",
             ["Exit"] = "Exit",
             ["ScreenSwap"] = "Screen Swap",
+            // ["CreateCover"] = "Test",
             
             ["NoShortcutsMessage1"] = "Place your shortcuts in the shortcuts folder",
             ["NoShortcutsMessage2"] = "Press [ ESC ] to exit",
@@ -56,32 +58,27 @@ namespace EZ2Play.App
             }
         }
 
-        /// <summary>
         /// Применяет локализацию ко всем UI элементам окна
-        /// </summary>
         public static void ApplyLocalization(FrameworkElement window)
         {
             try
             {
-                // Вертикальная панель
-                if (window.FindName("VerticalLaunchText") is System.Windows.Controls.TextBlock verticalLaunchText)
-                    verticalLaunchText.Text = GetString("Launch");
-                
-                if (window.FindName("VerticalExitText") is System.Windows.Controls.TextBlock verticalExitText)
-                    verticalExitText.Text = GetString("Exit");
-                
-                if (window.FindName("VerticalScreenSwapText") is System.Windows.Controls.TextBlock verticalScreenSwapText)
-                    verticalScreenSwapText.Text = GetString("ScreenSwap");
-                
-                // Горизонтальная панель
-                if (window.FindName("HorizontalLaunchText") is System.Windows.Controls.TextBlock horizontalLaunchText)
-                    horizontalLaunchText.Text = GetString("Launch");
-                
-                if (window.FindName("HorizontalExitText") is System.Windows.Controls.TextBlock horizontalExitText)
-                    horizontalExitText.Text = GetString("Exit");
-                
-                if (window.FindName("HorizontalScreenSwapText") is System.Windows.Controls.TextBlock horizontalScreenSwapText)
-                    horizontalScreenSwapText.Text = GetString("ScreenSwap");
+                // Унификация: применяем к обеим ориентациям по префиксам
+                string[] prefixes = new[] { "Vertical", "Horizontal" };
+                foreach (var prefix in prefixes)
+                {
+                    if (window.FindName(prefix + "LaunchText") is System.Windows.Controls.TextBlock launchText)
+                        launchText.Text = GetString("Launch");
+
+                    if (window.FindName(prefix + "ExitText") is System.Windows.Controls.TextBlock exitText)
+                        exitText.Text = GetString("Exit");
+
+                    if (window.FindName(prefix + "ScreenSwapText") is System.Windows.Controls.TextBlock swapText)
+                        swapText.Text = GetString("ScreenSwap");
+
+                    if (window.FindName(prefix + "CreateCoverText") is System.Windows.Controls.TextBlock coverText)
+                        coverText.Text = GetString("CreateCover");
+                }
                 
                 // Сообщение об отсутствии ярлыков
                 if (window.FindName("NoShortcutsMessage1") is System.Windows.Documents.Run noShortcutsMessage1)

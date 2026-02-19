@@ -5,6 +5,7 @@ using System.Windows.Controls;
 using System.Windows.Threading;
 using System.Management;
 using Microsoft.Win32;
+using System.Runtime.InteropServices;   // ← добавлено для DPI
 
 namespace EZ2Play.App
 {
@@ -19,6 +20,24 @@ namespace EZ2Play.App
 
         public bool HasMultipleDisplays => _hasMultipleDisplays;
         public bool IsExternalDisplay => _isExternalDisplay;
+
+        // ====================== DPI FIX ======================
+        [StructLayout(LayoutKind.Sequential)]
+        private struct RECT
+        {
+            public int Left;
+            public int Top;
+            public int Right;
+            public int Bottom;
+        }
+
+        [DllImport("user32.dll")]
+        private static extern bool SetWindowPos(IntPtr hWnd, IntPtr hWndInsertAfter,
+            int X, int Y, int cx, int cy, uint uFlags);
+
+        private const uint SWP_NOZORDER = 0x0004;
+        private const uint SWP_NOACTIVATE = 0x0010;
+        // ====================================================
 
         public Display(FrameworkElement window, bool isHorizontalMode, bool wasLaunchedWithHotswap = false, EZ2Play.App.Sound audioManager = null)
         {
@@ -93,8 +112,7 @@ namespace EZ2Play.App
 
             try
             {
-                            // Воспроизводим звук переключения
-            _audioManager?.PlayBackSound();
+                _audioManager?.PlayBackSound();
                 
                 _isExternalDisplay = !_isExternalDisplay;
                 var argument = _isExternalDisplay ? "/external" : "/internal";
@@ -154,6 +172,17 @@ namespace EZ2Play.App
             
             if (msg == WM_DISPLAYCHANGE || msg == WM_DPICHANGED)
             {
+                if (msg == WM_DPICHANGED)   // ← DPI FIX
+                {
+                    var rect = (RECT)Marshal.PtrToStructure(lParam, typeof(RECT));
+                    SetWindowPos(hwnd, IntPtr.Zero,
+                        rect.Left, rect.Top,
+                        rect.Right - rect.Left,
+                        rect.Bottom - rect.Top,
+                        SWP_NOZORDER | SWP_NOACTIVATE);
+                    handled = true;
+                }
+
                 if (_window is Window window)
                 {
                     window.Dispatcher.BeginInvoke(new Action(EnsureMaximizedAndRefreshLayout), DispatcherPriority.Background);
@@ -164,17 +193,14 @@ namespace EZ2Play.App
 
         public void HandleHotswapOnExit()
         {
-            // Если приложение было запущено с --hotswap, переключаем монитор обратно при выходе
             if (_wasLaunchedWithHotswap && _hasMultipleDisplays)
             {
                 try
                 {
                     Log("Application was launched with hotswap, switching display back on exit");
                     
-                    // Воспроизводим звук переключения
                     _audioManager?.PlayBackSound();
                     
-                    // Переключаем обратно на противоположный дисплей
                     var argument = _isExternalDisplay ? "/internal" : "/external";
                     
                     Log($"Switching display back to: {(_isExternalDisplay ? "internal" : "external")}");
@@ -212,4 +238,4 @@ namespace EZ2Play.App
             }
         }
     }
-} 
+}

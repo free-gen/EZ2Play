@@ -5,96 +5,67 @@ using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Media.Effects;
 using System.Windows.Media.Imaging;
+using Microsoft.Win32;
 
 namespace EZ2Play.App
 {
     public class Background
     {
         private ImageSource _customBackgroundImage;
+        private ImageSource _desktopBackgroundImage;
         private bool _useCustomBackground;
 
         public Background()
         {
             _useCustomBackground = EZ2Play.Main.App.UseCustomBackground;
+
             LoadCustomBackgroundImage();
+            LoadDesktopBackground();
         }
 
-        public void UpdateBackground(ImageBrush backgroundBrush, Border listBoxBlurredBackground, 
-            ImageBrush blurredListBackgroundBrush, ShortcutInfo[] shortcuts, int selectedIndex)
+        /// Обновляем фон
+        public void UpdateBackground(ImageBrush backgroundBrush, Border listBoxBlurredBackground)
         {
-            // Если используется пользовательский фон, устанавливаем его
+            // Если пользовательский фон включен и загружен — используем его
             if (_useCustomBackground && _customBackgroundImage != null)
             {
                 backgroundBrush.ImageSource = _customBackgroundImage;
-                
-                // Показываем размытый фон под ListBox и устанавливаем тот же источник
-                if (listBoxBlurredBackground != null && blurredListBackgroundBrush != null)
+
+                if (listBoxBlurredBackground != null)
                 {
-                    blurredListBackgroundBrush.ImageSource = _customBackgroundImage;
+                    // Показываем размытый фон под ListBox
+                    var blurredBrush = new ImageBrush(_customBackgroundImage)
+                    {
+                        Stretch = backgroundBrush.Stretch
+                    };
+                    listBoxBlurredBackground.Background = blurredBrush;
                     listBoxBlurredBackground.Visibility = Visibility.Visible;
                 }
             }
-            // Иначе используем динамический фон от иконки ярлыка
-            else if (selectedIndex >= 0 && selectedIndex < shortcuts.Length)
+            else if (_desktopBackgroundImage != null)
             {
-                var selectedShortcut = shortcuts[selectedIndex];
-                if (selectedShortcut.Icon != null)
-                {
-                    var blurredImage = CreateBlurredImage(selectedShortcut.Icon);
-                    backgroundBrush.ImageSource = blurredImage;
-                }
-                
-                // Скрываем размытый фон под ListBox для динамического фона
+                // Иначе используем размытый фон рабочего стола
+                backgroundBrush.ImageSource = _desktopBackgroundImage;
+
                 if (listBoxBlurredBackground != null)
                 {
-                    listBoxBlurredBackground.Visibility = Visibility.Collapsed;
+                    var blurredBrush = new ImageBrush(_desktopBackgroundImage)
+                    {
+                        Stretch = backgroundBrush.Stretch
+                    };
+                    listBoxBlurredBackground.Background = blurredBrush;
+                    listBoxBlurredBackground.Visibility = Visibility.Visible;
                 }
             }
             else
             {
-                // Если нет выбранного ярлыка, но есть кастомный фон, используем его
-                if (_useCustomBackground && _customBackgroundImage != null)
-                {
-                    backgroundBrush.ImageSource = _customBackgroundImage;
-                    
-                    // Показываем размытый фон под ListBox
-                    if (listBoxBlurredBackground != null && blurredListBackgroundBrush != null)
-                    {
-                        blurredListBackgroundBrush.ImageSource = _customBackgroundImage;
-                        listBoxBlurredBackground.Visibility = Visibility.Visible;
-                    }
-                }
-                else
-                {
-                    // Скрываем размытый фон если нет фона
-                    if (listBoxBlurredBackground != null)
-                    {
-                        listBoxBlurredBackground.Visibility = Visibility.Collapsed;
-                    }
-                }
+                // Если нет ничего — скрываем размытый фон
+                if (listBoxBlurredBackground != null)
+                    listBoxBlurredBackground.Visibility = Visibility.Collapsed;
             }
         }
 
-        private ImageSource CreateBlurredImage(ImageSource originalImage)
-        {
-            var renderTarget = new RenderTargetBitmap(
-                (int)originalImage.Width,
-                (int)originalImage.Height,
-                96, 96, PixelFormats.Pbgra32);
-
-            var visual = new System.Windows.Controls.Image
-            {
-                Source = originalImage,
-                Effect = new BlurEffect { Radius = 20 }
-            };
-
-            visual.Measure(new Size(originalImage.Width, originalImage.Height));
-            visual.Arrange(new Rect(0, 0, originalImage.Width, originalImage.Height));
-
-            renderTarget.Render(visual);
-            return renderTarget;
-        }
-
+        /// Загружаем пользовательский фон (bg.jpg/bg.png)
         private void LoadCustomBackgroundImage()
         {
             if (!_useCustomBackground)
@@ -113,5 +84,56 @@ namespace EZ2Play.App
                 }
             }
         }
+
+        /// Получаем и размываем фон рабочего стола
+        private void LoadDesktopBackground()
+        {
+            try
+            {
+                // Получаем путь к рабочему столу из реестра
+                string desktopPath = Registry.GetValue(
+                    @"HKEY_CURRENT_USER\Control Panel\Desktop", 
+                    "WallPaper", 
+                    null) as string;
+
+                if (!string.IsNullOrEmpty(desktopPath) && File.Exists(desktopPath))
+                {
+                    var bitmap = new BitmapImage(new Uri(desktopPath));
+                    _desktopBackgroundImage = CreateBlurredImage(bitmap);
+                }
+            }
+            catch
+            {
+                _desktopBackgroundImage = null;
+            }
+        }
+
+        /// Создает размытое изображение
+       private ImageSource CreateBlurredImage(ImageSource originalImage)
+        {
+            int targetWidth = 400;
+            int targetHeight = (int)(originalImage.Height / originalImage.Width * targetWidth);
+
+            var scaledBitmap = new TransformedBitmap((BitmapSource)originalImage,
+                new ScaleTransform((double)targetWidth / originalImage.Width, (double)targetHeight / originalImage.Height));
+
+            var renderTarget = new RenderTargetBitmap(
+                targetWidth, targetHeight,
+                96, 96, PixelFormats.Pbgra32);
+
+            var visual = new System.Windows.Controls.Image
+            {
+                Source = scaledBitmap,
+                Effect = new BlurEffect { Radius = 10 }
+            };
+
+            visual.Measure(new Size(targetWidth, targetHeight));
+            visual.Arrange(new Rect(0, 0, targetWidth, targetHeight));
+
+            renderTarget.Render(visual);
+
+            // Растягиваем до размера окна через ImageBrush (не BitmapSource)
+            return renderTarget;
+        }
     }
-} 
+}

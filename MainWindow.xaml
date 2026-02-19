@@ -15,7 +15,7 @@
                     RenderOptions.BitmapScalingMode="HighQuality"/>
     </Window.Resources>
 
-    <Viewbox Stretch="Uniform" StretchDirection="DownOnly" SnapsToDevicePixels="True">
+    <Viewbox Stretch="Uniform" SnapsToDevicePixels="True">
         <Grid Width="2560" Height="1440">
             <!-- Вертикальный режим -->
             <Grid x:Name="VerticalModeGrid" Visibility="Visible">
@@ -66,6 +66,7 @@
 
                 <!-- Подсказки (вертикальный режим) -->
                 <Border x:Name="VerticalBottomPanel"
+                        Tag="BottomPanel"
                         Grid.Column="1" 
                         Background="{StaticResource BottomPanelColor}"
                         HorizontalAlignment="Right"
@@ -73,7 +74,7 @@
                         CornerRadius="10"
                         Padding="20"
                         Margin="0,0,70,50">
-                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Center">
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
                             <StackPanel Orientation="Horizontal" Margin="20,0">
                                 <TextBlock Text="&#xF093;" Style="{StaticResource HintIconStyle}" Foreground="{StaticResource GreenAccentColor}"/>
                                 <TextBlock x:Name="VerticalLaunchText" Style="{StaticResource HintTextStyle}"/>
@@ -86,6 +87,10 @@
                                 <TextBlock Text="&#xF096;" Style="{StaticResource HintIconStyle}" Foreground="{StaticResource BlueAccentColor}"/>
                                 <TextBlock x:Name="VerticalScreenSwapText" Style="{StaticResource HintTextStyle}"/>
                             </StackPanel>
+                            <!-- <StackPanel Orientation="Horizontal" Margin="20,0">
+                                <TextBlock Text="&#xF095;" Style="{StaticResource HintIconStyle}" Foreground="{StaticResource YellowAccentColor}"/>
+                                <TextBlock x:Name="VerticalCreateCoverText" Style="{StaticResource HintTextStyle}"/>
+                            </StackPanel> -->
                         </StackPanel>
                 </Border>
 
@@ -248,6 +253,7 @@
                 
                 <!-- Подсказки (горизонтальный режим) -->
                 <Border x:Name="HorizontalBottomPanel"
+                        Tag="BottomPanel"
                         Grid.Row="3"
                         Background="{StaticResource BottomPanelColor}"
                         HorizontalAlignment="Right"
@@ -268,6 +274,10 @@
                                 <TextBlock Text="&#xF096;" Style="{StaticResource HintIconStyle}" Foreground="{StaticResource BlueAccentColor}"/>
                                 <TextBlock x:Name="HorizontalScreenSwapText" Style="{StaticResource HintTextStyle}"/>
                             </StackPanel>
+                            <!-- <StackPanel Orientation="Horizontal" Margin="20,0">
+                                <TextBlock Text="&#xF095;" Style="{StaticResource HintIconStyle}" Foreground="{StaticResource YellowAccentColor}"/>
+                                <TextBlock x:Name="HorizontalCreateCoverText" Style="{StaticResource HintTextStyle}"/>
+                            </StackPanel> -->
                         </StackPanel>
                 </Border>
             </Grid>
@@ -316,6 +326,30 @@
                 <Run x:Name="ExitMessageRun"/>
                 <Run x:Name="CompanyNameRun" Text=""/>
             </TextBlock>
+
+            <!-- Модальное окно -->
+            <Grid Panel.ZIndex="2"
+                    Background="#00000000"
+                    Visibility="Collapsed">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="0.1*"/>
+                    <RowDefinition Height="0.8*"/>
+                    <RowDefinition Height="0.1*"/>
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="0.2*"/>
+                    <ColumnDefinition Width="0.6*"/>
+                    <ColumnDefinition Width="0.2*"/>
+                </Grid.ColumnDefinitions>
+                <Border Grid.Row="1"
+                        Grid.Column="1"
+                        HorizontalAlignment="Stretch"
+                        VerticalAlignment="Stretch"
+                        Background="#999"
+                        CornerRadius="15"
+                        Padding="20">
+                </Border>
+            </Grid>
         </Grid>
     </Viewbox>
 </Window>

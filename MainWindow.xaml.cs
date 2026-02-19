@@ -30,6 +30,7 @@ namespace EZ2Play
         public MainWindow(bool hotSwap = false)
         {
             InitializeComponent();
+            RenderOptions.SetBitmapScalingMode(this, BitmapScalingMode.HighQuality);
             var isHorizontalMode = EZ2Play.Main.App.IsHorizontalMode;
             _uiState = new EZ2Play.App.UIState(this, isHorizontalMode);
             _audioManager = new EZ2Play.App.Sound();
@@ -97,16 +98,14 @@ namespace EZ2Play
             
             // Для вертикального режима используем размытый фон под списком
             Border listBoxBlurredBackground = null;
-            ImageBrush blurredListBackgroundBrush = null;
             
             if (!_launcher.IsHorizontalMode)
             {
                 listBoxBlurredBackground = this.FindName("VerticalListBoxBlurredBackground") as Border;
-                blurredListBackgroundBrush = this.FindName("VerticalBlurredListBackgroundBrush") as ImageBrush;
             }
 
-            _background.UpdateBackground(backgroundBrush, listBoxBlurredBackground, 
-                blurredListBackgroundBrush, _launcher.Shortcuts, _launcher.SelectedIndex);
+            // Вызов нового метода с 2 аргументами
+            _background.UpdateBackground(backgroundBrush, listBoxBlurredBackground);
         }
 
         private void ItemsListBox_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
@@ -178,6 +177,31 @@ namespace EZ2Play
                 if (result != null) return result;
             }
             
+            return null;
+        }
+
+        private T FindVisualChildByTag<T>(DependencyObject parent, object tag, bool requireVisible = true) where T : FrameworkElement
+        {
+            if (parent == null) return null;
+
+            for (int i = 0; i < VisualTreeHelper.GetChildrenCount(parent); i++)
+            {
+                var child = VisualTreeHelper.GetChild(parent, i);
+
+                if (child is T element)
+                {
+                    bool tagMatches = Equals(element.Tag, tag);
+                    bool visibilityOk = !requireVisible || element.IsVisible;
+                    if (tagMatches && visibilityOk)
+                    {
+                        return element;
+                    }
+                }
+
+                var result = FindVisualChildByTag<T>(child, tag, requireVisible);
+                if (result != null) return result;
+            }
+
             return null;
         }
 
@@ -312,16 +336,23 @@ namespace EZ2Play
             }
         }
 
+        protected override void OnDpiChanged(DpiScale oldDpi, DpiScale newDpi)
+        {
+            base.OnDpiChanged(oldDpi, newDpi);
+            _display.EnsureMaximizedAndRefreshLayout();
+            UpdateBackground();
+        }
+
         private void HandleGamepadConnectionChanged(bool isConnected)
         {
             IsGamepadConnected = isConnected;
-            var bottomPanelName = _launcher.IsHorizontalMode ? "HorizontalBottomPanel" : "VerticalBottomPanel";
-            var bottomPanel = this.FindName(bottomPanelName) as Border;
+            var bottomPanel = FindVisualChildByTag<Border>(this, "BottomPanel", true);
             if (bottomPanel?.Child is StackPanel mainStackPanel && mainStackPanel.Children.Count >= 3)
             {
                 _uiState.UpdateHintItem(mainStackPanel.Children[0] as StackPanel, isConnected, "\uF093", "EnterKeyIcon", "GreenAccentColor");
                 _uiState.UpdateHintItem(mainStackPanel.Children[1] as StackPanel, isConnected, "\uF094", "EscKeyIcon", "RedAccentColor");
                 _uiState.UpdateHintItem(mainStackPanel.Children[2] as StackPanel, isConnected, "\uF096", "XKeyIcon", "BlueAccentColor");
+                _uiState.UpdateHintItem(mainStackPanel.Children[3] as StackPanel, isConnected, "\uF095", "YKeyIcon", "YellowAccentColor");
             }
         }
 

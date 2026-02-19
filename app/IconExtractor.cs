@@ -203,6 +203,21 @@ namespace EZ2Play.App
             {
                 // Получаем путь к иконке из ярлыка
                 string iconPath = GetIconPathFromShortcut(shortcutPath);
+                // Если это .url — обрабатываем отдельно
+                if (shortcutPath.EndsWith(".url", StringComparison.OrdinalIgnoreCase))
+                {
+                    var urlIcon = GetIconPathFromUrlFile(shortcutPath);
+                    if (!string.IsNullOrEmpty(urlIcon))
+                    {
+                        var hIcon = ExtractHdIconFromFile(urlIcon, 0, iconSize);
+                        if (hIcon != IntPtr.Zero)
+                        {
+                            var bitmap = ConvertIconToBitmapSource(hIcon, iconSize);
+                            DestroyIcon(hIcon);
+                            return bitmap;
+                        }
+                    }
+                }
 
                 if (!string.IsNullOrEmpty(iconPath))
                 {
@@ -275,15 +290,13 @@ namespace EZ2Play.App
             }
         }
 
-        /// <summary>
         /// Загружает все ярлыки из папки shortcuts
-        /// </summary>
         public static ShortcutInfo[] LoadShortcuts(bool isHorizontalMode)
         {
             try
             {
                 var shortcutsDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, ShortcutsDirectory);
-                
+
                 if (!Directory.Exists(shortcutsDir))
                 {
                     Directory.CreateDirectory(shortcutsDir);
@@ -291,11 +304,15 @@ namespace EZ2Play.App
                 }
 
                 var iconSize = isHorizontalMode ? HorizontalIconSize : IconSize;
-                return Directory.GetFiles(shortcutsDir, "*.lnk")
-                    .Select(lnkPath => new ShortcutInfo
+
+                return Directory.GetFiles(shortcutsDir)
+                    .Where(f => f.EndsWith(".lnk", StringComparison.OrdinalIgnoreCase) ||
+                                f.EndsWith(".url", StringComparison.OrdinalIgnoreCase))
+                    .Select(path => new ShortcutInfo
                     {
-                        Name = Path.GetFileNameWithoutExtension(lnkPath),
-                        Icon = GetIconForShortcut(lnkPath, iconSize)
+                        Name = Path.GetFileNameWithoutExtension(path),
+                        Icon = GetIconForShortcut(path, iconSize),
+                        FullPath = path
                     })
                     .ToArray();
             }
@@ -306,15 +323,44 @@ namespace EZ2Play.App
             }
         }
 
-        /// <summary>
+        private static string GetIconPathFromUrlFile(string urlPath)
+        {
+            try
+            {
+                var lines = File.ReadAllLines(urlPath);
+
+                string iconFile = null;
+                int iconIndex = 0;
+
+                foreach (var line in lines)
+                {
+                    if (line.StartsWith("IconFile=", StringComparison.OrdinalIgnoreCase))
+                        iconFile = line.Substring("IconFile=".Length);
+
+                    if (line.StartsWith("IconIndex=", StringComparison.OrdinalIgnoreCase))
+                        int.TryParse(line.Substring("IconIndex=".Length), out iconIndex);
+                }
+
+                if (!string.IsNullOrWhiteSpace(iconFile))
+                    return $"{iconFile},{iconIndex}";
+            }
+            catch (Exception ex)
+            {
+                Log($"Error reading .url icon: {ex.Message}");
+            }
+
+            return null;
+        }
+
         /// Проверяет наличие ярлыков
-        /// </summary>
         public static bool HasShortcuts()
         {
             try
             {
                 var shortcutsDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, ShortcutsDirectory);
-                return Directory.Exists(shortcutsDir) && Directory.GetFiles(shortcutsDir, "*.lnk").Length > 0;
+                return Directory.Exists(shortcutsDir) && Directory.GetFiles(shortcutsDir)
+                                                            .Any(f => f.EndsWith(".lnk", StringComparison.OrdinalIgnoreCase) ||
+                                                                    f.EndsWith(".url", StringComparison.OrdinalIgnoreCase));
             }
             catch
             {
@@ -327,5 +373,6 @@ namespace EZ2Play.App
     {
         public string Name { get; set; }
         public ImageSource Icon { get; set; }
+        public string FullPath { get; set; }
     }
 } 
