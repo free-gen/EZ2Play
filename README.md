@@ -3,8 +3,7 @@
 # EZ2Play Launcher
 
 <p align="center">
-  <img src="https://github.com/user-attachments/assets/18a90ddf-e0e1-4c01-a006-dba97377380f" width="128" height="128" style="vertical-align: middle;"/>
-  <span style="font-size:48px; font-weight:bold; vertical-align: middle; margin-left:15px;">EZ2Play Launcher</span>
+  <img src="https://github.com/user-attachments/assets/логотип_с_текстом.png" width="500"/>
 </p>
 
 ![Version](https://img.shields.io/badge/Version-2.0.0.0-blue) 
