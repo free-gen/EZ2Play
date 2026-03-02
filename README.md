@@ -1,7 +1,5 @@
-<p>
-  <img src="https://github.com/free-gen/postimages/raw/main/EZ2Play/logo.png" height="48" style="vertical-align: bottom;"/>
-  <span style="font-size:36px; font-weight:bold; margin-left:10px;">EZ2Play Launcher</span>
-</p>
+<img width="128" height="128" alt="logo" src="https://github.com/user-attachments/assets/18a90ddf-e0e1-4c01-a006-dba97377380f" />
+# EZ2Play Launcher
 
 ![Version](https://img.shields.io/badge/Version-2.0.0.0-blue) 
 ![Platform](https://img.shields.io/badge/Platform-Windows-lightgrey) 
