@@ -1,0 +1,236 @@
+<ui:FluentWindow x:Class="EZ2Play.MainWindow"
+                 xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                 xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                 xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+                 xmlns:app="clr-namespace:EZ2Play.App"
+                 Title="EZ2Play Game Launcher"
+                 ExtendsContentIntoTitleBar="True"
+                 WindowState="Maximized"
+                 WindowStyle="None"
+                 Topmost="False"
+                 ShowInTaskbar="True"
+                 Cursor="None"
+                 SnapsToDevicePixels="True"
+                 UseLayoutRounding="True"
+                 Background="{DynamicResource SubtleFillColorSecondaryBrush}"
+                 WindowBackdropType="Mica"
+                 ResizeMode="NoResize"
+                 MinWidth="1024"
+                 MinHeight="576">
+
+    <Border Background="{DynamicResource SubtleFillColorTertiaryBrush}" Margin="0">
+
+        <Grid x:Name="RootGrid"
+              HorizontalAlignment="Stretch"
+              VerticalAlignment="Stretch"
+              SnapsToDevicePixels="True"
+              UseLayoutRounding="True">
+
+            <!-- Слой с частицами -->
+            <app:ParticlesCanvas x:Name="particles" />
+
+            <!-- Заставка при запуске -->
+            <Grid x:Name="SplashOverlay" Visibility="Hidden" Panel.ZIndex="5"
+                  HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
+                  Background="Transparent" IsHitTestVisible="True">
+
+                <Image x:Name="SplashLogo"
+                       MaxHeight="{DynamicResource {x:Static app:UiScaleKeys.SplashLogoMaxHeight}}"
+                       HorizontalAlignment="Center" VerticalAlignment="Center"
+                       Opacity="0" RenderOptions.BitmapScalingMode="HighQuality"/>
+
+            </Grid>
+
+            <!-- Разметка контента -->
+            <Grid x:Name="BaseModeGrid" Visibility="Collapsed" Panel.ZIndex="1">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="15*"/>
+                    <RowDefinition Height="35*"/>
+                    <RowDefinition Height="40*"/>
+                    <RowDefinition Height="20*"/>
+                </Grid.RowDefinitions>
+
+                <!-- Верхняя строка -->
+                <Grid x:Name="TopInfoPanel" Grid.Row="0"
+                      Margin="{DynamicResource {x:Static app:UiScaleKeys.TopInfoPanelMargin}}"
+                      HorizontalAlignment="Stretch"
+                      VerticalAlignment="Center"
+                      Background="Transparent">
+
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="5*"/>
+                        <ColumnDefinition Width="45*"/>
+                        <ColumnDefinition Width="45*"/>
+                        <ColumnDefinition Width="5*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <TextBlock x:Name="TopRightAppNameText" Grid.Column="1"
+                               HorizontalAlignment="Left"
+                               VerticalAlignment="Center"
+                               FontSize="{DynamicResource {x:Static app:UiScaleKeys.TopInfoFontSize}}"
+                               FontWeight="ExtraBold"
+                               FontFamily="Manrope"/>
+
+                    <TextBlock x:Name="TopRightTimeText" Grid.Column="2"
+                               HorizontalAlignment="Right"
+                               VerticalAlignment="Center"
+                               FontSize="{DynamicResource {x:Static app:UiScaleKeys.TopInfoFontSize}}"
+                               FontWeight="Light"
+                               FontFamily="Manrope"/>
+
+                </Grid>
+
+                <!-- Список игр -->
+                <ListBox x:Name="ItemsListBox" Grid.Row="1"
+                         HorizontalAlignment="Stretch"
+                         VerticalAlignment="Stretch"
+                         Background="Transparent"
+                         BorderThickness="0"
+                         Padding="0"
+                         ClipToBounds="False"
+                         ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                         ScrollViewer.VerticalScrollBarVisibility="Disabled"
+                         SelectionChanged="ItemsListBox_SelectionChanged"
+                         ItemContainerStyle="{StaticResource ListBoxItemStyle}"
+                         VirtualizingPanel.IsVirtualizing="False">
+                    <ListBox.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <app:CarouselPanel/>
+                        </ItemsPanelTemplate>
+                    </ListBox.ItemsPanel>
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <app:CarouselItem IsSelected="{Binding IsSelected, RelativeSource={RelativeSource AncestorType=ListBoxItem}}"/>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+
+                <!-- Название игры -->
+                <Grid Grid.Row="2">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="8*"/>
+                        <ColumnDefinition Width="92*"/>
+                    </Grid.ColumnDefinitions>
+                    <StackPanel Grid.Column="1" Orientation="Vertical"
+                                HorizontalAlignment="Stretch"
+                                VerticalAlignment="Center">
+                        <StackPanel Orientation="Horizontal">
+                            <!-- TextBlock -->
+                            <TextBlock x:Name="SelectedGameTitle"
+                                    VerticalAlignment="Center"
+                                    FontSize="{DynamicResource {x:Static app:UiScaleKeys.SelectedGameTitleFontSize}}"
+                                    FontWeight="Medium"
+                                    FontFamily="Manrope"
+                                    TextAlignment="Left"
+                                    TextWrapping="Wrap"
+                                    HorizontalAlignment="Stretch"/>
+
+                            <!-- Анимация загрузки -->
+                            <ui:ProgressRing x:Name="LoadingProgress" 
+                                    Margin="{DynamicResource {x:Static app:UiScaleKeys.HintBlockMargin}}"
+                                    Width="{DynamicResource {x:Static app:UiScaleKeys.LoadingProgressScale}}" 
+                                    Height="{DynamicResource {x:Static app:UiScaleKeys.LoadingProgressScale}}"
+                                    IsIndeterminate="True"
+                                    Visibility="Collapsed"/>
+
+                        </StackPanel>
+                        <!-- GameSourceCard -->
+                        <Border x:Name="GameSourceCard"
+                                Background="{DynamicResource TextFillColorPrimaryBrush}"
+                                CornerRadius="{DynamicResource {x:Static app:UiScaleKeys.SourceCardCornerRadius}}"
+                                Padding="{DynamicResource {x:Static app:UiScaleKeys.SourceCardPadding}}"
+                                Margin="{DynamicResource {x:Static app:UiScaleKeys.SourceCardMargin}}"
+                                VerticalAlignment="Center"
+                                HorizontalAlignment="Left"
+                                Height="{DynamicResource {x:Static app:UiScaleKeys.SourceCardHeight}}">
+                            <TextBlock Text="{Binding ElementName=ItemsListBox, Path=SelectedItem.SourceType}"
+                                       Foreground="{DynamicResource SolidBackgroundFillColorBaseAltBrush}"
+                                       FontSize="{DynamicResource {x:Static app:UiScaleKeys.SourceCardFontSize}}"
+                                       FontWeight="ExtraBold"
+                                       FontFamily="Manrope"
+                                       TextAlignment="Center"
+                                       VerticalAlignment="Center"
+                                       LineHeight="{DynamicResource {x:Static app:UiScaleKeys.SourceCardLineHeight}}"
+                                       LineStackingStrategy="BlockLineHeight"/>
+                        </Border>
+                    </StackPanel>
+                </Grid>
+
+                <!-- Нижняя панель -->
+                <Border x:Name="BottomPanel" Tag="BottomPanel" Grid.Row="3"
+                        BorderThickness="{DynamicResource {x:Static app:UiScaleKeys.BottomPanelBorderThickness}}"
+                        BorderBrush="{DynamicResource SurfaceStrokeColorDefaultBrush}"
+                        Background="{DynamicResource LayerFillColorDefaultBrush}"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center"
+                        CornerRadius="{DynamicResource {x:Static app:UiScaleKeys.BottomPanelCornerRadius}}"
+                        Height="{DynamicResource {x:Static app:UiScaleKeys.BottomPanelHeight}}"
+                        Padding="{DynamicResource {x:Static app:UiScaleKeys.BottomPanelPadding}}"
+                        >
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+                        <StackPanel Orientation="Horizontal" Margin="{DynamicResource {x:Static app:UiScaleKeys.HintBlockMargin}}">
+                            <Viewbox x:Name="LaunchIconGamepad" Height="{DynamicResource {x:Static app:UiScaleKeys.HintIconHeightGamepad}}" Stretch="Uniform" Visibility="Collapsed" VerticalAlignment="Center">
+                                <ContentPresenter Content="{StaticResource ButtonA}"/>
+                            </Viewbox>
+                            <Viewbox x:Name="LaunchIconKeyboard" Height="{DynamicResource {x:Static app:UiScaleKeys.HintIconHeightKeyboard}}" Stretch="Uniform" Visibility="Visible" VerticalAlignment="Center">
+                                <ContentPresenter Content="{StaticResource KeyEnter}"/>
+                            </Viewbox>
+                            <TextBlock x:Name="LaunchText" Style="{StaticResource HintTextStyle}"/>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Margin="{DynamicResource {x:Static app:UiScaleKeys.HintBlockMargin}}">
+                            <Viewbox x:Name="ExitIconGamepad" Height="{DynamicResource {x:Static app:UiScaleKeys.HintIconHeightGamepad}}" Stretch="Uniform" Visibility="Collapsed" VerticalAlignment="Center">
+                                <ContentPresenter Content="{StaticResource ButtonB}"/>
+                            </Viewbox>
+                            <Viewbox x:Name="ExitIconKeyboard" Height="{DynamicResource {x:Static app:UiScaleKeys.HintIconHeightKeyboard}}" Stretch="Uniform" Visibility="Visible" VerticalAlignment="Center">
+                                <ContentPresenter Content="{StaticResource KeyEscape}"/>
+                            </Viewbox>
+                            <TextBlock x:Name="ExitText" Style="{StaticResource HintTextStyle}"/>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Margin="{DynamicResource {x:Static app:UiScaleKeys.HintBlockMargin}}">
+                            <Viewbox x:Name="ScreenSwapIconGamepad" Height="{DynamicResource {x:Static app:UiScaleKeys.HintIconHeightGamepad}}" Stretch="Uniform" Visibility="Collapsed" VerticalAlignment="Center">
+                                <ContentPresenter Content="{StaticResource ButtonX}"/>
+                            </Viewbox>
+                            <Viewbox x:Name="ScreenSwapIconKeyboard" Height="{DynamicResource {x:Static app:UiScaleKeys.HintIconHeightKeyboard}}" Stretch="Uniform" Visibility="Visible" VerticalAlignment="Center">
+                                <ContentPresenter Content="{StaticResource KeyX}"/>
+                            </Viewbox>
+                            <TextBlock x:Name="ScreenSwapText" Style="{StaticResource HintTextStyle}"/>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+            </Grid>
+
+            <!-- Сообщение при отсутствии ярлыков -->
+            <TextBlock x:Name="NoShortcutsMessage"
+                       HorizontalAlignment="Center"
+                       VerticalAlignment="Bottom"
+                       TextAlignment="Center"
+                       Margin="{DynamicResource {x:Static app:UiScaleKeys.NoShortcutsMargin}}"
+                       FontSize="{DynamicResource {x:Static app:UiScaleKeys.NoShortcutsFontSize}}"
+                       FontWeight="ExtraLight"
+                       FontFamily="Manrope"
+                       Visibility="Collapsed"
+                       Style="{StaticResource HintTextStyle}">
+                <Run x:Name="NoShortcutsMessage1"/>
+                <LineBreak/><LineBreak/>
+                <Run x:Name="NoShortcutsMessage2"/>
+            </TextBlock>
+
+            <!-- Сообщение при выходе -->
+            <Border x:Name="ExitOverlay" Visibility="Hidden" Panel.ZIndex="10"/>
+            <TextBlock x:Name="ExitMessageText"
+                       HorizontalAlignment="Center"
+                       VerticalAlignment="Center"
+                       TextAlignment="Center"
+                       FontSize="{DynamicResource {x:Static app:UiScaleKeys.ExitMessageFontSize}}"
+                       FontWeight="ExtraLight"
+                       FontFamily="Manrope"
+                       Visibility="Hidden"
+                       Opacity="0.8"
+                       Panel.ZIndex="11">
+                <Run x:Name="ExitMessageRun"/>
+                <Run x:Name="CompanyNameRun" Text=""/>
+            </TextBlock>
+            
+        </Grid>
+    </Border>
+</ui:FluentWindow>
