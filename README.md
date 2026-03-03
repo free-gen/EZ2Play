@@ -4,7 +4,7 @@
 ![Platform](https://img.shields.io/badge/Platform-Windows-lightgrey) 
 ![Framework](https://img.shields.io/badge/Framework-WPF-purple)
 
-[preview.webm](https://github.com/user-attachments/assets/352b841d-c2ae-4fbc-b307-82f8e6b67a79)
+<img width="1920" height="1080" alt="screenshot" src="https://github.com/user-attachments/assets/646c233b-f077-4643-8cb2-86e2f00ea54c" />
 
 **Версия 2.0 - полностью обновлённая архитектура**
 
