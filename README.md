@@ -4,11 +4,11 @@
 ![Platform](https://img.shields.io/badge/Platform-Windows-lightgrey) 
 ![Framework](https://img.shields.io/badge/Framework-WPF-purple)
 
-<img width="1920" height="1080" alt="screenshot" src="https://github.com/user-attachments/assets/646c233b-f077-4643-8cb2-86e2f00ea54c" />
-
 **Версия 2.0 - полностью обновлённая архитектура**
 
 Старые версии  доступны в разделе [Releases](https://github.com/free-gen/EZ2Play/releases).
+
+<img width="1920" height="1080" alt="screenshot" src="https://github.com/user-attachments/assets/646c233b-f077-4643-8cb2-86e2f00ea54c" />
 
 EZ2Play это минималистичный WPF лаунчер для запуска игр на вашем ТВ. В отличие от большинства игровых лаунчеров, где требуется добавлять игры и парсить обложки, здесь используются стандартные ярлыки Windows. Они уже содержат в себе все что нужно: путь к игре, при необходимости параметры запуска и собственную иконку (.ico), которая автоматически используется как изображение в интерфейсе.
 
