@@ -94,6 +94,14 @@ EZ2Play.exe --nomusic
 EZ2Play.exe --hotswap --nosplash --nomusic
 ```
 
+# Вспомогательное приложение EZParser
+
+<img width="960" height="780" alt="Снимок экрана 2026-03-06 085818" src="https://github.com/user-attachments/assets/6bb61e34-8d59-4008-9139-8f79f169f0e8" />
+<img width="960" height="780" alt="Снимок экрана 2026-03-06 085705" src="https://github.com/user-attachments/assets/775261f3-be1f-48ed-a0fc-689e0cb69c1c" />
+
+Позволяет быстро находить иконки для игр и назначать их ярлыкам. Поддерживает **PsStore** и **SteamGridDB**, а также включает встроенный конвертер `.png → .ico`.
+> Для SteamGridDB требуется API ключ
+
 ## Системные требования
 
 - Windows 10 / 11
