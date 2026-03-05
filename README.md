@@ -3,6 +3,7 @@
 ![Version](https://img.shields.io/badge/Version-2.0.0.0-blue) 
 ![Platform](https://img.shields.io/badge/Platform-Windows-lightgrey) 
 ![Framework](https://img.shields.io/badge/Framework-WPF-purple)
+![UI](https://img.shields.io/badge/UI-WPF--UI-blueviolet)
 
 **Версия 2.0 - полностью обновлённая архитектура**
 
