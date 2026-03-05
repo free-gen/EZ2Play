@@ -1,0 +1,23 @@
+<UserControl x:Class="EZParser.Views.ApiKeyDialogPage"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+             Margin="0">
+
+    <!-- Внешний StackPanel растягивается по ширине -->
+    <StackPanel Margin="0">
+        <!-- Внутренний блок фиксированной ширины, центрированный -->
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+            <ui:PasswordBox x:Name="ApiKeyPasswordBox" 
+                            Width="280"
+                            PlaceholderText="Paste API key here..."
+                            Height="36"
+                            PasswordChanged="ApiKeyPasswordBox_PasswordChanged"/>
+            <ui:HyperlinkButton Content="Get API Key" 
+                                Width="110"
+                                Height="36"
+                                Margin="10,0,0,0" 
+                                NavigateUri="https://www.steamgriddb.com/profile/preferences/api" />
+        </StackPanel>
+    </StackPanel>
+</UserControl>
