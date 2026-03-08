@@ -28,10 +28,9 @@ namespace EZ2Play.App
 
         // Master switch для scale-анимаций карусели.
         // public bool EnableSelectionAnimations { get; set; } = true;
-        // принудительный scale-down соседнего слота (8/2) при сдвиге окна.
-        // public bool EnableEdgeScrollScaleDownFix { get; set; } = false;
+
         // пропуск анимации увеличения для крайних элементов
-        public bool SkipScaleUpAnimationOnEdgeScroll { get; set; } = true;
+        public bool SkipScaleUpAnimationOnEdgeScroll { get; set; } = false;
 
         private bool ConsumePendingWindowShiftAnimation()
         {
@@ -231,21 +230,6 @@ namespace EZ2Play.App
             bool skipScaleUpOnThisChange = wasWindowShift && SkipScaleUpAnimationOnEdgeScroll;
             int fallbackPreviousIndex = GetFallbackPreviousIndex(currentVisibleIndex, previousAbsoluteIndex, currentAbsoluteIndex, listBox.Items.Count);
 
-            // if (EnableEdgeScrollScaleDownFix && wasWindowShift)
-            // {
-            //     int forcedDownIndex = GetForcedDownIndex(currentVisibleIndex, moveDirection, listBox.Items.Count);
-            //     if (forcedDownIndex >= 0)
-            //     {
-            //         CarouselAnimation.AnimateSelectionChanged(
-            //             listBox,
-            //             e,
-            //             fallbackPreviousIndex: -1,
-            //             skipScaleUp: skipScaleUpOnThisChange);
-            //         CarouselAnimation.ForceScaleDownByIndex(listBox, forcedDownIndex);
-            //         return;
-            //     }
-            // }
-
             CarouselAnimation.AnimateSelectionChanged(
                 listBox,
                 e,
@@ -275,20 +259,6 @@ namespace EZ2Play.App
                 ? fallbackPreviousIndex
                 : -1;
         }
-
-        // Вычисляет индекс соседнего слота для forced scale-down в edge-scroll
-        // private static int GetForcedDownIndex(int currentVisibleIndex, int moveDirection, int itemsCount)
-        // {
-        //     int forcedDownIndex = -1;
-        //     if (moveDirection > 0)
-        //         forcedDownIndex = currentVisibleIndex - 1;
-        //     else if (moveDirection < 0)
-        //         forcedDownIndex = currentVisibleIndex + 1;
-
-        //     return (forcedDownIndex >= 0 && forcedDownIndex < itemsCount)
-        //         ? forcedDownIndex
-        //         : -1;
-        // }
 
         // ---- UI sync helpers ----
         private void UpdateEmptyState(bool isEmpty)

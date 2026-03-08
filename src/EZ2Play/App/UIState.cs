@@ -79,6 +79,12 @@ namespace EZ2Play.App
                 companyNameRun.Text = companyName;
             }
 
+            var versionRun = _window.FindName("VersionRun") as System.Windows.Documents.Run;
+            if (versionRun != null)
+            {
+                versionRun.Text = AppInfo.GetVersion(shortFormat: false);
+            }
+
             var exitMessageText = _window.FindName("ExitMessageText") as TextBlock;
             if (exitMessageText != null)
             {

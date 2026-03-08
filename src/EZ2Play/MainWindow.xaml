@@ -225,10 +225,12 @@
                        FontWeight="ExtraLight"
                        FontFamily="Manrope"
                        Visibility="Hidden"
-                       Opacity="0.8"
                        Panel.ZIndex="11">
                 <Run x:Name="ExitMessageRun"/>
                 <Run x:Name="CompanyNameRun" Text=""/>
+                <LineBreak/>
+                <Run Text="v."/>
+                <Run x:Name="VersionRun" Text=""/>
             </TextBlock>
             
         </Grid>

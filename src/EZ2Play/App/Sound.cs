@@ -292,18 +292,18 @@ namespace EZ2Play.App
             catch { }
         }
 
-        public void PlayBackgroundMusic()
+        public void PlayBackgroundMusic(int fadeMs = FadeDurationMs)
         {
             if (DisableMusic || _backgroundPlayer == null || _backgroundReader == null) return;
 
             _isBackgroundPlaying = true;
             _backgroundReader.Position = 0;
             _backgroundPlayer.Play();
-
-            (_musicVolumeProvider.Source as FadeWaveProvider)?.FadeTo(1f, FadeDurationMs);
+            
+            (_musicVolumeProvider.Source as FadeWaveProvider)?.FadeTo(1f, fadeMs);
         }
 
-        public void StopBackgroundMusicSafe(int fadeMs)
+        public void StopBackgroundMusicSafe(int fadeMs = FadeDurationMs)
         {
             if (_backgroundPlayer == null) return;
 
@@ -317,7 +317,7 @@ namespace EZ2Play.App
             });
         }
 
-        public void StopBackgroundMusicSafe() => StopBackgroundMusicSafe(FadeDurationMs);
+        // public void StopBackgroundMusicSafe() => StopBackgroundMusicSafe(FadeDurationMs);
 
         private void PlaySfx(Mp3FileReader reader)
         {

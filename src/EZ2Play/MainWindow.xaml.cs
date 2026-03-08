@@ -21,7 +21,7 @@ namespace EZ2Play
         private UIState _uiState;
         private Launcher _launcher;
 
-        private const int FadeDurationMs = 500;
+        private const int FadeDurationMs = 1000;
 
         private GuideExitHandler _guideHandler;
 
@@ -79,7 +79,7 @@ namespace EZ2Play
             if (isActive && !_wasActive)
             {
                 // Приложение стало активным
-                _audioManager.PlayBackgroundMusic();
+                _audioManager.PlayBackgroundMusic(FadeDurationMs * 3);
                 HideCursor();
             }
             else if (!isActive && _wasActive)
@@ -190,20 +190,13 @@ namespace EZ2Play
             ItemsListBox.InvalidateMeasure();
             UpdateLayout();
             InitializeCarouselSelectedItem();
+
+            ItemsListBox.Items.Refresh(); // исправление для обложек
         }
 
         private void UpdateUiScaleResources(double windowHeight)
         {
             LayoutScaler.ApplyUiScaleToDictionary(this.Resources, windowHeight);
-
-            // Стили из App.xaml берут ресурсы из Application — копируем, чтобы DynamicResource находил значения
-            Application.Current.Resources[UiScaleKeys.HintTextFontSize] = this.Resources[UiScaleKeys.HintTextFontSize];
-            Application.Current.Resources[UiScaleKeys.HintTextMargin] = this.Resources[UiScaleKeys.HintTextMargin];
-            Application.Current.Resources[UiScaleKeys.HintIconHeightGamepad] = this.Resources[UiScaleKeys.HintIconHeightGamepad];
-            Application.Current.Resources[UiScaleKeys.HintIconHeightKeyboard] = this.Resources[UiScaleKeys.HintIconHeightKeyboard];
-            Application.Current.Resources[UiScaleKeys.CarouselSelectorOuterMargin] = this.Resources[UiScaleKeys.CarouselSelectorOuterMargin];
-            Application.Current.Resources[UiScaleKeys.CarouselSelectorCornerRadius] = this.Resources[UiScaleKeys.CarouselSelectorCornerRadius];
-            Application.Current.Resources[UiScaleKeys.CarouselSelectorBorderThickness] = this.Resources[UiScaleKeys.CarouselSelectorBorderThickness];
         }
 
         private void HideCursor()
@@ -238,9 +231,19 @@ namespace EZ2Play
             });
         }
 
+        // protected override void OnActivated(EventArgs e)
+        // {
+        //     base.OnActivated(e);
+        // }
+
         protected override void OnActivated(EventArgs e)
         {
             base.OnActivated(e);
+            if (ActualHeight > 0)
+            {
+                UpdateUiScaleResources(ActualHeight);
+                ItemsListBox?.Items.Refresh();
+            }
         }
 
         public void ShowWithAnimation(bool skipSplash = false)
@@ -278,9 +281,21 @@ namespace EZ2Play
             catch { }
         }
 
+        // protected override void OnDpiChanged(DpiScale oldDpi, DpiScale newDpi)
+        // {
+        //     base.OnDpiChanged(oldDpi, newDpi);
+        // }
+
         protected override void OnDpiChanged(DpiScale oldDpi, DpiScale newDpi)
         {
             base.OnDpiChanged(oldDpi, newDpi);
+            Dispatcher.BeginInvoke(new Action(() => {
+                if (ActualHeight > 0)
+                {
+                    UpdateUiScaleResources(ActualHeight);
+                    ItemsListBox?.Items.Refresh();
+                }
+            }));
         }
 
         // Tab не будет обрабатываться системой
