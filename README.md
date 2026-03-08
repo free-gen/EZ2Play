@@ -1,6 +1,6 @@
 # EZ2Play Launcher
 
-![Version](https://img.shields.io/badge/Version-0.6.0.0-blue) 
+![Version](https://img.shields.io/badge/Version-0.6.0.1-blue) 
 ![Platform](https://img.shields.io/badge/Platform-Windows-lightgrey) 
 ![Framework](https://img.shields.io/badge/Framework-WPF-purple)
 [![UI](https://img.shields.io/badge/UI-WPF--UI-blueviolet)](https://github.com/lepoco/wpfui)
