@@ -193,7 +193,7 @@ namespace EZ2Play.App
             try
             {
                 var asm = Assembly.GetExecutingAssembly();
-                const string resourceName = "EZ2Play.src.logo.png";
+                const string resourceName = "EZ2Play.Assets.logo.png";
                 using (var stream = asm.GetManifestResourceStream(resourceName))
                 {
                     if (stream != null)

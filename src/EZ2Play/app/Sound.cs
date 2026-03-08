@@ -75,10 +75,10 @@ namespace EZ2Play.App
 
         private const string SoundPackFile = "sound.pack";
 
-        private const string ResMove = "EZ2Play.src.select.mp3";
-        private const string ResLaunch = "EZ2Play.src.action.mp3";
-        private const string ResBack = "EZ2Play.src.abort.mp3";
-        private const string ResMenu = "EZ2Play.src.ambient.mp3";
+        private const string ResMove = "EZ2Play.Assets.select.mp3";
+        private const string ResLaunch = "EZ2Play.Assets.action.mp3";
+        private const string ResBack = "EZ2Play.Assets.abort.mp3";
+        private const string ResMenu = "EZ2Play.Assets.ambient.mp3";
 
         private Mp3FileReader _moveReader;
         private Mp3FileReader _launchReader;

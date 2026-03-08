@@ -3,7 +3,7 @@
     <OutputType>WinExe</OutputType>
     <TargetFramework>net48</TargetFramework>
     <UseWPF>true</UseWPF>
-    <ApplicationIcon>src/app.ico</ApplicationIcon>
+    <ApplicationIcon>Assets/app.ico</ApplicationIcon>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <Copyright>Copyright © FreeGen</Copyright>
     <Company>FreeGen</Company>
@@ -44,12 +44,12 @@
     </ItemGroup>
     
   <ItemGroup>
-    <EmbeddedResource Include="src/select.mp3" />
-    <EmbeddedResource Include="src/action.mp3" />
-    <EmbeddedResource Include="src/abort.mp3" />
-    <EmbeddedResource Include="src/ambient.mp3" />
-    <EmbeddedResource Include="src/Manrope-VariableFont_wght.ttf" />
-    <EmbeddedResource Include="src/logo.png" />
+    <EmbeddedResource Include="Assets/select.mp3" />
+    <EmbeddedResource Include="Assets/action.mp3" />
+    <EmbeddedResource Include="Assets/abort.mp3" />
+    <EmbeddedResource Include="Assets/ambient.mp3" />
+    <EmbeddedResource Include="Assets/Manrope-VariableFont_wght.ttf" />
+    <EmbeddedResource Include="Assets/logo.png" />
   </ItemGroup>
 
   <ItemGroup>
