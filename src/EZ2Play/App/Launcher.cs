@@ -106,10 +106,6 @@ namespace EZ2Play.App
             _shortcuts = IconExtractor.LoadShortcuts();
             _selectedIndex = 0;
             ApplyVisibleWindow();
-
-            UpdateEmptyState(_shortcuts.Length == 0);
-            if (_shortcuts.Length > 0)
-                UpdateSelectedName();
         }
 
         // Основной шаг навигации по карусели
@@ -258,32 +254,6 @@ namespace EZ2Play.App
             return (fallbackPreviousIndex >= 0 && fallbackPreviousIndex < itemsCount)
                 ? fallbackPreviousIndex
                 : -1;
-        }
-
-        // ---- UI sync helpers ----
-        private void UpdateEmptyState(bool isEmpty)
-        {
-            var bottomPanel = _window.FindName("BottomPanel") as Border;
-            var topInfoPanel = _window.FindName("TopInfoPanel") as Grid;
-            var noShortcutsMessage = _window.FindName("NoShortcutsMessage") as TextBlock;
-            var selectedGameTitle = _window.FindName("SelectedGameTitle") as TextBlock;
-
-            var gameSourceCard = _window.FindName("GameSourceCard") as Border;
-            
-            if (bottomPanel != null)
-                bottomPanel.Visibility = isEmpty ? Visibility.Collapsed : Visibility.Visible;
-                
-            if (topInfoPanel != null)
-                topInfoPanel.Visibility = isEmpty ? Visibility.Collapsed : Visibility.Visible;
-                
-            if (noShortcutsMessage != null)
-                noShortcutsMessage.Visibility = isEmpty ? Visibility.Visible : Visibility.Collapsed;
-            
-            if (selectedGameTitle != null)
-                selectedGameTitle.Visibility = isEmpty ? Visibility.Collapsed : Visibility.Visible;
-
-            if (gameSourceCard != null)
-                gameSourceCard.Visibility = isEmpty ? Visibility.Collapsed : Visibility.Visible;
         }
 
         private void UpdateSelectedName()

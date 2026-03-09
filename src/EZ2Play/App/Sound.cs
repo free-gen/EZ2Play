@@ -2,7 +2,6 @@ using System;
 using System.IO;
 using System.Reflection;
 using NAudio.Wave;
-using System.IO.Compression;
 using System.Threading.Tasks;
 
 namespace EZ2Play.App
@@ -73,8 +72,6 @@ namespace EZ2Play.App
     {
         public static bool DisableMusic { get; set; } = false;
 
-        private const string SoundPackFile = "sound.pack";
-
         private const string ResMove = "EZ2Play.Assets.select.mp3";
         private const string ResLaunch = "EZ2Play.Assets.action.mp3";
         private const string ResBack = "EZ2Play.Assets.abort.mp3";
@@ -100,7 +97,7 @@ namespace EZ2Play.App
         private const float MusicVolume = 0.80f;
 
         // Единая константа для fade in/out
-        private const int FadeDurationMs = 500;
+        public const int FadeDurationMs = 1000;
 
         public bool IsBackgroundPlaying => _isBackgroundPlaying;
 
@@ -110,39 +107,9 @@ namespace EZ2Play.App
             InitializeBackgroundMusic();
         }
 
-        private static MemoryStream LoadFromSoundPack(string fileName)
-        {
-            try
-            {
-                string exeDir = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
-                string packPath = Path.Combine(exeDir, SoundPackFile);
-
-                if (!File.Exists(packPath))
-                    return null;
-
-                using (var archive = ZipFile.OpenRead(packPath))
-                {
-                    var entry = archive.GetEntry(fileName);
-                    if (entry == null) return null;
-
-                    var ms = new MemoryStream();
-                    using (var entryStream = entry.Open())
-                        entryStream.CopyTo(ms);
-
-                    ms.Position = 0;
-                    return ms;
-                }
-            }
-            catch
-            {
-                return null;
-            }
-        }
-
         private static MemoryStream LoadSound(string resourceName, string fileName)
         {
-            var fromPack = LoadFromSoundPack(fileName);
-            return fromPack ?? LoadEmbeddedToMemory(resourceName);
+            return PackLoader.LoadFromPack(fileName) ?? LoadEmbeddedToMemory(resourceName);
         }
 
         internal class FadeWaveProvider : IWaveProvider

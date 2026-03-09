@@ -64,12 +64,13 @@
                         <ColumnDefinition Width="5*"/>
                     </Grid.ColumnDefinitions>
 
-                    <TextBlock x:Name="TopRightAppNameText" Grid.Column="1"
-                               HorizontalAlignment="Left"
-                               VerticalAlignment="Center"
-                               FontSize="{DynamicResource {x:Static app:UiScaleKeys.TopInfoFontSize}}"
-                               FontWeight="ExtraBold"
-                               FontFamily="Manrope"/>
+                    <TextBlock x:Name="TopLeftAppNameText" Grid.Column="1"
+                                Text="{x:Static app:AppInfo.Name}"
+                                HorizontalAlignment="Left"
+                                VerticalAlignment="Center"
+                                FontSize="{DynamicResource {x:Static app:UiScaleKeys.TopInfoFontSize}}"
+                                FontWeight="ExtraBold"
+                                FontFamily="Manrope"/>
 
                     <TextBlock x:Name="TopRightTimeText" Grid.Column="2"
                                HorizontalAlignment="Right"
@@ -160,43 +161,56 @@
                 <Border x:Name="BottomPanel" Tag="BottomPanel" Grid.Row="3"
                         BorderThickness="{DynamicResource {x:Static app:UiScaleKeys.BottomPanelBorderThickness}}"
                         BorderBrush="{DynamicResource SurfaceStrokeColorDefaultBrush}"
-                        Background="{DynamicResource LayerFillColorDefaultBrush}"
+                        Background="{DynamicResource CardBackgroundFillColorSecondaryBrush}"
                         HorizontalAlignment="Center"
                         VerticalAlignment="Center"
                         CornerRadius="{DynamicResource {x:Static app:UiScaleKeys.BottomPanelCornerRadius}}"
                         Height="{DynamicResource {x:Static app:UiScaleKeys.BottomPanelHeight}}"
-                        Padding="{DynamicResource {x:Static app:UiScaleKeys.BottomPanelPadding}}"
-                        >
-                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
-                        <StackPanel Orientation="Horizontal" Margin="{DynamicResource {x:Static app:UiScaleKeys.HintBlockMargin}}">
-                            <Viewbox x:Name="LaunchIconGamepad" Height="{DynamicResource {x:Static app:UiScaleKeys.HintIconHeightGamepad}}" Stretch="Uniform" Visibility="Collapsed" VerticalAlignment="Center">
-                                <ContentPresenter Content="{StaticResource ButtonA}"/>
-                            </Viewbox>
-                            <Viewbox x:Name="LaunchIconKeyboard" Height="{DynamicResource {x:Static app:UiScaleKeys.HintIconHeightKeyboard}}" Stretch="Uniform" Visibility="Visible" VerticalAlignment="Center">
-                                <ContentPresenter Content="{StaticResource KeyEnter}"/>
-                            </Viewbox>
-                            <TextBlock x:Name="LaunchText" Style="{StaticResource HintTextStyle}"/>
+                        Padding="{DynamicResource {x:Static app:UiScaleKeys.BottomPanelPadding}}">
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+                            <StackPanel Orientation="Horizontal" Margin="{DynamicResource {x:Static app:UiScaleKeys.HintBlockMargin}}">
+                                <Viewbox x:Name="LaunchIconXinput" Height="{DynamicResource {x:Static app:UiScaleKeys.HintIconHeightGamepad}}" Stretch="Uniform" Visibility="Collapsed" VerticalAlignment="Center">
+                                    <ContentPresenter Content="{StaticResource ButtonA}"/>
+                                </Viewbox>
+                                <Viewbox x:Name="LaunchIconKeyboard" Height="{DynamicResource {x:Static app:UiScaleKeys.HintIconHeightKeyboard}}" Stretch="Uniform" Visibility="Visible" VerticalAlignment="Center">
+                                    <ContentPresenter Content="{StaticResource KeyEnter}"/>
+                                </Viewbox>
+                                <TextBlock x:Name="LaunchText" Style="{StaticResource HintTextStyle}"/>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" Margin="{DynamicResource {x:Static app:UiScaleKeys.HintBlockMargin}}">
+                                <Viewbox x:Name="ExitIconGamepad" Height="{DynamicResource {x:Static app:UiScaleKeys.HintIconHeightGamepad}}" Stretch="Uniform" Visibility="Collapsed" VerticalAlignment="Center">
+                                    <ContentPresenter Content="{StaticResource ButtonB}"/>
+                                </Viewbox>
+                                <Viewbox x:Name="ExitIconKeyboard" Height="{DynamicResource {x:Static app:UiScaleKeys.HintIconHeightKeyboard}}" Stretch="Uniform" Visibility="Visible" VerticalAlignment="Center">
+                                    <ContentPresenter Content="{StaticResource KeyEscape}"/>
+                                </Viewbox>
+                                <TextBlock x:Name="ExitText" Style="{StaticResource HintTextStyle}"/>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" Margin="{DynamicResource {x:Static app:UiScaleKeys.HintBlockMargin}}">
+                                <Viewbox x:Name="ScreenSwapIconGamepad" Height="{DynamicResource {x:Static app:UiScaleKeys.HintIconHeightGamepad}}" Stretch="Uniform" Visibility="Collapsed" VerticalAlignment="Center">
+                                    <ContentPresenter Content="{StaticResource ButtonX}"/>
+                                </Viewbox>
+                                <Viewbox x:Name="ScreenSwapIconKeyboard" Height="{DynamicResource {x:Static app:UiScaleKeys.HintIconHeightKeyboard}}" Stretch="Uniform" Visibility="Visible" VerticalAlignment="Center">
+                                    <ContentPresenter Content="{StaticResource KeyX}"/>
+                                </Viewbox>
+                                <TextBlock x:Name="ScreenSwapText" Style="{StaticResource HintTextStyle}"/>
+                            </StackPanel>
                         </StackPanel>
-                        <StackPanel Orientation="Horizontal" Margin="{DynamicResource {x:Static app:UiScaleKeys.HintBlockMargin}}">
-                            <Viewbox x:Name="ExitIconGamepad" Height="{DynamicResource {x:Static app:UiScaleKeys.HintIconHeightGamepad}}" Stretch="Uniform" Visibility="Collapsed" VerticalAlignment="Center">
-                                <ContentPresenter Content="{StaticResource ButtonB}"/>
-                            </Viewbox>
-                            <Viewbox x:Name="ExitIconKeyboard" Height="{DynamicResource {x:Static app:UiScaleKeys.HintIconHeightKeyboard}}" Stretch="Uniform" Visibility="Visible" VerticalAlignment="Center">
-                                <ContentPresenter Content="{StaticResource KeyEscape}"/>
-                            </Viewbox>
-                            <TextBlock x:Name="ExitText" Style="{StaticResource HintTextStyle}"/>
-                        </StackPanel>
-                        <StackPanel Orientation="Horizontal" Margin="{DynamicResource {x:Static app:UiScaleKeys.HintBlockMargin}}">
-                            <Viewbox x:Name="ScreenSwapIconGamepad" Height="{DynamicResource {x:Static app:UiScaleKeys.HintIconHeightGamepad}}" Stretch="Uniform" Visibility="Collapsed" VerticalAlignment="Center">
-                                <ContentPresenter Content="{StaticResource ButtonX}"/>
-                            </Viewbox>
-                            <Viewbox x:Name="ScreenSwapIconKeyboard" Height="{DynamicResource {x:Static app:UiScaleKeys.HintIconHeightKeyboard}}" Stretch="Uniform" Visibility="Visible" VerticalAlignment="Center">
-                                <ContentPresenter Content="{StaticResource KeyX}"/>
-                            </Viewbox>
-                            <TextBlock x:Name="ScreenSwapText" Style="{StaticResource HintTextStyle}"/>
-                        </StackPanel>
-                    </StackPanel>
                 </Border>
+
+                <!-- Номер версии -->
+                <TextBlock  x:Name="VersionLabel"
+                            Grid.Row="3"
+                            VerticalAlignment="Bottom"
+                            HorizontalAlignment="Right"
+                            Foreground="{DynamicResource TextFillColorDisabledBrush}"
+                            Margin="{DynamicResource {x:Static app:UiScaleKeys.VersionLabelMargin}}"
+                            FontSize="{DynamicResource {x:Static app:UiScaleKeys.VersionLabelFontSize}}"
+                            FontFamily="Manrope"
+                            TextAlignment="Right">
+                    <Run Text="v"/><Run Text="{x:Static app:AppInfo.Version}"/>
+                </TextBlock>
+
             </Grid>
 
             <!-- Сообщение при отсутствии ярлыков -->
@@ -228,11 +242,7 @@
                        Panel.ZIndex="11">
                 <Run x:Name="ExitMessageRun"/>
                 <Run x:Name="CompanyNameRun" Text=""/>
-                <LineBreak/>
-                <Run Text="v."/>
-                <Run x:Name="VersionRun" Text=""/>
-            </TextBlock>
-            
+            </TextBlock>     
         </Grid>
     </Border>
 </ui:FluentWindow>

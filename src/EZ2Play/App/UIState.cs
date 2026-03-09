@@ -25,11 +25,11 @@ namespace EZ2Play.App
 
         public void InitializeTopRightInfo()
         {
-            _appDisplayName = AppInfo.GetProductName();
-            UpdateTopRightText();
+            _appDisplayName = AppInfo.Name;
+            UpdateTopInfoPanel();
 
             _clockTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
-            _clockTimer.Tick += (s, e) => UpdateTopRightText();
+            _clockTimer.Tick += (s, e) => UpdateTopInfoPanel();
             _clockTimer.Start();
         }
 
@@ -41,15 +41,44 @@ namespace EZ2Play.App
                 horizontalGrid.Visibility = Visibility.Visible;
         }
 
-        public void UpdateTopRightText()
+        public void UpdateTopInfoPanel()
         {
-            var appNameTb = _window.FindName("TopRightAppNameText") as TextBlock;
+            var appNameTb = _window.FindName("TopLeftAppNameText") as TextBlock;
             var timeTb = _window.FindName("TopRightTimeText") as TextBlock;
             if (appNameTb == null || timeTb == null) return;
             
             var time = DateTime.Now.ToString("HH:mm");
-            appNameTb.Text = $"{_appDisplayName} Launcher";
+            appNameTb.Text = $"{AppInfo.Name} Launcher";
             timeTb.Text = time;
+        }
+
+        // Скрытие элементов
+        public void SetEmptyState(bool isEmpty)
+        {
+            var bottomPanel = _window.FindName("BottomPanel") as Border;
+            var topInfoPanel = _window.FindName("TopInfoPanel") as Grid;
+            var noShortcutsMessage = _window.FindName("NoShortcutsMessage") as TextBlock;
+            var selectedGameTitle = _window.FindName("SelectedGameTitle") as TextBlock;
+            var gameSourceCard = _window.FindName("GameSourceCard") as Border;
+            var versionLabel = _window.FindName("VersionLabel") as TextBlock;
+
+            if (bottomPanel != null)
+                bottomPanel.Visibility = isEmpty ? Visibility.Collapsed : Visibility.Visible;
+
+            if (topInfoPanel != null)
+                topInfoPanel.Visibility = isEmpty ? Visibility.Collapsed : Visibility.Visible;
+
+            if (noShortcutsMessage != null)
+                noShortcutsMessage.Visibility = isEmpty ? Visibility.Visible : Visibility.Collapsed;
+
+            if (selectedGameTitle != null)
+                selectedGameTitle.Visibility = isEmpty ? Visibility.Collapsed : Visibility.Visible;
+
+            if (gameSourceCard != null)
+                gameSourceCard.Visibility = isEmpty ? Visibility.Collapsed : Visibility.Visible;
+
+            if (versionLabel != null)
+                versionLabel.Visibility = isEmpty ? Visibility.Collapsed : Visibility.Visible;
         }
 
         public void ShowExitOverlay()
@@ -60,6 +89,9 @@ namespace EZ2Play.App
             var selectedGameTitle = _window.FindName("SelectedGameTitle") as TextBlock;
 
             var gameSourceCard = _window.FindName("GameSourceCard") as Border;
+
+            var versionLabel = _window.FindName("VersionLabel") as TextBlock;
+            if (versionLabel != null) versionLabel.Visibility = Visibility.Collapsed;
 
             var noShortcutsMessage = _window.FindName("NoShortcutsMessage") as TextBlock;
             
@@ -72,17 +104,11 @@ namespace EZ2Play.App
 
             if (noShortcutsMessage != null) noShortcutsMessage.Visibility = Visibility.Collapsed;
 
-            var companyName = AppInfo.GetCompanyName();
+            var companyName = AppInfo.Company;
             var companyNameRun = _window.FindName("CompanyNameRun") as System.Windows.Documents.Run;
             if (companyNameRun != null)
             {
                 companyNameRun.Text = companyName;
-            }
-
-            var versionRun = _window.FindName("VersionRun") as System.Windows.Documents.Run;
-            if (versionRun != null)
-            {
-                versionRun.Text = AppInfo.GetVersion(shortFormat: false);
             }
 
             var exitMessageText = _window.FindName("ExitMessageText") as TextBlock;
@@ -184,12 +210,19 @@ namespace EZ2Play.App
         private static bool TryLoadLogoInto(Image image)
         {
             if (image == null) return false;
+
             try
             {
-                string path = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "logo.png");
-                if (File.Exists(path))
+                // Попытка загрузить из ui.pack
+                var logoFromPack = PackLoader.LoadFromPack("logo.png");
+                if (logoFromPack != null)
                 {
-                    image.Source = new BitmapImage(new Uri(path));
+                    var bitmap = new BitmapImage();
+                    bitmap.BeginInit();
+                    bitmap.StreamSource = logoFromPack;
+                    bitmap.CacheOption = BitmapCacheOption.OnLoad;
+                    bitmap.EndInit();
+                    image.Source = bitmap;
                     RenderOptions.SetBitmapScalingMode(image, BitmapScalingMode.HighQuality);
                     return true;
                 }
@@ -198,6 +231,7 @@ namespace EZ2Play.App
 
             try
             {
+                // Фолбек на встроенный ресурс
                 var asm = Assembly.GetExecutingAssembly();
                 const string resourceName = "EZ2Play.Assets.logo.png";
                 using (var stream = asm.GetManifestResourceStream(resourceName))
@@ -210,12 +244,13 @@ namespace EZ2Play.App
                         bitmap.CacheOption = BitmapCacheOption.OnLoad;
                         bitmap.EndInit();
                         image.Source = bitmap;
-                        RenderOptions.SetBitmapScalingMode(image, BitmapScalingMode.Fant);
+                        RenderOptions.SetBitmapScalingMode(image, BitmapScalingMode.HighQuality);
                         return true;
                     }
                 }
             }
             catch { }
+
             return false;
         }
 
@@ -225,7 +260,7 @@ namespace EZ2Play.App
             var visGamepad = isGamepad ? Visibility.Visible : Visibility.Collapsed;
             var visKeyboard = isGamepad ? Visibility.Collapsed : Visibility.Visible;
 
-            if (_window.FindName("LaunchIconGamepad") is FrameworkElement launchGp) launchGp.Visibility = visGamepad;
+            if (_window.FindName("LaunchIconXinput") is FrameworkElement launchGp) launchGp.Visibility = visGamepad;
             if (_window.FindName("LaunchIconKeyboard") is FrameworkElement launchKb) launchKb.Visibility = visKeyboard;
             if (_window.FindName("ExitIconGamepad") is FrameworkElement exitGp) exitGp.Visibility = visGamepad;
             if (_window.FindName("ExitIconKeyboard") is FrameworkElement exitKb) exitKb.Visibility = visKeyboard;

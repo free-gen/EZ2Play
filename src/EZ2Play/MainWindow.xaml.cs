@@ -21,8 +21,6 @@ namespace EZ2Play
         private UIState _uiState;
         private Launcher _launcher;
 
-        private const int FadeDurationMs = 1000;
-
         private GuideExitHandler _guideHandler;
 
         public bool IsGamepadConnected { get; private set; }
@@ -79,13 +77,13 @@ namespace EZ2Play
             if (isActive && !_wasActive)
             {
                 // Приложение стало активным
-                _audioManager.PlayBackgroundMusic(FadeDurationMs * 3);
+                _audioManager.PlayBackgroundMusic(Sound.FadeDurationMs * 3);
                 HideCursor();
             }
             else if (!isActive && _wasActive)
             {
                 // Приложение стало неактивным
-                _audioManager.StopBackgroundMusicSafe(FadeDurationMs);
+                _audioManager.StopBackgroundMusicSafe(Sound.FadeDurationMs);
                 ShowLoading(false);
                 ShowCursor();
             }
@@ -128,6 +126,7 @@ namespace EZ2Play
         private void StartPostSplash()
         {
             _launcher.LoadShortcuts();
+            _uiState.SetEmptyState(_launcher.Shortcuts.Length == 0);
 
             var baseGrid = this.FindName("BaseModeGrid") as Grid;
             if (baseGrid != null)
@@ -219,7 +218,7 @@ namespace EZ2Play
         private void ExitApplication()
         {
             _audioManager.PlayBackSound();
-            _audioManager.StopBackgroundMusicSafe(FadeDurationMs);
+            _audioManager.StopBackgroundMusicSafe(Sound.FadeDurationMs);
 
             _input.OnExitApplication -= ExitApplication;
 
@@ -230,11 +229,6 @@ namespace EZ2Play
                 Dispatcher.Invoke(Close);
             });
         }
-
-        // protected override void OnActivated(EventArgs e)
-        // {
-        //     base.OnActivated(e);
-        // }
 
         protected override void OnActivated(EventArgs e)
         {
@@ -280,11 +274,6 @@ namespace EZ2Play
             }
             catch { }
         }
-
-        // protected override void OnDpiChanged(DpiScale oldDpi, DpiScale newDpi)
-        // {
-        //     base.OnDpiChanged(oldDpi, newDpi);
-        // }
 
         protected override void OnDpiChanged(DpiScale oldDpi, DpiScale newDpi)
         {

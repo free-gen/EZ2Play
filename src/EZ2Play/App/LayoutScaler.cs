@@ -48,6 +48,10 @@ namespace EZ2Play.App
             // Сообщение при выходе
             target[UiScaleKeys.ExitMessageFontSize] = fs(42); // размер шрифта
 
+            // Номер версии
+            target[UiScaleKeys.VersionLabelMargin] = new Thickness( s(50) ); // отступы
+            target[UiScaleKeys.VersionLabelFontSize] = fs(16); // размер шрифта
+
             // ===========================================================================
 
             // Верхняя панель
@@ -97,6 +101,10 @@ namespace EZ2Play.App
 
         // ======================== Сообщение при выходе ========================
         public const string ExitMessageFontSize = "ExitMessageFontSize";
+
+        // ======================== Номер версии ========================
+        public const string VersionLabelMargin = "VersionLabelMargin";
+        public const string VersionLabelFontSize = "VersionLabelFontSize";
 
         // ======================== Верхняя панель ========================
         public const string TopInfoPanelMargin = "TopInfoPanelMargin";
