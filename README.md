@@ -1,5 +1,6 @@
 # EZ2Play Launcher
 
+<<<<<<< HEAD
 ![Version](https://img.shields.io/badge/Version-0.7.0.0-blue)
 ![Platform](https://img.shields.io/badge/Platform-Windows-blue)
 ![Framework](https://img.shields.io/badge/Framework-WPF-blue)
