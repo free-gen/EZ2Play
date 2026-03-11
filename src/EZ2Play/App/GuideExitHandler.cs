@@ -6,15 +6,13 @@ using System.Windows.Interop;
 using System.Windows.Threading;
 using SharpDX.XInput;
 
-// Обработчик кнопки HOME (GUIDE) для закрытия активного процесса игры и возврата в лаунчер
-
 namespace EZ2Play.App
 {
+    // --------------- Обработчик кнопки HOME (GUIDE) для закрытия игры ---------------
+
     public class GuideExitHandler : IDisposable
     {
-        // XInput
-        [DllImport("xinput1_4.dll", EntryPoint = "#100")]
-        private static extern int XInputGetState(int dwUserIndex, ref XInputStateEx pState);
+        // --------------- Native структуры ---------------
 
         [StructLayout(LayoutKind.Sequential)]
         private struct XInputStateEx
@@ -35,19 +33,29 @@ namespace EZ2Play.App
             public short sThumbRY;
         }
 
-        // WM_CLOSE
+        // --------------- Native импорты ---------------
+
+        [DllImport("xinput1_4.dll", EntryPoint = "#100")]
+        private static extern int XInputGetState(int dwUserIndex, ref XInputStateEx pState);
+
         [DllImport("user32.dll")]
         private static extern IntPtr GetForegroundWindow();
 
         [DllImport("user32.dll")]
         private static extern bool PostMessage(IntPtr hWnd, uint Msg, IntPtr wParam, IntPtr lParam);
 
+        // --------------- Константы ---------------
+
         private const uint WM_CLOSE = 0x0010;
+        private const int DEBOUNCE_MS = 500;
+
+        // --------------- Поля класса ---------------
 
         private DispatcherTimer _timer;
         private readonly Sound _audio;
         private long _lastPressMs = 0;
-        private const int DEBOUNCE_MS = 500;
+
+        // --------------- Конструктор ---------------
 
         public GuideExitHandler(Sound audio)
         {
@@ -57,7 +65,9 @@ namespace EZ2Play.App
             _timer.Start();
         }
 
-        // При нажатии GUIDE закрыть активный процесс игры
+        // --------------- Опрос контроллера ---------------
+
+        // Проверка нажатия кнопки GUIDE (XInput)
         private void Poll(object sender, EventArgs e)
         {
             try
@@ -65,15 +75,18 @@ namespace EZ2Play.App
                 var stateEx = new XInputStateEx();
                 int result = XInputGetState(0, ref stateEx);
 
+                // Кнопка GUIDE = 0x0400
                 if (result == 0 && (stateEx.Gamepad.wButtons & 0x0400) != 0)
                 {
                     long now = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+                    
+                    // Защита от повторных нажатий (debounce)
                     if (now - _lastPressMs > DEBOUNCE_MS)
                     {
                         _lastPressMs = now;
-                        _audio?.PlayBackSound(); // проигрывает звук при нажатии
+                        _audio?.PlayBackSound();
 
-                        // Закрываем, если лаунчер НЕ в фокусе
+                        // Закрываем только если лаунчер НЕ в фокусе
                         IntPtr hwnd = GetForegroundWindow();
                         if (Application.Current?.MainWindow != null)
                         {
@@ -89,6 +102,8 @@ namespace EZ2Play.App
             }
             catch { }
         }
+
+        // --------------- Очистка ресурсов ---------------
 
         public void Dispose()
         {

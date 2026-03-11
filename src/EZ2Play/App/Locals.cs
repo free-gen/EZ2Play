@@ -5,60 +5,70 @@ using System.Windows;
 
 namespace EZ2Play.App
 {
+    // --------------- Локализация текста приложения ---------------
+
     public static class Locals
     {
-        // 0 = English
-        // 1 = Russian
+        // --------------- Настройки ---------------
+
+        // 0 = English, 1 = Russian
         private static int _currentLang = 0;
+
+        // Временный проброс текста для тестов
+        public static string MessageHotSwap => GetString("MessageHotSwap");
+
+        // --------------- Словарь переводов ---------------
 
         private static readonly Dictionary<string, string[]> Translations =
             new Dictionary<string, string[]>
-        {
-            ["Launch"] = new[] { "Launch", "Запуск" },
-            ["Exit"] = new[] { "Exit", "Выход" },
-            ["ScreenSwap"] = new[] { "Screen Swap", "Свап дисплея" },
-
-            ["NoShortcutsMessage1"] = new[]
             {
-                "Place your shortcuts in the shortcuts folder and restart the application.",
-                "Поместите ваши ярлыки в папку shortcuts и запустите приложение заново."
-            },
+                ["Launch"] = new[] { "Launch", "Запуск" },
+                ["Exit"] = new[] { "Exit", "Выход" },
+                ["ScreenSwap"] = new[] { "Screen Swap", "Свап дисплея" },
 
-            ["NoShortcutsMessage2"] = new[]
-            {
-                "Press Esc to exit",
-                "Для выхода нажмите Esc."
-            },
+                ["NoShortcutsMessage1"] = new[]
+                {
+                    "Place your shortcuts in the shortcuts folder and restart the application.",
+                    "Поместите ваши ярлыки в папку shortcuts и запустите приложение заново."
+                },
 
-            // ["MsgHotSwap"] = new[]
-            // {
-            //     "Launching in hotswap mode: when you exit, the display will automatically switch back to the original display.\nDo not switch the display yourself before exiting!",
-            //     "Запуск в режиме hotswap: при выходе произойдёт автоматическое переключение на исходный дисплей.\nНе переключайте дисплей самостоятельно перед выходом!"
-            // },
+                ["NoShortcutsMessage2"] = new[]
+                {
+                    "Press Esc to exit",
+                    "Для выхода нажмите Esc."
+                },
 
-            ["ExitMessage"] = new[]
-            {
-                "Assembled by",
-                "Assembled by"
-            }
-        };
+                ["MessageHotSwap"] = new[]
+                {
+                    "Application launched in HotSwap mode!\nThe display will revert upon exit.",
+                    "Приложение запущено в HotSwap режиме!\nПри выходе дисплей вернется к исходному."
+                },
+
+                ["MessageTest"] = new[]
+                {
+                    "This is a test notification about an event.\nIt doesn't affect anything, but it shows this text.",
+                    "Это тестовое уведомление о каком либо событии.\nОно ни на что не влияет, а лишь показывает этот текст."
+                },
+
+                ["ExitMessage"] = new[]
+                {
+                    "Assembled by",
+                    "Assembled by"
+                }
+            };
+
+        // --------------- Инициализация ---------------
 
         // Автоопределение языка из системы
         public static void InitFromSystem()
         {
             var lang = CultureInfo.CurrentUICulture.TwoLetterISOLanguageName;
-
             _currentLang = lang == "ru" ? 1 : 0;
         }
 
-        // Ручная установка языка
-        // public static void SetLanguage(string langCode)
-        // {
-        //     _currentLang = !string.IsNullOrEmpty(langCode) && langCode.StartsWith("ru")
-        //         ? 1
-        //         : 0;
-        // }
+        // --------------- Публичные методы ---------------
 
+        // Получение строки по ключу
         public static string GetString(string key)
         {
             if (Translations.TryGetValue(key, out var values) && values.Length > _currentLang)
@@ -67,6 +77,7 @@ namespace EZ2Play.App
             return $"[{key}]";
         }
 
+        // Применение локализации к окну
         public static void ApplyLocalization(FrameworkElement window)
         {
             try
@@ -85,6 +96,12 @@ namespace EZ2Play.App
 
                 if (window.FindName("NoShortcutsMessage2") is System.Windows.Documents.Run msg2)
                     msg2.Text = GetString("NoShortcutsMessage2");
+
+                if (window.FindName("MessageHotSwapRun") is System.Windows.Documents.Run hotswapMsg)
+                    hotswapMsg.Text = GetString("MessageHotSwap");
+
+                if (window.FindName("MessageTest") is System.Windows.Documents.Run testMsg)
+                    testMsg.Text = GetString("MessageTest");
 
                 if (window.FindName("ExitMessageRun") is System.Windows.Documents.Run exitMsg)
                     exitMsg.Text = GetString("ExitMessage");

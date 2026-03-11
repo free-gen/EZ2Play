@@ -55,14 +55,27 @@ namespace EZ2Play.App
             // ===========================================================================
 
             // Верхняя панель
-            target[UiScaleKeys.TopInfoPanelMargin] = new Thickness(s(0), s(20), s(0), 0); // смещение вниз
+            target[UiScaleKeys.TopInfoPanelMargin] = new Thickness(s(0), s(20), s(0), 0); // общее смещение вниз
             target[UiScaleKeys.TopInfoFontSize] = fs(42); // размер шрифта
+            target[UiScaleKeys.UserAvatarSize] = s(50); // аватар
+
+            // Уведомление
+            target[UiScaleKeys.SystemMessageHeight] = s(100); // высота уведомления
+            target[UiScaleKeys.SystemMessageMaxWidth] = s(640); // макс ширина уведомления
+            target[UiScaleKeys.SystemMessageCornerRadius] = new CornerRadius(s(20)); // макс ширина уведомления
+            target[UiScaleKeys.SystemMessagePadding] = new Thickness(s(25), 0, s(25), 0);
+            target[UiScaleKeys.SystemMessageOuterMargin] = new Thickness(s(0), s(20), s(350), 0);
+            target[UiScaleKeys.SystemMessageMargin] = new Thickness(s(0), 0, s(25), 0);
+            target[UiScaleKeys.SystemMessageFontSize] = fs(22);
+            target[UiScaleKeys.SystemMessageIconSize] = fs(50);
 
             // Витрина обложек
-            target[UiScaleKeys.CarouselItemCornerRadius] = s(20); // радиус обложек
-            target[UiScaleKeys.CarouselSelectorOuterMargin] = new Thickness(s(-7), s(-7), s(-7), s(-7)); // отступ до селектора
-            target[UiScaleKeys.CarouselSelectorCornerRadius] = new CornerRadius(s(24)); // радиус селектора
-            target[UiScaleKeys.CarouselSelectorBorderThickness] = new Thickness(s(3)); // толщина селектора
+            const double baseCarouselItemCornerRadius = 20;
+            const double baseCarouselSelectorBorderThickness = 3;
+            target[UiScaleKeys.CarouselItemCornerRadius] = s(baseCarouselItemCornerRadius); // радиус обложек
+            target[UiScaleKeys.CarouselSelectorCornerRadius] = new CornerRadius(s(baseCarouselItemCornerRadius * 1.2)); // радиус селектора
+            target[UiScaleKeys.CarouselSelectorBorderThickness] = new Thickness(s(baseCarouselSelectorBorderThickness)); // толщина селектора
+            target[UiScaleKeys.CarouselSelectorOuterMargin] = new Thickness(-s(baseCarouselSelectorBorderThickness * 2.333)); // отступ до селектора
 
             // Название игры
             target[UiScaleKeys.SelectedGameTitleFontSize] = fs(72); // размер шрифта
@@ -80,7 +93,7 @@ namespace EZ2Play.App
             target[UiScaleKeys.BottomPanelHeight] = s(90); // высота
             target[UiScaleKeys.BottomPanelPadding] = new Thickness(s(50), 0, s(50), 0); // внутр. отступы
             target[UiScaleKeys.BottomPanelCornerRadius] = new CornerRadius(s(45)); // радиусы
-            target[UiScaleKeys.BottomPanelBorderThickness] = new Thickness(s(1), s(2), s(1), 0); // обводка
+            target[UiScaleKeys.BottomPanelBorderThickness] = new Thickness(s(2), s(2), s(2), 2); // обводка
             target[UiScaleKeys.HintBlockMargin] = new Thickness(s(30), 0, s(30), 0); // отступы между элементами
             target[UiScaleKeys.HintTextFontSize] = fs(24); // размер шрифта
             target[UiScaleKeys.HintTextMargin] = new Thickness(s(15), 0, 0, 0); // отступ от иконок
@@ -109,6 +122,17 @@ namespace EZ2Play.App
         // ======================== Верхняя панель ========================
         public const string TopInfoPanelMargin = "TopInfoPanelMargin";
         public const string TopInfoFontSize = "TopInfoFontSize";
+        public const string UserAvatarSize = "UserAvatarSize";
+
+        // ======================== Системные уведомления ========================
+        public const string SystemMessageHeight = "SystemMessageHeight";
+        public const string SystemMessageMaxWidth = "SystemMessageMaxWidth";
+        public const string SystemMessageCornerRadius = "SystemMessageCornerRadius";
+        public const string SystemMessagePadding = "SystemMessagePadding";
+        public const string SystemMessageOuterMargin = "SystemMessageOuterMargin";
+        public const string SystemMessageMargin = "SystemMessageMargin";
+        public const string SystemMessageFontSize = "SystemMessageFontSize";
+        public const string SystemMessageIconSize = "SystemMessageIconSize";
 
         // ======================== Витрина обложек ========================
         public const string CarouselItemCornerRadius = "CarouselItemCornerRadius";

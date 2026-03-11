@@ -9,20 +9,72 @@ using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
 using System.Windows.Threading;
 using System.Linq;
+using Microsoft.Win32;
+using System.Security.Principal;
 
 namespace EZ2Play.App
 {
+    // --------------- Класс управления состоянием UI-элементов ---------------
+
     public class UIState
     {
-        private readonly FrameworkElement _window;
+        // --------------- Свойства UI-элементов ---------------
+
+        // Верхняя панель информации
+        public TextBlock TopLeftAppName { get; set; }
+        public TextBlock TopRightTime { get; set; }
+        public Grid TopInfoPanel { get; set; }
+
+        // Элементы пользователя
+        public Image UserAvatar { get; set; }
+
+        // Нижняя панель
+        public Border BottomPanel { get; set; }
+
+        // Сообщения и заголовки
+        public TextBlock NoShortcutsMessage { get; set; }
+        public TextBlock SelectedGameTitle { get; set; }
+        public TextBlock VersionLabel { get; set; }
+        public TextBlock ExitMessageText { get; set; }
+
+        // Карточки и контейнеры
+        public Border GameSourceCard { get; set; }
+        public Grid MainScreenGrid { get; set; }
+        public Grid SplashOverlay { get; set; }
+        public Image SplashLogo { get; set; }
+
+        // Системные уведомления
+        public Border SystemMessage { get; set; }
+        public TextBlock SystemMessageText { get; set; }
+
+        // Текст компании
+        public System.Windows.Documents.Run CompanyNameRun { get; set; }
+
+        // Иконки подсказок
+        public FrameworkElement LaunchIconXinput { get; set; }
+        public FrameworkElement LaunchIconKeyboard { get; set; }
+        public FrameworkElement ExitIconGamepad { get; set; }
+        public FrameworkElement ExitIconKeyboard { get; set; }
+        public FrameworkElement ScreenSwapIconGamepad { get; set; }
+        public FrameworkElement ScreenSwapIconKeyboard { get; set; }
+
+        // ListBox для выхода
+        public ListBox ItemsListBox { get; set; }
+
+        // --------------- Поля класса ---------------
+
         private DispatcherTimer _clockTimer;
         private string _appDisplayName;
 
-        public UIState(FrameworkElement window)
-        {
-            _window = window;
-        }
+        // --------------- Конструктор ---------------
 
+        // Инициализирует UIState без параметров.
+        // UI-элементы устанавливаются через свойства после создания.
+        public UIState() { }
+
+        // --------------- Инициализация ---------------
+
+        // Инициализирует информацию в правом верхнем углу (время, название).
         public void InitializeTopRightInfo()
         {
             _appDisplayName = AppInfo.Name;
@@ -33,89 +85,107 @@ namespace EZ2Play.App
             _clockTimer.Start();
         }
 
-        public void SetupLayoutMode()
-        {
-            var horizontalGrid = _window.FindName("BaseModeGrid") as Grid;
-                
-            if (horizontalGrid != null)
-                horizontalGrid.Visibility = Visibility.Visible;
-        }
+        // --------------- Обновление UI ---------------
 
+        // Обновляет панель информации (время и название приложения).
         public void UpdateTopInfoPanel()
         {
-            var appNameTb = _window.FindName("TopLeftAppNameText") as TextBlock;
-            var timeTb = _window.FindName("TopRightTimeText") as TextBlock;
-            if (appNameTb == null || timeTb == null) return;
-            
-            var time = DateTime.Now.ToString("HH:mm");
-            appNameTb.Text = $"{AppInfo.Name} Launcher";
-            timeTb.Text = time;
+            if (TopLeftAppName != null && TopRightTime != null)
+            {
+                TopLeftAppName.Text = $"{AppInfo.Name} Launcher";
+                TopRightTime.Text = DateTime.Now.ToString("HH:mm");
+            }
         }
 
-        // Скрытие элементов
+        // Загружает и отображает изображение пользователя.
+        public void UserImage()
+        {
+            if (UserAvatar == null) return;
+
+            try
+            {
+                string path = null;
+                var sid = WindowsIdentity.GetCurrent()?.User?.Value;
+
+                if (!string.IsNullOrEmpty(sid))
+                {
+                    using (var key = Registry.LocalMachine.OpenSubKey(
+                        $@"SOFTWARE\Microsoft\Windows\CurrentVersion\AccountPicture\Users\{sid}"))
+                    {
+                        path = key?.GetValue("Image192") as string;
+                    }
+                }
+
+                if (string.IsNullOrEmpty(path) || !File.Exists(path))
+                    path = System.IO.Path.Combine(@"C:\ProgramData\Microsoft\User Account Pictures", "user-192.png");
+
+                if (!File.Exists(path))
+                {
+                    UserAvatar.Visibility = Visibility.Collapsed;
+                    return;
+                }
+
+                var bmp = new BitmapImage();
+                bmp.BeginInit();
+                bmp.UriSource = new Uri(path);
+                bmp.CacheOption = BitmapCacheOption.OnLoad;
+                bmp.EndInit();
+                bmp.Freeze();
+
+                UserAvatar.Source = bmp;
+                UserAvatar.Visibility = Visibility.Visible;
+
+                // Обрезка аватара в круг
+                UserAvatar.Loaded += (s, e) =>
+                {
+                    var r = UserAvatar.ActualWidth / 2;
+                    if (r > 0) UserAvatar.Clip = new EllipseGeometry(new Point(r, r), r, r);
+                };
+
+                UserAvatar.SizeChanged += (s, e) =>
+                {
+                    var r = UserAvatar.ActualWidth / 2;
+                    if (r > 0) UserAvatar.Clip = new EllipseGeometry(new Point(r, r), r, r);
+                };
+            }
+            catch
+            {
+                UserAvatar.Visibility = Visibility.Collapsed;
+            }
+        }
+
         public void SetEmptyState(bool isEmpty)
         {
-            var bottomPanel = _window.FindName("BottomPanel") as Border;
-            var topInfoPanel = _window.FindName("TopInfoPanel") as Grid;
-            var noShortcutsMessage = _window.FindName("NoShortcutsMessage") as TextBlock;
-            var selectedGameTitle = _window.FindName("SelectedGameTitle") as TextBlock;
-            var gameSourceCard = _window.FindName("GameSourceCard") as Border;
-            var versionLabel = _window.FindName("VersionLabel") as TextBlock;
+            // Скрываем или показываем весь основной экран
+            if (MainScreenGrid != null)
+                MainScreenGrid.Visibility = isEmpty ? Visibility.Collapsed : Visibility.Visible;
 
-            if (bottomPanel != null)
-                bottomPanel.Visibility = isEmpty ? Visibility.Collapsed : Visibility.Visible;
-
-            if (topInfoPanel != null)
-                topInfoPanel.Visibility = isEmpty ? Visibility.Collapsed : Visibility.Visible;
-
-            if (noShortcutsMessage != null)
-                noShortcutsMessage.Visibility = isEmpty ? Visibility.Visible : Visibility.Collapsed;
-
-            if (selectedGameTitle != null)
-                selectedGameTitle.Visibility = isEmpty ? Visibility.Collapsed : Visibility.Visible;
-
-            if (gameSourceCard != null)
-                gameSourceCard.Visibility = isEmpty ? Visibility.Collapsed : Visibility.Visible;
-
-            if (versionLabel != null)
-                versionLabel.Visibility = isEmpty ? Visibility.Collapsed : Visibility.Visible;
+            // Сообщение об отсутствии ярлыков показываем отдельно
+            if (NoShortcutsMessage != null)
+                NoShortcutsMessage.Visibility = isEmpty ? Visibility.Visible : Visibility.Collapsed;
         }
+
+        // --------------- Экран выхода ---------------
 
         public void ShowExitOverlay()
         {
-            var itemsListBox = _window.FindName("ItemsListBox") as ListBox;
-            var bottomPanel = _window.FindName("BottomPanel") as Border;
-            var topInfoPanel = _window.FindName("TopInfoPanel") as Grid;
-            var selectedGameTitle = _window.FindName("SelectedGameTitle") as TextBlock;
+            // Скрываем основной экран целиком
+            if (MainScreenGrid != null)
+                MainScreenGrid.Visibility = Visibility.Collapsed;
 
-            var gameSourceCard = _window.FindName("GameSourceCard") as Border;
+            // Скрываем сообщение об отсутствии ярлыков, если оно было видно
+            if (NoShortcutsMessage != null)
+                NoShortcutsMessage.Visibility = Visibility.Collapsed;
 
-            var versionLabel = _window.FindName("VersionLabel") as TextBlock;
-            if (versionLabel != null) versionLabel.Visibility = Visibility.Collapsed;
+            // Устанавливаем имя компании
+            if (CompanyNameRun != null)
+                CompanyNameRun.Text = AppInfo.Company;
 
-            var noShortcutsMessage = _window.FindName("NoShortcutsMessage") as TextBlock;
-            
-            if (itemsListBox != null) itemsListBox.Visibility = Visibility.Collapsed;
-            if (bottomPanel != null) bottomPanel.Visibility = Visibility.Collapsed;
-            if (topInfoPanel != null) topInfoPanel.Visibility = Visibility.Collapsed;
-            if (selectedGameTitle != null) selectedGameTitle.Visibility = Visibility.Collapsed;
-
-            if (gameSourceCard != null) gameSourceCard.Visibility = Visibility.Collapsed;
-
-            if (noShortcutsMessage != null) noShortcutsMessage.Visibility = Visibility.Collapsed;
-
-            var companyName = AppInfo.Company;
-            var companyNameRun = _window.FindName("CompanyNameRun") as System.Windows.Documents.Run;
-            if (companyNameRun != null)
+            // Показываем сообщение о выходе с анимацией
+            if (ExitMessageText != null)
             {
-                companyNameRun.Text = companyName;
-            }
+                ExitMessageText.Visibility = Visibility.Visible;
 
-            var exitMessageText = _window.FindName("ExitMessageText") as TextBlock;
-            if (exitMessageText != null)
-            {
-                exitMessageText.Visibility = Visibility.Visible;
-                
                 var animation = new DoubleAnimation
                 {
                     From = 0.0,
@@ -124,22 +194,29 @@ namespace EZ2Play.App
                     EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut }
                 };
 
-                exitMessageText.BeginAnimation(UIElement.OpacityProperty, animation);
+                ExitMessageText.BeginAnimation(UIElement.OpacityProperty, animation);
             }
         }
 
-        // Запускает последовательность сплеша внутри окна: лого → вызов onComplete.
+        // --------------- Сплеш-экран ---------------
+
+        // Запускает последовательность сплеш-экрана: лого → вызов onComplete.
         public void RunSplashSequence(Action onComplete)
         {
-            var splashLogo = _window.FindName("SplashLogo") as Image;
-            if (splashLogo == null) { onComplete?.Invoke(); return; }
+            if (SplashLogo == null)
+            {
+                onComplete?.Invoke();
+                return;
+            }
 
-            TryLoadLogoInto(splashLogo);
+            TryLoadLogoInto(SplashLogo);
 
             void AnimateIn(UIElement el, int durationMs, Action after)
             {
                 var anim = new DoubleAnimation(0, 1, TimeSpan.FromMilliseconds(durationMs))
-                { EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut } };
+                {
+                    EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut }
+                };
                 anim.Completed += (s, e) => after?.Invoke();
                 el.BeginAnimation(UIElement.OpacityProperty, anim);
             }
@@ -147,7 +224,9 @@ namespace EZ2Play.App
             void AnimateOut(UIElement el, int durationMs, Action after)
             {
                 var anim = new DoubleAnimation(1, 0, TimeSpan.FromMilliseconds(durationMs))
-                { EasingFunction = new CubicEase { EasingMode = EasingMode.EaseIn } };
+                {
+                    EasingFunction = new CubicEase { EasingMode = EasingMode.EaseIn }
+                };
                 anim.Completed += (s, e) => after?.Invoke();
                 el.BeginAnimation(UIElement.OpacityProperty, anim);
             }
@@ -160,32 +239,37 @@ namespace EZ2Play.App
             }
 
             Delay(500, () =>
-                AnimateIn(splashLogo, 1000, () =>
+                AnimateIn(SplashLogo, 1000, () =>
                     Delay(500, () =>
-                        AnimateOut(splashLogo, 500, () =>
-                            Delay(1000, () => onComplete?.Invoke()))))); // последовательность задержек для плавного перехода
+                        AnimateOut(SplashLogo, 500, () =>
+                            Delay(1000, () => onComplete?.Invoke())))));
         }
 
+        // Показывает окно с анимацией, опционально пропуская сплеш.
         public void ShowWithAnimation(bool skipSplash, Action onAfterSplash)
         {
-            var baseGrid = _window.FindName("BaseModeGrid") as Grid;
-            var splashOverlay = _window.FindName("SplashOverlay") as Grid;
-
             // Сразу спрятать базовый UI и сплеш
-            if (baseGrid != null) baseGrid.Visibility = Visibility.Collapsed;
-            if (splashOverlay != null) splashOverlay.Visibility = Visibility.Collapsed;
+            if (MainScreenGrid != null) MainScreenGrid.Visibility = Visibility.Collapsed;
+            if (SplashOverlay != null) SplashOverlay.Visibility = Visibility.Collapsed;
 
-            _window.Visibility = Visibility.Visible;
+            // Показываем окно
+            var window = Application.Current?.MainWindow;
+            if (window != null)
+                window.Visibility = Visibility.Visible;
 
             if (skipSplash)
             {
-                _window.Opacity = 1.0;
+                if (window != null)
+                    window.Opacity = 1.0;
                 onAfterSplash?.Invoke();
                 return;
             }
 
-            _window.Opacity = 0.0;
-            if (splashOverlay != null) splashOverlay.Visibility = Visibility.Visible;
+            if (window != null)
+                window.Opacity = 0.0;
+
+            if (SplashOverlay != null)
+                SplashOverlay.Visibility = Visibility.Visible;
 
             var animation = new DoubleAnimation
             {
@@ -199,14 +283,119 @@ namespace EZ2Play.App
             {
                 RunSplashSequence(() =>
                 {
-                    if (splashOverlay != null) splashOverlay.Visibility = Visibility.Hidden;
+                    if (SplashOverlay != null)
+                        SplashOverlay.Visibility = Visibility.Hidden;
                     onAfterSplash?.Invoke();
                 });
             };
 
-            _window.BeginAnimation(UIElement.OpacityProperty, animation);
+            if (window != null)
+                window.BeginAnimation(UIElement.OpacityProperty, animation);
         }
 
+        // --------------- Системные уведомления ---------------
+
+        // Показывает уведомление с общей логикой появления/исчезновения
+        private void ShowNotification(string text, double delaySeconds, double displaySeconds)
+        {
+            if (SystemMessage == null || SystemMessageText == null)
+                return;
+
+            SystemMessageText.Text = text;
+
+            SystemMessage.Visibility = Visibility.Visible;
+            SystemMessage.Opacity = 0;
+
+            void FadeIn()
+            {
+                var anim = new DoubleAnimation
+                {
+                    From = 0,
+                    To = 1,
+                    Duration = TimeSpan.FromMilliseconds(1000),
+                    EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut }
+                };
+
+                anim.Completed += (s, e) =>
+                {
+                    var displayTimer = new DispatcherTimer
+                    {
+                        Interval = TimeSpan.FromSeconds(displaySeconds)
+                    };
+
+                    displayTimer.Tick += (s2, e2) =>
+                    {
+                        displayTimer.Stop();
+                        FadeOut();
+                    };
+
+                    displayTimer.Start();
+                };
+
+                SystemMessage.BeginAnimation(UIElement.OpacityProperty, anim);
+            }
+
+            void FadeOut()
+            {
+                var anim = new DoubleAnimation
+                {
+                    From = 1,
+                    To = 0,
+                    Duration = TimeSpan.FromMilliseconds(500),
+                    EasingFunction = new CubicEase { EasingMode = EasingMode.EaseIn }
+                };
+
+                anim.Completed += (s, e) =>
+                {
+                    SystemMessage.Visibility = Visibility.Collapsed;
+                };
+
+                SystemMessage.BeginAnimation(UIElement.OpacityProperty, anim);
+            }
+
+            var delayTimer = new DispatcherTimer
+            {
+                Interval = TimeSpan.FromSeconds(delaySeconds)
+            };
+
+            delayTimer.Tick += (s, e) =>
+            {
+                delayTimer.Stop();
+                FadeIn();
+            };
+
+            delayTimer.Start();
+        }
+
+        public void ShowHotSwapNotification(double delaySeconds, double displaySeconds)
+        {
+            ShowNotification(Locals.GetString("MessageHotSwap"), delaySeconds, displaySeconds);
+        }
+
+        public void ShowTestNotification(double delaySeconds, double displaySeconds)
+        {
+            ShowNotification(Locals.GetString("MessageTest"), delaySeconds, displaySeconds);
+        }
+        
+        // --------------- Иконки подсказок ---------------
+
+        // Переключает иконки подсказок: геймпад или клавиатура.
+        public void RefreshHintIcons(bool isGamepad)
+        {
+            var visGamepad = isGamepad ? Visibility.Visible : Visibility.Collapsed;
+            var visKeyboard = isGamepad ? Visibility.Collapsed : Visibility.Visible;
+
+            if (LaunchIconXinput != null) LaunchIconXinput.Visibility = visGamepad;
+            if (LaunchIconKeyboard != null) LaunchIconKeyboard.Visibility = visKeyboard;
+            if (ExitIconGamepad != null) ExitIconGamepad.Visibility = visGamepad;
+            if (ExitIconKeyboard != null) ExitIconKeyboard.Visibility = visKeyboard;
+            if (ScreenSwapIconGamepad != null) ScreenSwapIconGamepad.Visibility = visGamepad;
+            if (ScreenSwapIconKeyboard != null) ScreenSwapIconKeyboard.Visibility = visKeyboard;
+        }
+
+        // --------------- Загрузка логотипа ---------------
+
+        // Пытается загрузить логотип в указанный Image элемент.
         private static bool TryLoadLogoInto(Image image)
         {
             if (image == null) return false;
@@ -231,43 +420,22 @@ namespace EZ2Play.App
 
             try
             {
-                // Фолбек на встроенный ресурс
-                var asm = Assembly.GetExecutingAssembly();
-                const string resourceName = "EZ2Play.Assets.logo.png";
-                using (var stream = asm.GetManifestResourceStream(resourceName))
-                {
-                    if (stream != null)
-                    {
-                        var bitmap = new BitmapImage();
-                        bitmap.BeginInit();
-                        bitmap.StreamSource = stream;
-                        bitmap.CacheOption = BitmapCacheOption.OnLoad;
-                        bitmap.EndInit();
-                        image.Source = bitmap;
-                        RenderOptions.SetBitmapScalingMode(image, BitmapScalingMode.HighQuality);
-                        return true;
-                    }
-                }
+                // Фолбек на ресурс WPF
+                var uri = new Uri("pack://application:,,,/Assets/logo.png", UriKind.Absolute);
+                var bitmap = new BitmapImage(uri);
+                RenderOptions.SetBitmapScalingMode(image, BitmapScalingMode.HighQuality);
+                image.Source = bitmap;
+                return true;
             }
-            catch { }
-
-            return false;
+            catch
+            {
+                return false;
+            }
         }
 
-        // Переключает иконки подсказок: геймпад (ButtonA/B/X) или клавиатура (KeyEnter/Escape/X).
-        public void RefreshHintIcons(bool isGamepad)
-        {
-            var visGamepad = isGamepad ? Visibility.Visible : Visibility.Collapsed;
-            var visKeyboard = isGamepad ? Visibility.Collapsed : Visibility.Visible;
+        // --------------- Очистка ресурсов ---------------
 
-            if (_window.FindName("LaunchIconXinput") is FrameworkElement launchGp) launchGp.Visibility = visGamepad;
-            if (_window.FindName("LaunchIconKeyboard") is FrameworkElement launchKb) launchKb.Visibility = visKeyboard;
-            if (_window.FindName("ExitIconGamepad") is FrameworkElement exitGp) exitGp.Visibility = visGamepad;
-            if (_window.FindName("ExitIconKeyboard") is FrameworkElement exitKb) exitKb.Visibility = visKeyboard;
-            if (_window.FindName("ScreenSwapIconGamepad") is FrameworkElement swapGp) swapGp.Visibility = visGamepad;
-            if (_window.FindName("ScreenSwapIconKeyboard") is FrameworkElement swapKb) swapKb.Visibility = visKeyboard;
-        }
-
+        // Освобождает ресурсы (останавливает таймеры).
         public void Dispose()
         {
             try

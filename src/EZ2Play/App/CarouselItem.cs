@@ -5,15 +5,18 @@ using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Shapes;
 
-// Элемент карусели, который рендерит только иконку ярлыка внутри одного слота.
-
 namespace EZ2Play.App
 {
+    // --------------- Элемент карусели для рендеринга иконки ярлыка ---------------
+
     public class CarouselItem : ContentControl
     {
+        // --------------- Настройки ---------------
+
+        // Включение XAML контура выделения (для отладки)
         public static bool EnableXamlSelectionOutline { get; set; } = true;
 
-        private readonly Rectangle _cover;
+        // --------------- Зависимости ---------------
 
         public static readonly DependencyProperty IsSelectedProperty =
             DependencyProperty.Register(
@@ -27,6 +30,17 @@ namespace EZ2Play.App
             get => (bool)GetValue(IsSelectedProperty);
             set => SetValue(IsSelectedProperty, value);
         }
+
+        // --------------- Поля класса ---------------
+
+        private readonly Rectangle _cover;
+
+        // --------------- Кэш кистей ---------------
+
+        private static readonly Dictionary<string, ImageBrush> BrushCache = new Dictionary<string, ImageBrush>();
+        private static readonly object CacheLock = new object();
+
+        // --------------- Конструктор ---------------
 
         public CarouselItem()
         {
@@ -44,16 +58,23 @@ namespace EZ2Play.App
             DataContextChanged += OnDataContextChanged;
         }
 
+        // --------------- Обработчики событий ---------------
+
+        // Изменение свойства IsSelected
         private static void OnIsSelectedChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
             (d as CarouselItem)?.UpdateContent();
         }
 
+        // Изменение DataContext
         private void OnDataContextChanged(object sender, DependencyPropertyChangedEventArgs e)
         {
             UpdateContent();
         }
 
+        // --------------- Обновление контента ---------------
+
+        // Обновляет содержимое элемента (иконку ярлыка)
         private void UpdateContent()
         {
             var shortcut = DataContext as ShortcutInfo;
@@ -62,28 +83,38 @@ namespace EZ2Play.App
             _cover.StrokeThickness = 0;
         }
 
+        // --------------- Измерение и компоновка ---------------
+
+        // Переопределение измерения для квадратного элемента
         protected override Size MeasureOverride(Size availableSize)
         {
             double size = Math.Min(availableSize.Width, availableSize.Height);
+            
             if (size <= 0 || double.IsNaN(size) || double.IsInfinity(size))
                 size = CarouselLayout.NormalSize;
+            
             _cover.Width = size;
             _cover.Height = size;
+            
             // Радиус скругления из ресурса (масштабируется через LayoutScaler)
             if (TryFindResource(UiScaleKeys.CarouselItemCornerRadius) is double r)
             {
                 _cover.RadiusX = r;
                 _cover.RadiusY = r;
             }
+            
             return new Size(size, size);
         }
 
-        // Отрисовка обложки и кэш кистей
-        private static readonly Dictionary<string, ImageBrush> BrushCache = new Dictionary<string, ImageBrush>();
-        private static readonly object CacheLock = new object();
+        // --------------- Кэширование кистей ---------------
+
+        // Получение кисти из кэша или создание новой
         private static ImageBrush GetCachedImageBrush(ImageSource source, string shortcutFullPath)
         {
-            string key = !string.IsNullOrEmpty(shortcutFullPath) ? shortcutFullPath : ("img_" + (source?.GetHashCode() ?? 0));
+            string key = !string.IsNullOrEmpty(shortcutFullPath) 
+                ? shortcutFullPath 
+                : ("img_" + (source?.GetHashCode() ?? 0));
+            
             lock (CacheLock)
             {
                 if (BrushCache.TryGetValue(key, out var brush))
@@ -99,7 +130,7 @@ namespace EZ2Play.App
             }
         }
 
-        // Очистка кэша кистей (например при смене списка ярлыков).
+        // Очистка кэша кистей (например при смене списка ярлыков)
         public static void ClearBrushCache()
         {
             lock (CacheLock)

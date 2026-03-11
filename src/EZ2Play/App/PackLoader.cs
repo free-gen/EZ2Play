@@ -5,17 +5,24 @@ using System.Reflection;
 
 namespace EZ2Play.App
 {
+    // --------------- Загрузка файлов из ui.pack архива ---------------
+
     public static class PackLoader
     {
+        // --------------- Константы ---------------
+
         private const string PackFileName = "ui.pack";
 
-        // Загружает файл из ui.pack в MemoryStream.
+        // --------------- Публичные методы ---------------
+
+        // Загружает файл из ui.pack в MemoryStream
         public static MemoryStream LoadFromPack(string fileName)
         {
             try
             {
                 string exeDir = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
                 string packPath = Path.Combine(exeDir, PackFileName);
+                
                 if (!File.Exists(packPath)) return null;
 
                 using (var archive = ZipFile.OpenRead(packPath))

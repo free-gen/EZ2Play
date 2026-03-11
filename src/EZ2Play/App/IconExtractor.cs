@@ -9,10 +9,28 @@ using System.Windows.Interop;
 
 namespace EZ2Play.App
 {
+    // --------------- Извлечение иконок из ярлыков ---------------
+
     public static class IconExtractor
     {
+        // --------------- Константы ---------------
+
+        // Папка с ярлыками относительно basePath
         private const string ShortcutsDirectory = "shortcuts";
+
+        // Размер иконки для извлечения (256px)
         private const int IconSize = 256;
+
+        // Флаги для SHGetImageList
+        private const int SHIL_JUMBO = 0x4;
+
+        // Флаги для SHGetFileInfo
+        private const uint SHGFI_SYSICONINDEX = 0x4000;
+        private const uint SHGFI_ICONLOCATION = 0x1000;
+        private const uint SHGFI_LARGEICON = 0x0;
+        private const uint SHGFI_ICON = 0x100;
+
+        // --------------- P/Invoke объявления ---------------
 
         [DllImport("shell32.dll")]
         private static extern int SHGetImageList(int iImageList, ref Guid riid, out IntPtr ppv);
@@ -24,23 +42,18 @@ namespace EZ2Play.App
         [DllImport("comctl32.dll", CharSet = CharSet.Auto)]
         private static extern IntPtr ImageList_GetIcon(IntPtr himl, int i, uint flags);
 
-        private const int SHIL_JUMBO = 0x4; // 256x256
-        private const uint SHGFI_SYSICONINDEX = 0x4000;
-
         [DllImport("user32.dll")]
         private static extern bool DestroyIcon(IntPtr hIcon);
 
         [DllImport("shell32.dll", CharSet = CharSet.Unicode)]
-        private static extern IntPtr SHDefExtractIconW(string pszIconFile, int iIndex, uint uFlags, 
+        private static extern IntPtr SHDefExtractIconW(string pszIconFile, int iIndex, uint uFlags,
             out IntPtr phiconLarge, out IntPtr phiconSmall, uint nIconSize);
 
         [DllImport("shell32.dll")]
-        private static extern bool ExtractIconEx(string lpszFile, int nIconIndex, 
+        private static extern bool ExtractIconEx(string lpszFile, int nIconIndex,
             out IntPtr phiconLarge, out IntPtr phiconSmall, uint nIcons);
 
-        private const uint SHGFI_ICONLOCATION = 0x1000;
-        private const uint SHGFI_LARGEICON = 0x0;
-        private const uint SHGFI_ICON = 0x100;
+        // --------------- Структуры ---------------
 
         [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Auto)]
         private struct SHFILEINFO
@@ -54,6 +67,9 @@ namespace EZ2Play.App
             public string szTypeName;
         }
 
+        // --------------- Методы извлечения иконок ---------------
+
+        // Получение иконки максимального размера (256px) через системный ImageList
         private static ImageSource GetJumboIcon(string path)
         {
             SHFILEINFO shinfo = new SHFILEINFO();
@@ -79,7 +95,7 @@ namespace EZ2Play.App
             return null;
         }
 
-        // Получаем путь к иконке из ярлыка
+        // Получение пути к иконке из .lnk ярлыка
         private static string GetIconPathFromShortcut(string lnkPath)
         {
             try
@@ -89,33 +105,29 @@ namespace EZ2Play.App
                 {
                     dynamic shell = Activator.CreateInstance(shellLinkType);
                     dynamic shortcut = shell.CreateShortcut(lnkPath);
-                    
+
                     string iconLocation = shortcut.IconLocation;
                     string targetPath = shortcut.TargetPath;
-                    
+
                     if (!string.IsNullOrWhiteSpace(iconLocation))
                         return iconLocation;
                     else if (!string.IsNullOrWhiteSpace(targetPath))
                         return targetPath + ",0";
                 }
             }
-            catch (Exception) 
-            { 
-            }
+            catch { }
 
             return null;
         }
 
-        // Извлекаем иконку из файла
+        // Извлечение иконки из файла по пути и индексу
         private static IntPtr ExtractIconFromFile(string iconLocation, int defaultIconIndex)
         {
             try
             {
                 if (string.IsNullOrWhiteSpace(iconLocation) || iconLocation.StartsWith(","))
-                {
                     return IntPtr.Zero;
-                }
-                
+
                 // Парсим путь к иконке и индекс
                 string iconPath = iconLocation;
                 int iconIndex = defaultIconIndex;
@@ -131,14 +143,12 @@ namespace EZ2Play.App
                 iconPath = iconPath.Trim().Trim('"');
 
                 if (!File.Exists(iconPath))
-                {
                     return IntPtr.Zero;
-                }
 
                 // Пробуем SHDefExtractIconW
                 IntPtr hIconLarge, hIconSmall;
                 IntPtr result = SHDefExtractIconW(iconPath, iconIndex, 0, out hIconLarge, out hIconSmall, IconSize);
-                
+
                 if (result == IntPtr.Zero && hIconLarge != IntPtr.Zero)
                 {
                     if (hIconSmall != IntPtr.Zero) DestroyIcon(hIconSmall);
@@ -151,15 +161,13 @@ namespace EZ2Play.App
                     if (hIconSmall != IntPtr.Zero) DestroyIcon(hIconSmall);
                     return hIconLarge;
                 }
-                
             }
-            catch (Exception) 
-            { 
-            }
+            catch { }
+
             return IntPtr.Zero;
         }
 
-        // Конвертируем иконку в BitmapSource
+        // Конвертация HICON в BitmapSource
         private static ImageSource ConvertIconToBitmapSource(IntPtr hIcon)
         {
             try
@@ -169,18 +177,18 @@ namespace EZ2Play.App
                     Int32Rect.Empty,
                     BitmapSizeOptions.FromEmptyOptions());
             }
-            catch (Exception)
+            catch
             {
                 return null;
             }
         }
 
-        // Получаем иконку для ярлыка
+        // Получение иконки для ярлыка (основной публичный метод)
         public static ImageSource GetIconForShortcut(string shortcutPath)
         {
             try
             {
-                // Для .url файлов
+                // Для .url файлов (интернет-ярлыки)
                 if (shortcutPath.EndsWith(".url", StringComparison.OrdinalIgnoreCase))
                 {
                     var urlIcon = GetIconPathFromUrlFile(shortcutPath);
@@ -196,14 +204,14 @@ namespace EZ2Play.App
                     }
                 }
 
-                // Получаем путь к иконке из ярлыка
+                // Получение пути к иконке из .lnk ярлыка
                 string iconPath = GetIconPathFromShortcut(shortcutPath);
-                
+
                 if (!string.IsNullOrEmpty(iconPath))
                 {
                     int defaultIndex = 0;
-                    
-                    // Получаем индекс иконки если нужно
+
+                    // Получение индекса иконки если нужно
                     if (iconPath.LastIndexOf(',') <= 0)
                     {
                         SHFILEINFO shinfo = new SHFILEINFO();
@@ -231,7 +239,7 @@ namespace EZ2Play.App
                         dynamic shell = Activator.CreateInstance(shellLinkType);
                         dynamic shortcut = shell.CreateShortcut(shortcutPath);
                         string targetPath = shortcut.TargetPath;
-                        
+
                         if (!string.IsNullOrWhiteSpace(targetPath) && File.Exists(targetPath))
                         {
                             var hIcon = ExtractIconFromFile(targetPath + ",0", 0);
@@ -244,28 +252,29 @@ namespace EZ2Play.App
                         }
                     }
                 }
-                catch (Exception) { }
-                
+                catch { }
+
                 // JUMBO 256px fallback
                 var jumboIcon = GetJumboIcon(shortcutPath);
                 if (jumboIcon != null)
                     return jumboIcon;
-                
 
                 return null;
             }
-            catch (Exception)
+            catch
             {
                 return null;
             }
         }
 
-        // Определяем тип источника (Steam, Epic Games, Portable, Microsoft Store)
+        // --------------- Определение источника ярлыка ---------------
+
+        // Определение типа источника (Steam, Epic Games, Portable, Microsoft Store и т.д.)
         private static string GetSourceTypeFromShortcut(string shortcutPath)
         {
             try
             {
-                // === Для .url файлов (интернет-ярлыки) ===
+                // Для .url файлов (интернет-ярлыки)
                 if (shortcutPath.EndsWith(".url", StringComparison.OrdinalIgnoreCase))
                 {
                     var lines = File.ReadAllLines(shortcutPath);
@@ -289,7 +298,7 @@ namespace EZ2Play.App
                     }
                 }
 
-                // === Для .lnk файлов ===
+                // Для .lnk файлов
                 try
                 {
                     Type shellLinkType = Type.GetTypeFromProgID("WScript.Shell");
@@ -298,13 +307,11 @@ namespace EZ2Play.App
                         dynamic shell = Activator.CreateInstance(shellLinkType);
                         dynamic shortcut = shell.CreateShortcut(shortcutPath);
 
-                        string target = (shortcut.TargetPath ?? "").Trim();
+                        string target = (shortcut.TargetPath ?? " ").Trim();
 
                         // Если TargetPath пустой — это ярлык из Магазина Windows
                         if (string.IsNullOrWhiteSpace(target))
-                        {
                             return "Microsoft Store";
-                        }
 
                         string t = target.ToLowerInvariant();
 
@@ -329,7 +336,9 @@ namespace EZ2Play.App
             }
         }
 
-        // Загружает все ярлыки из папки shortcuts
+        // --------------- Загрузка ярлыков ---------------
+
+        // Загрузка всех ярлыков из папки shortcuts
         public static ShortcutInfo[] LoadShortcuts()
         {
             try
@@ -354,13 +363,13 @@ namespace EZ2Play.App
                     })
                     .ToArray();
             }
-            catch (Exception)
+            catch
             {
                 return Array.Empty<ShortcutInfo>();
             }
         }
 
-        // Получаем путь к иконке из .url файла + поддержка кириллицы
+        // Получение пути к иконке из .url файла с поддержкой кириллицы
         private static string GetIconPathFromUrlFile(string urlPath)
         {
             try
@@ -369,7 +378,6 @@ namespace EZ2Play.App
 
                 string iconFile = null;
                 int iconIndex = 0;
-
                 bool insideMainSection = false;
 
                 foreach (var rawLine in lines)
@@ -400,14 +408,12 @@ namespace EZ2Play.App
                 if (!string.IsNullOrWhiteSpace(iconFile) && File.Exists(iconFile))
                     return $"{iconFile},{iconIndex}";
             }
-            catch
-            {
-            }
+            catch { }
 
             return null;
         }
 
-        // Проверяет наличие ярлыков
+        // Проверка наличия ярлыков в папке
         public static bool HasShortcuts()
         {
             try
@@ -415,7 +421,7 @@ namespace EZ2Play.App
                 var shortcutsDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, ShortcutsDirectory);
                 return Directory.Exists(shortcutsDir) && Directory.GetFiles(shortcutsDir)
                     .Any(f => f.EndsWith(".lnk", StringComparison.OrdinalIgnoreCase) ||
-                             f.EndsWith(".url", StringComparison.OrdinalIgnoreCase));
+                              f.EndsWith(".url", StringComparison.OrdinalIgnoreCase));
             }
             catch
             {
@@ -423,6 +429,8 @@ namespace EZ2Play.App
             }
         }
     }
+
+    // --------------- Модель данных ярлыка ---------------
 
     public class ShortcutInfo
     {

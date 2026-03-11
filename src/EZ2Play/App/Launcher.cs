@@ -5,59 +5,61 @@ using System.Windows.Controls;
 using System.Threading.Tasks;
 using System.Windows.Threading;
 
-// Координатор логики карусели и выбора
-
 namespace EZ2Play.App
 {
+    // --------------- Координатор логики карусели и выбора ярлыков ---------------
+
     public class Launcher
     {
-        // ---- Core state ----
-        private readonly FrameworkElement _window;
+        // --------------- UI ссылки ---------------
+
+        private readonly ListBox _itemsListBox;
+        private readonly TextBlock _selectedGameTitle;
+        private readonly MainWindow _mainWindow;
         private readonly Sound _audioManager;
+
+        // --------------- Состояние ---------------
+
         private ShortcutInfo[] _shortcuts = Array.Empty<ShortcutInfo>();
         private int _selectedIndex = 0;
         private int _visibleWindowStart = 0;
         private bool _pendingWindowShiftAnimation;
         private int _pendingMoveDirection;
-
         private bool _launchCooldown = false;
 
-        // ---- Public read model ----
+        // --------------- Публичные свойства ---------------
+
+        // Текущий набор ярлыков (только для чтения)
         public ShortcutInfo[] Shortcuts => _shortcuts;
+
+        // Индекс выбранного элемента (только для чтения)
         public int SelectedIndex => _selectedIndex;
 
-        // Master switch для scale-анимаций карусели.
-        // public bool EnableSelectionAnimations { get; set; } = true;
-
-        // пропуск анимации увеличения для крайних элементов
+        // Пропуск анимации увеличения для крайних элементов при скролле
         public bool SkipScaleUpAnimationOnEdgeScroll { get; set; } = false;
 
-        private bool ConsumePendingWindowShiftAnimation()
-        {
-            bool value = _pendingWindowShiftAnimation;
-            _pendingWindowShiftAnimation = false;
-            return value;
-        }
-
-        private int ConsumePendingMoveDirection()
-        {
-            int value = _pendingMoveDirection;
-            _pendingMoveDirection = 0;
-            return value;
-        }
+        // --------------- События ---------------
 
         public event Action<int> SelectionChanged;
 
-        public Launcher(FrameworkElement window, Sound audioManager)
+        // --------------- Конструктор ---------------
+
+        // Инициализирует Launcher с прямыми ссылками на UI-элементы
+        public Launcher(ListBox itemsListBox, TextBlock selectedGameTitle, MainWindow mainWindow, Sound audioManager)
         {
-            _window = window;
+            _itemsListBox = itemsListBox;
+            _selectedGameTitle = selectedGameTitle;
+            _mainWindow = mainWindow;
             _audioManager = audioManager;
         }
+
+        // --------------- Публичные методы ---------------
 
         // Формирует текущий набор элементов витрины
         public ShortcutInfo[] GetVisibleShortcuts()
         {
             if (_shortcuts.Length == 0) return Array.Empty<ShortcutInfo>();
+
             int centerCount = GetCenterVisibleCount();
             if (centerCount <= 0) return Array.Empty<ShortcutInfo>();
 
@@ -75,32 +77,12 @@ namespace EZ2Play.App
         public int GetSelectedVisibleIndex()
         {
             if (_shortcuts.Length == 0) return -1;
+
             int leftOffset = HasLeftOverflow() ? 1 : 0;
             return (_selectedIndex - _visibleWindowStart) + leftOffset;
         }
 
-        // Синхронизирует ListBox с текущим логическим окном
-        private void ApplyVisibleWindow(bool updateItemsSource = true)
-        {
-            var itemsListBox = _window.FindName("ItemsListBox") as ListBox;
-            if (itemsListBox == null) return;
-
-            int centerCount = GetCenterVisibleCount();
-            CarouselLayout.HasLeftOverflow = HasLeftOverflow();
-            CarouselLayout.HasRightOverflow = HasRightOverflow(centerCount);
-
-            if (updateItemsSource)
-            {
-                itemsListBox.ItemsSource = null;
-                itemsListBox.ItemsSource = GetVisibleShortcuts();
-            }
-
-            int visibleIndex = GetSelectedVisibleIndex();
-            if (visibleIndex >= 0 && visibleIndex < (itemsListBox.Items?.Count ?? 0))
-                itemsListBox.SelectedIndex = visibleIndex;
-        }
-
-        // Загружает ярлыки, сбрасывает выбор на первый элемент и обновляет связанный UI
+        // Загружает ярлыки, сбрасывает выбор на первый элемент и обновляет UI
         public void LoadShortcuts()
         {
             _shortcuts = IconExtractor.LoadShortcuts();
@@ -109,14 +91,13 @@ namespace EZ2Play.App
         }
 
         // Основной шаг навигации по карусели
-        // Обновляет абсолютный selected индекс, при необходимости сдвигает окно витрины
-        // помечает контекст edge-scroll анимации и применяет изменения в ListBox
         public void MoveSelection(int direction)
         {
             if (_shortcuts.Length == 0) return;
 
             direction = Math.Sign(direction);
             if (direction == 0) return;
+
             _pendingMoveDirection = direction;
 
             int count = _shortcuts.Length;
@@ -125,6 +106,7 @@ namespace EZ2Play.App
 
             _selectedIndex += direction;
 
+            // Циклическая навигация
             if (_selectedIndex >= count)
             {
                 _selectedIndex = 0;
@@ -161,7 +143,7 @@ namespace EZ2Play.App
             try
             {
                 _audioManager?.PlayLaunchSound();
-                (_window as MainWindow)?.ShowLoading(true);
+                _mainWindow?.ShowLoading(true);
 
                 var shortcutPath = _shortcuts[_selectedIndex].FullPath;
                 Process.Start(new ProcessStartInfo
@@ -174,46 +156,77 @@ namespace EZ2Play.App
             {
                 Application.Current?.Dispatcher.Invoke(() =>
                 {
-                    (_window as MainWindow)?.ShowLoading(false);
+                    _mainWindow?.ShowLoading(false);
                 });
             }
 
-            // блокируем повторный запуск
+            // Блокируем повторный запуск
             await Task.Delay(2000);
             _launchCooldown = false;
         }
-        // Переводит индекс выбранного слота в ListBox в абсолютный индекс в полном списке
+
+        // Переводит индекс выбранного слота в ListBox в абсолютный индекс
         public void HandleSelectionChanged(int visibleIndex)
         {
             if (visibleIndex < 0 || _shortcuts.Length == 0) return;
+
             int leftOffset = HasLeftOverflow() ? 1 : 0;
             int absoluteIndex = (_visibleWindowStart - leftOffset) + visibleIndex;
             _selectedIndex = Math.Max(0, Math.Min(absoluteIndex, _shortcuts.Length - 1));
+
             UpdateSelectedName();
             SelectionChanged?.Invoke(_selectedIndex);
         }
 
-        // Единая точка обработки SelectionChanged
-        // 1) обновляет selected индекс в полном списке
-        // 2) при включенных анимациях запускает соответствующий сценарий в CarouselAnimation
+        // Единая точка обработки SelectionChanged с анимациями
         public void HandleSelectionChangedAndAnimate(ListBox listBox, SelectionChangedEventArgs e)
         {
             if (listBox?.SelectedIndex < 0) return;
 
             int currentVisibleIndex = listBox.SelectedIndex;
             int previousAbsoluteIndex = _selectedIndex;
+
             HandleSelectionChanged(currentVisibleIndex);
             int currentAbsoluteIndex = _selectedIndex;
-
-            // if (!EnableSelectionAnimations)
-            //     return;
 
             ApplySelectionAnimations(listBox, e, currentVisibleIndex, previousAbsoluteIndex, currentAbsoluteIndex);
         }
 
+        // --------------- Приватные методы - UI обновления ---------------
+
+        // Синхронизирует ListBox с текущим логическим окном
+        private void ApplyVisibleWindow(bool updateItemsSource = true)
+        {
+            if (_itemsListBox == null) return;
+
+            int centerCount = GetCenterVisibleCount();
+            CarouselLayout.HasLeftOverflow = HasLeftOverflow();
+            CarouselLayout.HasRightOverflow = HasRightOverflow(centerCount);
+
+            if (updateItemsSource)
+            {
+                _itemsListBox.ItemsSource = null;
+                _itemsListBox.ItemsSource = GetVisibleShortcuts();
+            }
+
+            int visibleIndex = GetSelectedVisibleIndex();
+            if (visibleIndex >= 0 && visibleIndex < (_itemsListBox.Items?.Count ?? 0))
+                _itemsListBox.SelectedIndex = visibleIndex;
+        }
+
+        // Обновляет отображение имени выбранной игры
+        private void UpdateSelectedName()
+        {
+            if (_selectedGameTitle == null) return;
+
+            _selectedGameTitle.Text = _selectedIndex >= 0 && _selectedIndex < _shortcuts.Length
+                ? _shortcuts[_selectedIndex].Name
+                : string.Empty;
+        }
+
+        // --------------- Приватные методы - Анимации ---------------
+
         // Внутренняя маршрутизация scale-анимаций
-        // - обычный сценарий (up/down по SelectionChanged)
-        // - edge-scroll сценарий (forced down 8/2 + опциональный skip up)
         private void ApplySelectionAnimations(
             ListBox listBox,
             SelectionChangedEventArgs e,
@@ -224,7 +237,12 @@ namespace EZ2Play.App
             bool wasWindowShift = ConsumePendingWindowShiftAnimation();
             int moveDirection = ConsumePendingMoveDirection();
             bool skipScaleUpOnThisChange = wasWindowShift && SkipScaleUpAnimationOnEdgeScroll;
-            int fallbackPreviousIndex = GetFallbackPreviousIndex(currentVisibleIndex, previousAbsoluteIndex, currentAbsoluteIndex, listBox.Items.Count);
+
+            int fallbackPreviousIndex = GetFallbackPreviousIndex(
+                currentVisibleIndex,
+                previousAbsoluteIndex,
+                currentAbsoluteIndex,
+                listBox.Items.Count);
 
             CarouselAnimation.AnimateSelectionChanged(
                 listBox,
@@ -233,8 +251,7 @@ namespace EZ2Play.App
                 skipScaleUp: skipScaleUpOnThisChange);
         }
 
-        // Вычисляет fallback-индекс "предыдущего" слота внутри ListBox
-        // для анимации уменьшения, если RemovedItems недоступен/некорректен
+        // Вычисляет fallback-индекс "предыдущего" слота внутри ListBox для анимации
         private static int GetFallbackPreviousIndex(
             int currentVisibleIndex,
             int previousAbsoluteIndex,
@@ -256,31 +273,44 @@ namespace EZ2Play.App
                 : -1;
         }
 
-        private void UpdateSelectedName()
+        // --------------- Приватные методы - Управление состоянием ---------------
+
+        // Сбрасывает флаг pending window shift animation
+        private bool ConsumePendingWindowShiftAnimation()
         {
-            var selectedGameTitle = _window.FindName("SelectedGameTitle") as TextBlock;
-            if (selectedGameTitle == null) return;
-            
-            selectedGameTitle.Text = _selectedIndex >= 0 && _selectedIndex < _shortcuts.Length 
-                ? _shortcuts[_selectedIndex].Name 
-                : string.Empty;
+            bool value = _pendingWindowShiftAnimation;
+            _pendingWindowShiftAnimation = false;
+            return value;
         }
 
-        // ---- Geometry helpers ----
+        // Сбрасывает pending move direction
+        private int ConsumePendingMoveDirection()
+        {
+            int value = _pendingMoveDirection;
+            _pendingMoveDirection = 0;
+            return value;
+        }
+
+        // --------------- Приватные методы - Геометрия ---------------
+
+        // Ограничивает start в допустимых пределах
         private static int ClampWindowStart(int start, int itemCount, int visibleCount)
         {
             int maxStart = Math.Max(0, itemCount - visibleCount);
             return Math.Max(0, Math.Min(start, maxStart));
         }
 
+        // Проверяет наличие переполнения слева
         private bool HasLeftOverflow() => _visibleWindowStart > 0;
 
+        // Проверяет наличие переполнения справа
         private bool HasRightOverflow(int centerCount)
         {
             if (_shortcuts.Length == 0 || centerCount <= 0) return false;
             return _visibleWindowStart + centerCount < _shortcuts.Length;
         }
 
+        // Возвращает количество видимых элементов в центре
         private int GetCenterVisibleCount()
         {
             return Math.Min(CarouselLayout.VisibleCount, _shortcuts.Length - _visibleWindowStart);

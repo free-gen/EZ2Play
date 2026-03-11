@@ -11,10 +11,13 @@
                 <ui:ControlsDictionary/>
             </ResourceDictionary.MergedDictionaries>
 
-            <SolidColorBrush x:Key="GreenAccentColor" Color="#7DEF6F"/>
-            <SolidColorBrush x:Key="RedAccentColor" Color="#FD5555"/>
-            <SolidColorBrush x:Key="BlueAccentColor" Color="#3DC5F6"/>
-            <SolidColorBrush x:Key="YellowAccentColor" Color="#FFD838"/>
+            <!-- Градиентная заливка с имитацией стекла -->
+            <LinearGradientBrush x:Key="GlassBorderGradientBrush" StartPoint="0.490,0" EndPoint="0.510,1">
+                <GradientStop Offset="0.0" Color="#25ffffff"/>
+                <GradientStop Offset="0.4" Color="#10ffffff"/>
+                <GradientStop Offset="0.7" Color="#10ffffff"/>
+                <GradientStop Offset="1.0" Color="#15ffffff"/>
+            </LinearGradientBrush>
 
             <!-- XInput Button Icons (Fill = TextFillColorPrimaryBrush) -->
             <Path x:Key="ButtonA" Fill="{DynamicResource TextFillColorPrimaryBrush}" Data="M128 0C198.692 0 256 57.3076 256 128C256 198.692 198.692 256 128 256C57.3076 256 0 198.692 0 128C0 57.3076 57.3076 0 128 0ZM113.516 53.8125L60.6836 196H91.8359L101.672 166.02H152.775L162.637 196H193.887L140.762 53.8125H113.516ZM145.228 143.07H109.201L127.191 88.2363L145.228 143.07Z"/>
@@ -31,15 +34,6 @@
             <Path x:Key="KeyEscape" Fill="{DynamicResource TextFillColorPrimaryBrush}" Data="M280 0C302.091 0 320 17.9086 320 40V216C320 238.091 302.091 256 280 256H40C17.9086 256 0 238.091 0 216V40C0 17.9086 17.9086 0 40 0H280ZM162.534 98.2871C157.603 98.2871 153.159 98.9463 149.204 100.265C145.298 101.534 141.978 103.316 139.243 105.611C136.558 107.857 134.482 110.445 133.018 113.375C131.602 116.305 130.894 119.43 130.894 122.75C130.894 126.119 131.602 129.122 133.018 131.759C134.434 134.347 136.387 136.593 138.877 138.497C141.416 140.401 144.395 142.037 147.812 143.404C151.279 144.723 155.015 145.821 159.019 146.7C163.462 147.579 166.855 148.556 169.199 149.63C171.592 150.655 173.228 151.778 174.106 152.999C174.985 154.22 175.425 155.587 175.425 157.101C175.425 158.81 174.937 160.323 173.96 161.642C173.032 162.911 171.665 163.937 169.858 164.718C168.052 165.45 165.781 165.816 163.047 165.816C160.508 165.816 158.14 165.426 155.942 164.645C153.794 163.863 152.012 162.594 150.596 160.836C149.229 159.078 148.496 156.759 148.398 153.878H128.403C128.403 158.175 129.697 162.374 132.285 166.476C134.922 170.528 138.779 173.873 143.857 176.51C148.984 179.146 155.234 180.465 162.607 180.465C167.686 180.465 172.251 179.879 176.304 178.707C180.405 177.486 183.921 175.802 186.851 173.653C189.78 171.456 192.026 168.893 193.589 165.963C195.151 163.033 195.933 159.811 195.933 156.295C195.933 151.119 194.614 146.944 191.978 143.771C189.341 140.548 185.776 138.009 181.284 136.153C176.792 134.249 171.689 132.711 165.977 131.539C163.193 131.002 160.85 130.416 158.945 129.781C157.09 129.098 155.576 128.365 154.404 127.584C153.232 126.803 152.378 125.948 151.841 125.021C151.353 124.044 151.108 122.945 151.108 121.725C151.108 120.113 151.548 118.648 152.427 117.33C153.354 115.963 154.673 114.889 156.382 114.107C158.091 113.277 160.117 112.862 162.461 112.862C165.293 112.862 167.588 113.351 169.346 114.327C171.152 115.255 172.471 116.549 173.301 118.209C174.18 119.82 174.619 121.651 174.619 123.702H195.713C195.713 118.819 194.37 114.474 191.685 110.665C189.048 106.808 185.239 103.78 180.259 101.583C175.327 99.3857 169.419 98.2871 162.534 98.2871ZM242.661 98.2871C236.558 98.2871 231.235 99.3125 226.694 101.363C222.153 103.414 218.369 106.271 215.342 109.933C212.314 113.546 210.044 117.794 208.53 122.677C207.017 127.511 206.26 132.735 206.26 138.351V140.475C206.26 146.041 207.017 151.266 208.53 156.148C210.044 160.982 212.314 165.23 215.342 168.893C218.369 172.506 222.153 175.338 226.694 177.389C231.284 179.439 236.655 180.465 242.808 180.465C248.911 180.465 254.429 179.244 259.36 176.803C264.292 174.312 268.223 170.919 271.152 166.622C274.082 162.276 275.571 157.32 275.62 151.754H255.771C255.723 154.244 255.112 156.417 253.94 158.272C252.817 160.079 251.255 161.495 249.253 162.521C247.251 163.497 244.956 163.985 242.368 163.985C239.243 163.985 236.704 163.351 234.751 162.081C232.798 160.812 231.26 159.078 230.137 156.881C229.062 154.684 228.33 152.169 227.939 149.337C227.549 146.505 227.354 143.551 227.354 140.475V138.351C227.354 135.274 227.549 132.345 227.939 129.562C228.379 126.729 229.136 124.215 230.21 122.018C231.284 119.771 232.798 118.014 234.751 116.744C236.704 115.426 239.219 114.767 242.295 114.767C245.176 114.767 247.593 115.426 249.546 116.744C251.548 118.014 253.062 119.723 254.087 121.871C255.161 124.02 255.723 126.412 255.771 129.049H275.62C275.571 122.75 274.131 117.306 271.299 112.716C268.516 108.077 264.658 104.513 259.727 102.022C254.844 99.5322 249.155 98.2871 242.661 98.2871ZM49.5215 72.3594V179H121.079V161.861H71.4941V132.491H113.682V115.792H71.4941V89.5713H121.006V72.3594H49.5215Z"/>
             <Path x:Key="KeyX" Fill="{DynamicResource TextFillColorPrimaryBrush}" Data="M216 0C238.091 0 256 17.9086 256 40V216C256 238.091 238.091 256 216 256H40C17.9086 256 0 238.091 0 216V40C0 17.9086 17.9086 0 40 0H216ZM82.3438 72.3594L113.398 125.24L81.5381 179H107.026L127.681 141.061L148.335 179H173.677L141.89 125.24L172.871 72.3594H147.749L127.681 109.566L107.612 72.3594H82.3438Z"/>
 
-            <!-- Начальные значения; MainWindow обновляет их при Loaded/SizeChanged -->
-            <sys:Double x:Key="{x:Static app:UiScaleKeys.HintTextFontSize}">30</sys:Double>
-            <Thickness x:Key="{x:Static app:UiScaleKeys.HintTextMargin}">20,0,0,0</Thickness>
-            <sys:Double x:Key="{x:Static app:UiScaleKeys.HintIconHeightGamepad}">36</sys:Double>
-            <sys:Double x:Key="{x:Static app:UiScaleKeys.HintIconHeightKeyboard}">32</sys:Double>
-            <Thickness x:Key="{x:Static app:UiScaleKeys.CarouselSelectorOuterMargin}">-5</Thickness>
-            <CornerRadius x:Key="{x:Static app:UiScaleKeys.CarouselSelectorCornerRadius}">13</CornerRadius>
-            <Thickness x:Key="{x:Static app:UiScaleKeys.CarouselSelectorBorderThickness}">2</Thickness>
-
             <!-- Обьекты витрины -->
             <Style x:Key="ListBoxItemStyle" TargetType="ListBoxItem">
                 <Setter Property="Margin" Value="0"/>
@@ -48,13 +42,13 @@
                     <Setter.Value>
                         <ControlTemplate TargetType="ListBoxItem">
                             <Grid HorizontalAlignment="Center"
-                                  VerticalAlignment="Top"
+                                  VerticalAlignment="Center"
                                   ClipToBounds="False">
                                 <Border x:Name="OuterSelectionBorder"
                                         Margin="{DynamicResource {x:Static app:UiScaleKeys.CarouselSelectorOuterMargin}}"
                                         CornerRadius="{DynamicResource {x:Static app:UiScaleKeys.CarouselSelectorCornerRadius}}"
                                         BorderThickness="{DynamicResource {x:Static app:UiScaleKeys.CarouselSelectorBorderThickness}}"
-                                        BorderBrush="{DynamicResource TextFillColorPrimaryBrush}"
+                                        BorderBrush="{DynamicResource TextFillColorSecondaryBrush}"
                                         SnapsToDevicePixels="True"
                                         IsHitTestVisible="False"
                                         Visibility="Collapsed"/>
@@ -73,7 +67,7 @@
                 </Setter>
             </Style>
 
-            <!-- Подсказки -->
+            <!-- Текст подсказок -->
             <Style x:Key="HintTextStyle" TargetType="TextBlock">
                 <Setter Property="FontSize" Value="{DynamicResource {x:Static app:UiScaleKeys.HintTextFontSize}}"/>
                 <Setter Property="FontWeight" Value="Medium"/>
@@ -85,6 +79,12 @@
                         <TranslateTransform Y="0"/>
                     </Setter.Value>
                 </Setter>
+            </Style>
+
+            <!-- Стиль обводки и фона для блоков -->
+            <Style x:Key="CardGlassStyle" TargetType="Border">
+                <Setter Property="Background" Value="#50444444"/>
+                <Setter Property="BorderBrush" Value="{StaticResource GlassBorderGradientBrush}"/>
             </Style>
 
             </ResourceDictionary>
