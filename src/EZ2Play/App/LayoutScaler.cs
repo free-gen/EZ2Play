@@ -61,10 +61,10 @@ namespace EZ2Play.App
 
             // Уведомление
             target[UiScaleKeys.SystemMessageHeight] = s(100); // высота уведомления
-            target[UiScaleKeys.SystemMessageMaxWidth] = s(640); // макс ширина уведомления
+            target[UiScaleKeys.SystemMessageMaxWidth] = s(1280); // макс ширина уведомления
             target[UiScaleKeys.SystemMessageCornerRadius] = new CornerRadius(s(20)); // макс ширина уведомления
-            target[UiScaleKeys.SystemMessagePadding] = new Thickness(s(25), 0, s(25), 0);
-            target[UiScaleKeys.SystemMessageOuterMargin] = new Thickness(s(0), s(20), s(350), 0);
+            target[UiScaleKeys.SystemMessagePadding] = new Thickness(s(25), 0, s(25), 0); // внутр. оступы
+            target[UiScaleKeys.SystemMessageOuterMargin] = new Thickness(s(0), s(20), s(400), 0); // внешний отступ
             target[UiScaleKeys.SystemMessageMargin] = new Thickness(s(0), 0, s(25), 0);
             target[UiScaleKeys.SystemMessageFontSize] = fs(22);
             target[UiScaleKeys.SystemMessageIconSize] = fs(50);

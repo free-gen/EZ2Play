@@ -27,6 +27,8 @@ namespace EZ2Play
         private Launcher _launcher;
         private GuideExitHandler _guideHandler;
 
+        private ParticlesCanvas _particlesCanvas;
+
         private DispatcherTimer _activityTimer;
         private bool _wasActive;
         private bool _wasHotSwapLaunch;
@@ -63,6 +65,8 @@ namespace EZ2Play
             _display = new Display(this, hotSwap, _audioManager);
             _input = new Input();
             _guideHandler = new GuideExitHandler(_audioManager);
+
+            _particlesCanvas = FindName("particles") as ParticlesCanvas;
 
             // Инициализация UIState с прямыми ссылками на UI-элементы
             _uiState = new UIState
@@ -142,11 +146,13 @@ namespace EZ2Play
             if (isActive && !_wasActive)
             {
                 _audioManager.PlayBackgroundMusic(Sound.FadeDurationMs * 3);
+                _particlesCanvas?.SetParticlesVisible(true, true, 0.5); // Отобразить частицы
                 HideCursor();
             }
             else if (!isActive && _wasActive)
             {
                 _audioManager.StopBackgroundMusicSafe(Sound.FadeDurationMs);
+                _particlesCanvas?.SetParticlesVisible(false, true, 0.5); // Скрыть частицы
                 ShowLoading(false);
                 ShowCursor();
             }
@@ -197,7 +203,7 @@ namespace EZ2Play
 
         // Запускает музыку и управление после завершения сплеша
         private void StartPostSplash()
-        {
+        {   
             _launcher.LoadShortcuts();
             bool isEmpty = _launcher.Shortcuts.Length == 0;
             _uiState.SetEmptyState(isEmpty);
@@ -216,11 +222,18 @@ namespace EZ2Play
                         EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut }
                     };
 
+                    // Отобразить частицы
+                    fadeIn.Completed += (s, args) =>
+                    {
+                        _particlesCanvas?.SetParticlesVisible(true, true, 0.5);
+                    };
+
                     baseGrid.BeginAnimation(UIElement.OpacityProperty, fadeIn);
 
+                    // Тестовое уведомление
                     // _uiState.ShowTestNotification(1, 10);
 
-                    // Показ HotSwap уведомления
+                    // HotSwap уведомление
                     if (_wasHotSwapLaunch)
                     {
                         _uiState.ShowHotSwapNotification(1, 10);
@@ -324,6 +337,7 @@ namespace EZ2Play
         {
             _audioManager.PlayBackSound();
             _audioManager.StopBackgroundMusicSafe(Sound.FadeDurationMs);
+            _particlesCanvas?.SetParticlesVisible(false, true, 0.5); // Скрыть частицы
 
             _input.OnExitApplication -= ExitApplication;
 

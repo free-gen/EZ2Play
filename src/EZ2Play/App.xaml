@@ -12,19 +12,23 @@
             </ResourceDictionary.MergedDictionaries>
 
             <!-- Градиентная заливка с имитацией стекла -->
-            <LinearGradientBrush x:Key="GlassBorderGradientBrush" StartPoint="0.490,0" EndPoint="0.510,1">
-                <GradientStop Offset="0.0" Color="#25ffffff"/>
-                <GradientStop Offset="0.4" Color="#10ffffff"/>
-                <GradientStop Offset="0.7" Color="#10ffffff"/>
-                <GradientStop Offset="1.0" Color="#15ffffff"/>
+            <LinearGradientBrush x:Key="CardBorderGradientBrush" StartPoint="0,0" EndPoint="1,0">
+                <LinearGradientBrush.RelativeTransform>
+                    <RotateTransform Angle="45" CenterX="0.5" CenterY="0.5"/>
+                </LinearGradientBrush.RelativeTransform>
+                <GradientStop Offset="0.00" Color="#40ffffff"/>
+                <GradientStop Offset="0.25" Color="#25ffffff"/>
+                <GradientStop Offset="0.50" Color="#10ffffff"/>
+                <GradientStop Offset="0.75" Color="#15ffffff"/>
+                <GradientStop Offset="1.00" Color="#20ffffff"/>
             </LinearGradientBrush>
 
-            <!-- XInput Button Icons (Fill = TextFillColorPrimaryBrush) -->
+            <!-- XInput Icons -->
             <Path x:Key="ButtonA" Fill="{DynamicResource TextFillColorPrimaryBrush}" Data="M128 0C198.692 0 256 57.3076 256 128C256 198.692 198.692 256 128 256C57.3076 256 0 198.692 0 128C0 57.3076 57.3076 0 128 0ZM113.516 53.8125L60.6836 196H91.8359L101.672 166.02H152.775L162.637 196H193.887L140.762 53.8125H113.516ZM145.228 143.07H109.201L127.191 88.2363L145.228 143.07Z"/>
             <Path x:Key="ButtonB" Fill="{DynamicResource TextFillColorPrimaryBrush}" Data="M128 0C198.692 0 256 57.3076 256 128C256 198.692 198.692 256 128 256C57.3076 256 0 198.692 0 128C0 57.3076 57.3076 0 128 0ZM82 57V199.188H136.395C147.397 199.188 156.707 197.625 164.324 194.5C172.007 191.375 177.833 186.72 181.805 180.535C185.776 174.285 187.762 166.603 187.762 157.488C187.762 151.759 186.525 146.388 184.051 141.375C181.642 136.362 177.768 132.293 172.43 129.168C170.072 127.742 167.376 126.648 164.342 125.886C165.683 125.349 166.947 124.752 168.133 124.09C173.797 120.965 177.931 116.928 180.535 111.98C183.204 107.033 184.539 101.629 184.539 95.7695C184.539 89.1289 183.335 83.3997 180.926 78.582C178.517 73.6992 175.034 69.6628 170.477 66.4727C165.919 63.2826 160.353 60.9062 153.777 59.3438C147.267 57.7812 139.878 57 131.609 57H82ZM137.664 136.785C142.677 136.785 146.714 137.632 149.773 139.324C152.833 140.952 155.047 143.296 156.414 146.355C157.846 149.415 158.562 153.029 158.562 157.195C158.562 160.906 157.781 164.194 156.219 167.059C154.656 169.923 152.247 172.202 148.992 173.895C145.737 175.522 141.538 176.336 136.395 176.336H111.297V136.785H137.664ZM131.609 79.9492C137.078 79.9492 141.538 80.5677 144.988 81.8047C148.504 83.0417 151.076 85.0273 152.703 87.7617C154.396 90.4961 155.242 94.0768 155.242 98.5039C155.242 102.41 154.363 105.73 152.605 108.465C150.913 111.134 148.341 113.185 144.891 114.617C141.44 115.984 137.013 116.668 131.609 116.668H111.297V79.9492H131.609Z"/>
             <Path x:Key="ButtonX" Fill="{DynamicResource TextFillColorPrimaryBrush}" Data="M128 0C198.692 0 256 57.3076 256 128C256 198.692 198.692 256 128 256C57.3076 256 0 198.692 0 128C0 57.3076 57.3076 0 128 0ZM67.125 56.8125L108.531 127.32L66.0508 199H100.035L127.574 148.414L155.113 199H188.902L146.52 127.32L187.828 56.8125H154.332L127.574 106.422L100.816 56.8125H67.125Z"/>
 
-            <!-- Playstation Buttons -->
+            <!-- Playstation Icons -->
             <Path x:Key="ButtonCross" Fill="{DynamicResource TextFillColorPrimaryBrush}" Data="M128 0C198.692 0 256 57.3076 256 128C256 198.692 198.692 256 128 256C57.3076 256 0 198.692 0 128C0 57.3076 57.3076 0 128 0ZM195.515 60.5146C190.828 55.8285 183.23 55.8285 178.544 60.5146L128 111.059L77.4561 60.5146C72.7698 55.8284 65.1716 55.8284 60.4854 60.5146C55.7991 65.2009 55.7991 72.7991 60.4854 77.4854L111.029 128.029L60.5146 178.544C55.8284 183.23 55.8284 190.828 60.5146 195.515C65.2009 200.201 72.7991 200.201 77.4854 195.515L128 145L178.515 195.515C183.201 200.201 190.799 200.201 195.485 195.515C200.172 190.828 200.172 183.23 195.485 178.544L144.971 128.029L195.515 77.4854C200.201 72.7991 200.201 65.2009 195.515 60.5146Z"/>
             <Path x:Key="ButtonCircle" Fill="{DynamicResource TextFillColorPrimaryBrush}" Data="M128 0C198.692 0 256 57.3076 256 128C256 198.692 198.692 256 128 256C57.3076 256 0 198.692 0 128C0 57.3076 57.3076 0 128 0ZM128 46C82.7127 46 46 82.7127 46 128C46 173.287 82.7127 210 128 210C173.287 210 210 173.287 210 128C210 82.7127 173.287 46 128 46ZM128 70C160.033 70 186 95.9675 186 128C186 160.033 160.033 186 128 186C95.9675 186 70 160.033 70 128C70 95.9675 95.9675 70 128 70Z"/>
             <Path x:Key="ButtonSquare" Fill="{DynamicResource TextFillColorPrimaryBrush}" Data="M128 0C198.692 0 256 57.3076 256 128C256 198.692 198.692 256 128 256C57.3076 256 0 198.692 0 128C0 57.3076 57.3076 0 128 0ZM62 57C59.2386 57 57 59.2386 57 62V194L57.0068 194.257C57.1362 196.814 59.1862 198.864 61.7432 198.993L62 199H194L194.257 198.993C196.899 198.859 199 196.675 199 194V62C199 59.2386 196.761 57 194 57H62ZM175 81V175H81V81H175Z"/>
@@ -83,8 +87,8 @@
 
             <!-- Стиль обводки и фона для блоков -->
             <Style x:Key="CardGlassStyle" TargetType="Border">
-                <Setter Property="Background" Value="#50444444"/>
-                <Setter Property="BorderBrush" Value="{StaticResource GlassBorderGradientBrush}"/>
+                <Setter Property="Background" Value="{DynamicResource CardBackgroundFillColorDefaultBrush}"/>
+                <Setter Property="BorderBrush" Value="{StaticResource CardBorderGradientBrush}"/>
             </Style>
 
             </ResourceDictionary>

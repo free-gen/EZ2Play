@@ -81,7 +81,7 @@
                     <RowDefinition Height="20*"/>
                 </Grid.RowDefinitions>
 
-                <!-- Верхняя строка -->
+                <!-- Верхняя панель -->
                 <Grid x:Name="TopInfoPanel" Grid.Row="0"
                       Margin="{DynamicResource {x:Static app:UiScaleKeys.TopInfoPanelMargin}}"
                       HorizontalAlignment="Stretch"
@@ -89,13 +89,13 @@
                       Background="Transparent">
 
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="2.5*"/> <!-- 0 Margin -->
-                        <ColumnDefinition Width="5*"/> <!-- 1 AppLogo -->
-                        <ColumnDefinition Width="15*"/> <!-- 2 AppName -->
-                        <ColumnDefinition Width="65*"/> <!-- 3 Blank -->
-                        <ColumnDefinition Width="5*"/> <!-- 4 Time -->
-                        <ColumnDefinition Width="5*"/> <!-- 5 UserAvatar -->
-                        <ColumnDefinition Width="2.5*"/> <!-- 6 Margin -->
+                        <ColumnDefinition Width="05*"/> <!-- 0 Offset -->
+                        <ColumnDefinition Width="04*"/> <!-- 1 AppLogo -->
+                        <ColumnDefinition Width="16*"/> <!-- 2 AppName -->
+                        <ColumnDefinition Width="50*"/> <!-- 3 Blank -->
+                        <ColumnDefinition Width="16*"/> <!-- 4 Time -->
+                        <ColumnDefinition Width="04*"/> <!-- 5 UserAvatar -->
+                        <ColumnDefinition Width="05*"/> <!-- 6 Offset -->
                     </Grid.ColumnDefinitions>
 
                     <!-- Логотип -->
@@ -104,7 +104,7 @@
                             Width="{DynamicResource {x:Static app:UiScaleKeys.UserAvatarSize}}"
                             Height="{DynamicResource {x:Static app:UiScaleKeys.UserAvatarSize}}"
                             Stretch="UniformToFill"
-                            HorizontalAlignment="Center"
+                            HorizontalAlignment="Left"
                             VerticalAlignment="Center"/>
 
                     <!-- Имя приложения -->
@@ -129,7 +129,7 @@
                             Width="{DynamicResource {x:Static app:UiScaleKeys.UserAvatarSize}}"
                             Height="{DynamicResource {x:Static app:UiScaleKeys.UserAvatarSize}}"
                             Stretch="UniformToFill"
-                            HorizontalAlignment="Center"
+                            HorizontalAlignment="Right"
                             VerticalAlignment="Center"/>
 
                 </Grid>

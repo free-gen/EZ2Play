@@ -46,8 +46,8 @@ namespace EZ2Play.App
 
                 ["MessageTest"] = new[]
                 {
-                    "This is a test notification about an event.\nIt doesn't affect anything, but it shows this text.",
-                    "Это тестовое уведомление о каком либо событии.\nОно ни на что не влияет, а лишь показывает этот текст."
+                    "The app is running in basic mode. \n This is just a test notification; it doesn't affect anything.",
+                    "Приложение запущено в базовом режиме.\nЭто проверочное уведомление, оно ни на что не влияет."
                 },
 
                 ["ExitMessage"] = new[]
