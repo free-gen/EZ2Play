@@ -1,9 +1,9 @@
 # EZ2Play Launcher
 
-![Version](https://img.shields.io/badge/Version-0.8.3.1-blue?style=for-the-badge)
-![Platform](https://img.shields.io/badge/Platform-Windows-blue?style=for-the-badge)
-![Framework](https://img.shields.io/badge/Framework-WPF-blue?style=for-the-badge)
-[![UI](https://img.shields.io/badge/UI-WPF--UI-blueviolet?style=for-the-badge)](https://github.com/lepoco/wpfui)
+![Version](https://img.shields.io/badge/Version-0.8.3.1-0066ff?style=for-the-badge)
+![Platform](https://img.shields.io/badge/Platform-Windows-0066ff?style=for-the-badge)
+![Framework](https://img.shields.io/badge/Framework-WPF-0066ff?style=for-the-badge)
+[![UI](https://img.shields.io/badge/UI-WPF--UI-3366cc?style=for-the-badge)](https://github.com/lepoco/wpfui)
 
 EZ2Play - это минималистичный игровой лаунчер для тех, кто ценит простоту и отсутствие лишних настроек. Его логика строится на использовании стандартных ярлыков Windows, которые уже содержат всё необходимое: путь к игре, параметры запуска и иконку .ico в качестве обложки. Лаунчер позволяет управлять играми с геймпада и быстро переключать изображение между монитором и телевизором, делая игру на большом экране максимально удобной.
 
@@ -98,8 +98,8 @@ dotnet build --configuration Release
 
 **Можно криптой или рублем:**
 
-- **USDT (TRC20)**: `TZD9FhF1ZusMCN2XfSQrb2jpRBk7YTCzUy`  
-- **RUB (OZON СБП)**: [Ссылка](https://finance.ozon.ru/apps/sbp/ozonbankpay/019993bb-a466-72de-bc2c-e7ee85abc8a6)  
+[![OZON](https://img.shields.io/badge/RUB-OZON_БАНК-0066ff?style=for-the-badge)](https://finance.ozon.ru/apps/sbp/ozonbankpay/019993bb-a466-72de-bc2c-e7ee85abc8a6)
+[![USDT](https://img.shields.io/badge/USDT-TRC_20-009933?style=for-the-badge)](https://tronscan.org/#/address/TZD9FhF1ZusMCN2XfSQrb2jpRBk7YTCzUy)
 
 ## Лицензия
 
