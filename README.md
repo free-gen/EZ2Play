@@ -94,6 +94,13 @@ EZ2Play.exe --hotswap --nosplash --nomusic
 dotnet build --configuration Release
 ```
 
+## Поддержать проект
+
+**Можно криптой или рублем:**
+
+- **USDT (TRC20)**: `TZD9FhF1ZusMCN2XfSQrb2jpRBk7YTCzUy`  
+- **RUB (OZON СБП)**: [Ссылка](https://finance.ozon.ru/apps/sbp/ozonbankpay/019993bb-a466-72de-bc2c-e7ee85abc8a6)  
+
 ## Лицензия
 
 Проект распространяется под лицензией **MIT**. Подробности в файле [LICENSE](LICENSE).
