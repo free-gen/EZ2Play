@@ -48,27 +48,16 @@
                             <Grid HorizontalAlignment="Center"
                                   VerticalAlignment="Center"
                                   ClipToBounds="False">
-                                <Border x:Name="OuterSelectionBorder"
-                                        Margin="{DynamicResource {x:Static app:UiScaleKeys.CarouselSelectorOuterMargin}}"
-                                        CornerRadius="{DynamicResource {x:Static app:UiScaleKeys.CarouselSelectorCornerRadius}}"
-                                        BorderThickness="{DynamicResource {x:Static app:UiScaleKeys.CarouselSelectorBorderThickness}}"
-                                        BorderBrush="{DynamicResource TextFillColorSecondaryBrush}"
-                                        SnapsToDevicePixels="True"
-                                        IsHitTestVisible="False"
-                                        Visibility="Collapsed"/>
                                 <ContentPresenter Margin="0"/>
                             </Grid>
-                            <ControlTemplate.Triggers>
-                                <Trigger Property="IsSelected" Value="True">
-                                    <Setter TargetName="OuterSelectionBorder" Property="Visibility" Value="Visible"/>
-                                </Trigger>
-                                <DataTrigger Binding="{Binding Source={x:Static app:CarouselItem.EnableXamlSelectionOutline}}" Value="False">
-                                    <Setter TargetName="OuterSelectionBorder" Property="Visibility" Value="Collapsed"/>
-                                </DataTrigger>
-                            </ControlTemplate.Triggers>
                         </ControlTemplate>
                     </Setter.Value>
                 </Setter>
+            </Style>
+
+            <!-- Стиль фона обложек -->
+            <Style x:Key="BaseItemStyle" TargetType="Rectangle">
+                <Setter Property="Fill" Value="Transparent"/>
             </Style>
 
             <!-- Текст подсказок -->

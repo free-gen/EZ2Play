@@ -16,8 +16,8 @@ namespace EZ2Play.App
         // --------------- Настройки и константы ---------------
 
         // Задержки ввода (мс)
-        private const int InitialDelay = 250;
-        private const int RepeatDelay = 100;
+        private const int InitialDelay = 300;
+        private const int RepeatDelay = 70;
         private const int GamepadButtonCooldown = 200;
 
         // Частота опроса геймпада (мс)

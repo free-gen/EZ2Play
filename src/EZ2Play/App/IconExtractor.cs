@@ -269,12 +269,12 @@ namespace EZ2Play.App
 
         // --------------- Определение источника ярлыка ---------------
 
-        // Определение типа источника (Steam, Epic Games, Portable, Microsoft Store и т.д.)
+        // Определение типа источника
         private static string GetSourceTypeFromShortcut(string shortcutPath)
         {
             try
             {
-                // Для .url файлов (интернет-ярлыки)
+                // Для .url файлов
                 if (shortcutPath.EndsWith(".url", StringComparison.OrdinalIgnoreCase))
                 {
                     var lines = File.ReadAllLines(shortcutPath);
@@ -288,12 +288,8 @@ namespace EZ2Play.App
                             if (url.Contains("epicgames.com") || url.Contains("com.epicgames")) return "Epic Games";
                             if (url.Contains("vkplay://") || url.Contains("vkplay.ru")) return "VK Play";
                             if (url.Contains("rockstargames.com") || url.Contains("rockstar")) return "Rockstar";
-                            if (url.Contains("ubisoft.com") || url.Contains("uplay")) return "Ubisoft";
-                            if (url.Contains("ea.com") || url.Contains("origin")) return "EA App";
-                            if (url.Contains("battle.net") || url.Contains("blizzard")) return "Battle.net";
                             if (url.Contains("gog.com")) return "GOG";
                             if (url.Contains("xbox.com") || url.Contains("microsoft.com/xbox")) return "Xbox";
-                            if (url.Contains("amazon.com") || url.Contains("amazon games")) return "Amazon";
                         }
                     }
                 }
@@ -309,7 +305,7 @@ namespace EZ2Play.App
 
                         string target = (shortcut.TargetPath ?? " ").Trim();
 
-                        // Если TargetPath пустой — это ярлык из Магазина Windows
+                        // Если TargetPath пустой — это ярлык из Магазина Windows (Это не точно!)
                         if (string.IsNullOrWhiteSpace(target))
                             return "Microsoft Store";
 
@@ -318,16 +314,13 @@ namespace EZ2Play.App
                         if (t.Contains("rockstar games\\launcher")) return "Rockstar";
                         if (t.Contains("vkplay") || t.Contains("vk play")) return "VK Play";
                         if (t.Contains("ubisoft") || t.Contains("uplay")) return "Ubisoft";
-                        if (t.Contains("ea desktop") || t.Contains("eadesktop") || t.Contains("origin")) return "EA App";
-                        if (t.Contains("battle.net") || t.Contains("blizzard")) return "Battle.net";
                         if (t.Contains("gog galaxy")) return "GOG";
                         if (t.Contains("xbox") || t.Contains("microsoft.xbox")) return "Xbox";
-                        if (t.Contains("amazon games")) return "Amazon";
                     }
                 }
                 catch { }
 
-                // Если ничего не нашли — Portable
+                // Если ничего не нашли - Portable
                 return "Portable";
             }
             catch

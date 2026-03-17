@@ -12,13 +12,13 @@
                  Cursor="None"
                  SnapsToDevicePixels="True"
                  UseLayoutRounding="True"
-                 Background="{DynamicResource SubtleFillColorSecondaryBrush}"
+                 Background="Transparent"
                  WindowBackdropType="Mica"
                  ResizeMode="NoResize"
                  MinWidth="1024"
                  MinHeight="576">
 
-    <Border Background="{DynamicResource SubtleFillColorTertiaryBrush}" Margin="0">
+    <Border Background="{DynamicResource LayerOnAcrylicFillColorDefaultBrush}" Margin="0">
 
         <Grid x:Name="RootGrid"
               HorizontalAlignment="Stretch"
@@ -138,7 +138,6 @@
                 <ListBox x:Name="ItemsListBox" Grid.Row="1"
                          HorizontalAlignment="Stretch"
                          VerticalAlignment="Stretch"
-                         Background="Transparent"
                          BorderThickness="0"
                          Padding="0"
                          ClipToBounds="False"
@@ -286,7 +285,6 @@
                             Foreground="{DynamicResource TextFillColorDisabledBrush}"
                             Margin="{DynamicResource {x:Static app:UiScaleKeys.VersionLabelMargin}}"
                             FontSize="{DynamicResource {x:Static app:UiScaleKeys.VersionLabelFontSize}}"
-                            FontFamily="Consolas"
                             TextAlignment="Right">
                     <Run Text="v"/><Run Text="{x:Static app:AppInfo.Version}"/>
                 </TextBlock>

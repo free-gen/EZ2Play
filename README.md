@@ -1,9 +1,8 @@
 # EZ2Play Launcher
 
-![Version](https://img.shields.io/badge/Version-0.8.3.1-0066ff?style=for-the-badge)
-![Platform](https://img.shields.io/badge/Platform-Windows-0066ff?style=for-the-badge)
-![Framework](https://img.shields.io/badge/Framework-WPF-0066ff?style=for-the-badge)
-[![UI](https://img.shields.io/badge/UI-WPF--UI-3366cc?style=for-the-badge)](https://github.com/lepoco/wpfui)
+[![GitHub release](https://img.shields.io/github/v/release/free-gen/EZ2Play?style=for-the-badge)](https://github.com/free-gen/EZ2Play/releases/latest)
+[![Platform](https://img.shields.io/badge/.Net-0066ff?style=for-the-badge&logo=data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNSIgaGVpZ2h0PSIxNSIgdmlld0JveD0iMCAwIDE1IDE1Ij48cGF0aCBmaWxsPSIjZmZmIiBkPSJNMTQuODE0LjExMUEuNS41IDAgMCAxIDE1IC41VjdIN1YxLjU5NkwxNC4zOTUuMDFhLjUuNSAwIDAgMSAuNDIuMU02IDEuODFMLjM5NSAzLjAxMUEuNS41IDAgMCAwIDAgMy41VjdoNnpNMCA4djQuNWEuNS41IDAgMCAwIC40My40OTVsNS41Ny43OTZWOHptNyA1LjkzNGw3LjQzIDEuMDYxQS41LjUgMCAwIDAgMTUgMTQuNVY4SDd6Ii8+PC9zdmc+&labelColor=gray)](https://dotnet.microsoft.com)
+[![Framevork](https://img.shields.io/badge/WPF--UI-0066ff?style=for-the-badge&logo=data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0OCIgaGVpZ2h0PSI0OCIgdmlld0JveD0iMCAwIDQ4IDQ4Ij48cGF0aCBmaWxsPSIjZmZmIiBkPSJNMjUuMTcgNC4xNjNhMS41IDEuNSAwIDAgMC0xLjM0IDBsLTEyIDZhMS41IDEuNSAwIDAgMC0uODMgMS4zNDJ2MjMuNDU2YzAgLjUxNi4yNjUuOTk2LjcwMiAxLjI3bDEyIDcuNTRBMS41IDEuNSAwIDAgMCAyNiA0Mi41VjMwLjQzMmwxMS4xNy01LjU4NWExLjUgMS41IDAgMCAwIDAtMi42ODRsLTkuMzE2LTQuNjU4bDkuMzE3LTQuNjU4YTEuNSAxLjUgMCAwIDAgMC0yLjY4NHoiLz48L3N2Zz4=&labelColor=gray)](https://wpfui.lepo.co/)
 
 EZ2Play - это минималистичный игровой лаунчер для тех, кто ценит простоту и отсутствие лишних настроек. Его логика строится на использовании стандартных ярлыков Windows, которые уже содержат всё необходимое: путь к игре, параметры запуска и иконку .ico в качестве обложки. Лаунчер позволяет управлять играми с геймпада и быстро переключать изображение между монитором и телевизором, делая игру на большом экране максимально удобной.
 

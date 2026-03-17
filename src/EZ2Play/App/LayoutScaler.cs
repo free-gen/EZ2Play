@@ -55,7 +55,7 @@ namespace EZ2Play.App
             // ===========================================================================
 
             // Верхняя панель
-            target[UiScaleKeys.TopInfoPanelMargin] = new Thickness(s(0), s(20), s(0), 0); // общее смещение вниз
+            target[UiScaleKeys.TopInfoPanelMargin] = new Thickness(s(0), s(25), s(0), 0); // общее смещение вниз
             target[UiScaleKeys.TopInfoFontSize] = fs(42); // размер шрифта
             target[UiScaleKeys.UserAvatarSize] = s(50); // аватар
 
@@ -70,12 +70,9 @@ namespace EZ2Play.App
             target[UiScaleKeys.SystemMessageIconSize] = fs(50);
 
             // Витрина обложек
-            const double baseCarouselItemCornerRadius = 20;
-            const double baseCarouselSelectorBorderThickness = 3;
-            target[UiScaleKeys.CarouselItemCornerRadius] = s(baseCarouselItemCornerRadius); // радиус обложек
-            target[UiScaleKeys.CarouselSelectorCornerRadius] = new CornerRadius(s(baseCarouselItemCornerRadius * 1.2)); // радиус селектора
-            target[UiScaleKeys.CarouselSelectorBorderThickness] = new Thickness(s(baseCarouselSelectorBorderThickness)); // толщина селектора
-            target[UiScaleKeys.CarouselSelectorOuterMargin] = new Thickness(-s(baseCarouselSelectorBorderThickness * 2.333)); // отступ до селектора
+            target[UiScaleKeys.ItemCornerRadius] = s(20); // радиус обложек
+            target[UiScaleKeys.SelectorThickness] = s(4); // толщина селектора
+            target[UiScaleKeys.SelectorSpacing] = s(4); // оступ от обложки
 
             // Название игры
             target[UiScaleKeys.SelectedGameTitleFontSize] = fs(72); // размер шрифта
@@ -135,10 +132,9 @@ namespace EZ2Play.App
         public const string SystemMessageIconSize = "SystemMessageIconSize";
 
         // ======================== Витрина обложек ========================
-        public const string CarouselItemCornerRadius = "CarouselItemCornerRadius";
-        public const string CarouselSelectorOuterMargin = "CarouselSelectorOuterMargin";
-        public const string CarouselSelectorCornerRadius = "CarouselSelectorCornerRadius";
-        public const string CarouselSelectorBorderThickness = "CarouselSelectorBorderThickness";
+        public const string ItemCornerRadius = "ItemCornerRadius";
+        public const string SelectorThickness = "SelectorThickness";
+        public const string SelectorSpacing = "SelectorSpacing";
 
         // ======================== Название игры ========================
         public const string SelectedGameTitleFontSize = "SelectedGameTitleFontSize";
