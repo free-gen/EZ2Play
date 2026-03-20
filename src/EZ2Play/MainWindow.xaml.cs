@@ -14,7 +14,6 @@ using Wpf.Ui.Controls;
 namespace EZ2Play
 {
     // --------------- Главное окно приложения ---------------
-    // Координирует все компоненты: Launcher, UIState, Display, Input, Sound
 
     public partial class MainWindow : FluentWindow
     {
