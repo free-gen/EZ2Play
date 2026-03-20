@@ -231,7 +231,7 @@ namespace EZ2Play
                     baseGrid.BeginAnimation(UIElement.OpacityProperty, fadeIn);
 
                     // Отладочное уведомление
-                    _uiState.Notification.Debug(1, 10);
+                    // _uiState.Notification.Debug(1, 10);
 
                     // HotSwap уведомление
                     if (_wasHotSwapLaunch)
