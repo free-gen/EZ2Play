@@ -18,6 +18,7 @@
                  MinWidth="1024"
                  MinHeight="576">
 
+    <!-- Window Background -->
     <Border Background="{DynamicResource LayerOnAcrylicFillColorDefaultBrush}" Margin="0">
 
         <Grid x:Name="RootGrid"
@@ -26,10 +27,10 @@
               SnapsToDevicePixels="True"
               UseLayoutRounding="True">
 
-            <!-- Слой с частицами -->
+            <!-- ParticlesCanvas -->
             <app:ParticlesCanvas x:Name="particles" />
 
-            <!-- Заставка при запуске -->
+            <!-- SplashOverlay -->
             <Grid x:Name="SplashOverlay" Visibility="Hidden"
                   HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
                   Background="Transparent" IsHitTestVisible="True">
@@ -38,10 +39,9 @@
                        MaxHeight="{DynamicResource {x:Static app:UiScaleKeys.SplashLogoMaxHeight}}"
                        HorizontalAlignment="Center" VerticalAlignment="Center"
                        Opacity="0" RenderOptions.BitmapScalingMode="HighQuality"/>
-
             </Grid>
 
-            <!-- Сообщение при отсутствии ярлыков -->
+            <!-- NoShortcutsMessage -->
             <TextBlock x:Name="NoShortcutsMessage"
                        HorizontalAlignment="Center"
                        VerticalAlignment="Bottom"
@@ -49,7 +49,6 @@
                        Margin="{DynamicResource {x:Static app:UiScaleKeys.NoShortcutsMargin}}"
                        FontSize="{DynamicResource {x:Static app:UiScaleKeys.NoShortcutsFontSize}}"
                        FontWeight="ExtraLight"
-                       FontFamily="Manrope"
                        Visibility="Collapsed"
                        Style="{StaticResource HintTextStyle}">
                 <Run x:Name="NoShortcutsMessage1"/>
@@ -57,7 +56,7 @@
                 <Run x:Name="NoShortcutsMessage2"/>
             </TextBlock>
 
-            <!-- Сообщение при выходе -->
+            <!-- ExitOverlay -->
             <Border x:Name="ExitOverlay" Visibility="Hidden"/>
             <TextBlock x:Name="ExitMessageText"
                        HorizontalAlignment="Center"
@@ -65,14 +64,13 @@
                        TextAlignment="Center"
                        FontSize="{DynamicResource {x:Static app:UiScaleKeys.ExitMessageFontSize}}"
                        FontWeight="ExtraLight"
-                       FontFamily="Manrope"
                        Visibility="Hidden"
                        Panel.ZIndex="11">
                 <Run x:Name="ExitMessageRun"/>
                 <Run x:Name="CompanyNameRun" Text=""/>
             </TextBlock>  
 
-            <!-- Основной экран -->
+            <!-- MainScreenGrid -->
             <Grid x:Name="MainScreenGrid" Visibility="Collapsed" Panel.ZIndex="5">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="15*"/>
@@ -81,7 +79,7 @@
                     <RowDefinition Height="20*"/>
                 </Grid.RowDefinitions>
 
-                <!-- Верхняя панель -->
+                <!-- TopInfoPanel -->
                 <Grid x:Name="TopInfoPanel" Grid.Row="0"
                       Margin="{DynamicResource {x:Static app:UiScaleKeys.TopInfoPanelMargin}}"
                       HorizontalAlignment="Stretch"
@@ -98,7 +96,7 @@
                         <ColumnDefinition Width="05*"/> <!-- 6 Offset -->
                     </Grid.ColumnDefinitions>
 
-                    <!-- Логотип -->
+                    <!-- AppLogo -->
                     <Image  Grid.Column="1"
                             Source="/Assets/logo.png"
                             Width="{DynamicResource {x:Static app:UiScaleKeys.UserAvatarSize}}"
@@ -107,24 +105,22 @@
                             HorizontalAlignment="Left"
                             VerticalAlignment="Center"/>
 
-                    <!-- Имя приложения -->
+                    <!-- AppName -->
                     <TextBlock  x:Name="TopLeftAppNameText" Grid.Column="2"
                                 Text="{x:Static app:AppInfo.Name}"
                                 HorizontalAlignment="Left"
                                 VerticalAlignment="Center"
                                 FontSize="{DynamicResource {x:Static app:UiScaleKeys.TopInfoFontSize}}"
-                                FontWeight="ExtraBold"
-                                FontFamily="Manrope"/>
+                                FontWeight="ExtraBold"/>
 
-                    <!-- Время -->
+                    <!-- Time -->
                     <TextBlock x:Name="TopRightTimeText" Grid.Column="4"
                                HorizontalAlignment="Right"
                                VerticalAlignment="Center"
                                FontSize="{DynamicResource {x:Static app:UiScaleKeys.TopInfoFontSize}}"
-                               FontWeight="Light"
-                               FontFamily="Manrope"/>
+                               FontWeight="Light"/>
 
-                    <!-- Аватар пользователя -->
+                    <!-- UserAvatar -->
                     <Image  x:Name="UserAvatar" Grid.Column="5"
                             Width="{DynamicResource {x:Static app:UiScaleKeys.UserAvatarSize}}"
                             Height="{DynamicResource {x:Static app:UiScaleKeys.UserAvatarSize}}"
@@ -134,7 +130,7 @@
 
                 </Grid>
 
-                <!-- Список игр -->
+                <!-- ItemsListBox -->
                 <ListBox x:Name="ItemsListBox" Grid.Row="1"
                          HorizontalAlignment="Stretch"
                          VerticalAlignment="Stretch"
@@ -158,13 +154,10 @@
                     </ListBox.ItemTemplate>
                 </ListBox>
 
-                <!-- Название игры -->
+                <!-- SelectedGameTitle -->
                 <Grid Grid.Row="2">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="8*"/>
-                        <ColumnDefinition Width="92*"/>
-                    </Grid.ColumnDefinitions>
-                    <StackPanel Grid.Column="1" Orientation="Vertical"
+                    <StackPanel Orientation="Vertical"
+                                Margin="{DynamicResource {x:Static app:UiScaleKeys.GameTitleMargin}}"
                                 HorizontalAlignment="Stretch"
                                 VerticalAlignment="Center">
                         <StackPanel Orientation="Horizontal">
@@ -173,12 +166,11 @@
                                     VerticalAlignment="Center"
                                     FontSize="{DynamicResource {x:Static app:UiScaleKeys.SelectedGameTitleFontSize}}"
                                     FontWeight="Medium"
-                                    FontFamily="Manrope"
                                     TextAlignment="Left"
                                     TextWrapping="Wrap"
                                     HorizontalAlignment="Stretch"/>
 
-                            <!-- Анимация загрузки -->
+                            <!-- LoadingProgress -->
                             <ui:ProgressRing x:Name="LoadingProgress" 
                                     Margin="{DynamicResource {x:Static app:UiScaleKeys.HintBlockMargin}}"
                                     Width="{DynamicResource {x:Static app:UiScaleKeys.LoadingProgressScale}}" 
@@ -190,27 +182,18 @@
 
                         <!-- GameSourceCard -->
                         <Border x:Name="GameSourceCard"
-                                Background="{DynamicResource TextFillColorPrimaryBrush}"
-                                CornerRadius="{DynamicResource {x:Static app:UiScaleKeys.SourceCardCornerRadius}}"
-                                Padding="{DynamicResource {x:Static app:UiScaleKeys.SourceCardPadding}}"
-                                Margin="{DynamicResource {x:Static app:UiScaleKeys.SourceCardMargin}}"
+                                Style="{StaticResource GameSourceCardStyle}"
                                 VerticalAlignment="Center"
-                                HorizontalAlignment="Left"
-                                Height="{DynamicResource {x:Static app:UiScaleKeys.SourceCardHeight}}">
+                                HorizontalAlignment="Left">
                             <TextBlock Text="{Binding ElementName=ItemsListBox, Path=SelectedItem.SourceType}"
-                                       Foreground="{DynamicResource SolidBackgroundFillColorBaseAltBrush}"
-                                       FontSize="{DynamicResource {x:Static app:UiScaleKeys.SourceCardFontSize}}"
-                                       FontWeight="ExtraBold"
-                                       FontFamily="Manrope"
+                                       Style="{StaticResource GameSourceTextStyle}"
                                        TextAlignment="Center"
-                                       VerticalAlignment="Center"
-                                       LineHeight="{DynamicResource {x:Static app:UiScaleKeys.SourceCardLineHeight}}"
-                                       LineStackingStrategy="BlockLineHeight"/>
+                                       VerticalAlignment="Center"/>
                         </Border>
                     </StackPanel>
                 </Grid>
 
-                <!-- Нижняя панель -->
+                <!-- BottomPanel -->
                 <Border x:Name="BottomPanel" Tag="BottomPanel" Grid.Row="3"
                         Style="{StaticResource CardGlassStyle}"
                         BorderThickness="{DynamicResource {x:Static app:UiScaleKeys.BottomPanelBorderThickness}}"
@@ -249,9 +232,10 @@
                                 <TextBlock x:Name="ScreenSwapText" Style="{StaticResource HintTextStyle}"/>
                             </StackPanel>
                         </StackPanel>
+
                 </Border>
 
-                <!-- Уведомления -->
+                <!-- SystemMessage -->
                 <Border x:Name="SystemMessage"
                         Grid.Row="0"
                         Visibility="Collapsed"
@@ -264,20 +248,19 @@
                         HorizontalAlignment="Right" 
                         VerticalAlignment="Center">
                     <StackPanel Orientation="Horizontal">
-                        <ui:SymbolIcon Symbol="Info12" Filled="True" 
+                        <ui:SymbolIcon  Symbol="Info12" Filled="True" 
                                         FontSize="{DynamicResource {x:Static app:UiScaleKeys.SystemMessageIconSize}}"
                                         VerticalAlignment="Center" 
                                         Margin="{DynamicResource {x:Static app:UiScaleKeys.SystemMessageMargin}}"/>
-                        <TextBlock x:Name="SystemMessageText"
+                        <TextBlock  x:Name="SystemMessageText"
                                     MaxWidth="{DynamicResource {x:Static app:UiScaleKeys.SystemMessageMaxWidth}}"
                                     FontSize="{DynamicResource {x:Static app:UiScaleKeys.SystemMessageFontSize}}"
                                     VerticalAlignment="Center"
-                                    TextWrapping="Wrap"
-                                    FontFamily="Manrope"/>
+                                    TextWrapping="Wrap"/>
                     </StackPanel>
                 </Border>
 
-                <!-- Номер версии -->
+                <!-- VersionLabel -->
                 <TextBlock  x:Name="VersionLabel"
                             Grid.Row="3"
                             VerticalAlignment="Bottom"

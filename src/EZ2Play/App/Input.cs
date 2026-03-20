@@ -55,7 +55,7 @@ namespace EZ2Play.App
         public event Action OnLaunchSelected;
         public event Action OnExitApplication;
         public event Action OnToggleDisplay;
-        public event Action<bool> OnGamepadConnectionChanged;
+        public event Action<bool, string> OnGamepadConnectionChanged;
 
         // --------------- Публичные свойства ---------------
 
@@ -116,6 +116,16 @@ namespace EZ2Play.App
                     _joystick.Properties.BufferSize = 128;
                     _joystick.Acquire();
 
+                    // Получаем имя устройства
+                    string deviceName = "Gamepad";
+                    try
+                    {
+                        deviceName = devices[0].ProductName;
+                        if (string.IsNullOrWhiteSpace(deviceName))
+                            deviceName = "Gamepad";
+                    }
+                    catch { deviceName = "Gamepad"; }
+
                     // Запускаем таймер опроса
                     if (_gamepadTimer == null)
                     {
@@ -124,11 +134,12 @@ namespace EZ2Play.App
                         _gamepadTimer.Start();
                     }
 
-                    UpdateConnectionState(true);
+                    // Передаем true и имя устройства
+                    UpdateConnectionState(true, deviceName);
                 }
                 else
                 {
-                    UpdateConnectionState(false);
+                    UpdateConnectionState(false, "Gamepad");
                 }
             }
             catch { }
@@ -153,15 +164,15 @@ namespace EZ2Play.App
         // --------------- Управление состоянием подключения ---------------
 
         // Обновление статуса подключения геймпада
-        private void UpdateConnectionState(bool isConnected)
+        private void UpdateConnectionState(bool isConnected, string deviceName)
         {
             if (IsGamepadConnected == isConnected) return;
-            
+
             IsGamepadConnected = isConnected;
-            
-            try 
-            { 
-                OnGamepadConnectionChanged?.Invoke(isConnected); 
+
+            try
+            {
+                OnGamepadConnectionChanged?.Invoke(isConnected, deviceName);
             }
             catch { }
         }
@@ -186,7 +197,7 @@ namespace EZ2Play.App
                     }
                     else
                     {
-                        UpdateConnectionState(false);
+                        UpdateConnectionState(false, "Gamepad");
                     }
                 }
                 else

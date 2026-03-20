@@ -31,7 +31,6 @@ namespace EZ2Play.App
         }
 
         // Заполняет указанный ResourceDictionary масштабированными значениями для всех UiScaleKeys.
-        // Вызывается из MainWindow (this.Resources) и из SplashScreen (Application.Current.Resources).
         public static void ApplyUiScaleToDictionary(ResourceDictionary target, double windowHeight)
         {
             if (target == null) return;
@@ -66,7 +65,7 @@ namespace EZ2Play.App
             target[UiScaleKeys.SystemMessagePadding] = new Thickness(s(25), 0, s(25), 0); // внутр. оступы
             target[UiScaleKeys.SystemMessageOuterMargin] = new Thickness(s(0), s(20), s(400), 0); // внешний отступ
             target[UiScaleKeys.SystemMessageMargin] = new Thickness(s(0), 0, s(25), 0);
-            target[UiScaleKeys.SystemMessageFontSize] = fs(22);
+            target[UiScaleKeys.SystemMessageFontSize] = fs(24);
             target[UiScaleKeys.SystemMessageIconSize] = fs(50);
 
             // Витрина обложек
@@ -75,16 +74,16 @@ namespace EZ2Play.App
             target[UiScaleKeys.SelectorSpacing] = s(4); // оступ от обложки
 
             // Название игры
+            target[UiScaleKeys.GameTitleMargin] = new Thickness(s(200), 0, s(0), 0);
             target[UiScaleKeys.SelectedGameTitleFontSize] = fs(72); // размер шрифта
             target[UiScaleKeys.LoadingProgressScale] = fs(55); // размер LoadingProgress
 
             // Карточка источника 
-            target[UiScaleKeys.SourceCardHeight] = s(56); // высота
-            target[UiScaleKeys.SourceCardPadding] = new Thickness(s(50), 0, s(50), 0); // внутр. отступы
-            target[UiScaleKeys.SourceCardCornerRadius] = new CornerRadius(s(28)); // радиусы 
+            target[UiScaleKeys.SourceCardHeight] = s(70); // высота
+            target[UiScaleKeys.SourceCardPadding] = new Thickness(s(100), 0, s(100), 0); // внутр. отступы
+            target[UiScaleKeys.SourceCardCornerRadius] = new CornerRadius(s(35)); // радиусы 
             target[UiScaleKeys.SourceCardMargin] = new Thickness(0, s(50), 0, 0); // верхний отступ
-            target[UiScaleKeys.SourceCardFontSize] = fs(24); // размер шрифта
-            target[UiScaleKeys.SourceCardLineHeight] = s(28); // выравнивание по вертикали
+            target[UiScaleKeys.SourceCardFontSize] = fs(28); // размер шрифта
 
             // Нижняя панель (подсказки)
             target[UiScaleKeys.BottomPanelHeight] = s(90); // высота
@@ -137,6 +136,7 @@ namespace EZ2Play.App
         public const string SelectorSpacing = "SelectorSpacing";
 
         // ======================== Название игры ========================
+        public const string GameTitleMargin = "GameTitleMargin";
         public const string SelectedGameTitleFontSize = "SelectedGameTitleFontSize";
         public const string LoadingProgressScale = "LoadingProgressScale";
 
@@ -146,7 +146,6 @@ namespace EZ2Play.App
         public const string SourceCardCornerRadius = "SourceCardCornerRadius";
         public const string SourceCardMargin = "SourceCardMargin";
         public const string SourceCardFontSize = "SourceCardFontSize";
-        public const string SourceCardLineHeight = "SourceCardLineHeight";
 
         // ======================== Нижняя панель (подсказки) ========================
         public const string BottomPanelHeight = "BottomPanelHeight";

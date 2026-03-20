@@ -4,8 +4,6 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Shapes;
-using System.Windows.Media.Animation;
-using System.Windows.Threading;
 
 namespace EZ2Play.App
 {
@@ -15,10 +13,16 @@ namespace EZ2Play.App
     {
         // --------------- Константы анимации ---------------
 
-        private const double GlowStartOffset = -0.5;
-        private const double GlowEndOffset = 1.5;
-        private const double GlowAnimationDurationSeconds = 0.8;
-        private const double GlowDelaySeconds = 3.5;
+        private const double GlowStartOffset = -2;
+        private const double GlowEndOffset = 2;
+        private const double AnimDuration = 1.5;
+        private const double AnimDelay = 4;
+
+        // --------------- Статические поля для глобального управления анимацией ---------------
+
+        private static readonly HashSet<CarouselItem> _activeItems = new HashSet<CarouselItem>();
+        private static DateTime _startTime = DateTime.UtcNow;
+        private static bool _isRenderingHooked = false;
 
         // --------------- Dependency Properties ---------------
 
@@ -53,9 +57,6 @@ namespace EZ2Play.App
         private readonly Rectangle _cover;
         private readonly Rectangle _background;
 
-        private DispatcherTimer _glowTimer;
-        private bool _glowAnimationActive = false;
-
         // --------------- Кэш кистей ---------------
 
         private static readonly Dictionary<string, ImageBrush> BrushCache = new Dictionary<string, ImageBrush>();
@@ -70,8 +71,6 @@ namespace EZ2Play.App
             SnapsToDevicePixels = true;
             UseLayoutRounding = true;
             ClipToBounds = false;
-
-            InitializeGlowTimer();
 
             _background = new Rectangle
             {
@@ -90,23 +89,12 @@ namespace EZ2Play.App
             Content = grid;
 
             DataContextChanged += OnDataContextChanged;
-        }
 
-        // --------------- Инициализация ---------------
-
-        private void InitializeGlowTimer()
-        {
-            _glowTimer = new DispatcherTimer();
-            _glowTimer.Interval = TimeSpan.FromSeconds(GlowDelaySeconds);
-            
-            _glowTimer.Tick += (s, e) =>
+            if (!_isRenderingHooked)
             {
-                _glowTimer.Stop();
-                if (_glowAnimationActive)
-                {
-                    PlayOneShotGlowAnimation();
-                }
-            };
+                CompositionTarget.Rendering += OnRendering;
+                _isRenderingHooked = true;
+            }
         }
 
         // --------------- Обработчики событий ---------------
@@ -114,74 +102,62 @@ namespace EZ2Play.App
         // Изменение свойства IsSelected
         private static void OnIsSelectedChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
-            var item = d as CarouselItem;
-            if (item == null) return;
+            var item = (CarouselItem)d;
 
             item.UpdateContent();
 
             if ((bool)e.NewValue)
             {
-                item.StartGlowWithDelay();
+                _activeItems.Add(item);
             }
             else
             {
-                item.StopGlow();
+                _activeItems.Remove(item);
+                item.GlowOffset = GlowStartOffset;
             }
 
             item.InvalidateVisual();
+        }
+
+        // Глобальный рендеринг для анимации
+        private static void OnRendering(object sender, EventArgs e)
+        {
+            var now = DateTime.UtcNow;
+            var totalSeconds = (now - _startTime).TotalSeconds;
+
+            double cycle = AnimDelay + AnimDuration;
+            double t = totalSeconds % cycle;
+
+            foreach (var item in _activeItems)
+            {
+                item.UpdateGlow(t);
+            }
+        }
+
+        // Обновление эффекта свечения
+        private void UpdateGlow(double t)
+        {
+            if (!IsSelected)
+                return;
+
+            if (t < AnimDelay)
+            {
+                GlowOffset = GlowStartOffset;
+            }
+            else
+            {
+                double animT = (t - AnimDelay) / AnimDuration;
+                animT = animT * animT * (3 - 2 * animT);
+                GlowOffset = GlowStartOffset + (GlowEndOffset - GlowStartOffset) * animT;
+            }
+
+            InvalidateVisual();
         }
 
         // Изменение DataContext
         private void OnDataContextChanged(object sender, DependencyPropertyChangedEventArgs e)
         {
             UpdateContent();
-        }
-
-        // --------------- Управление анимацией ---------------
-
-        private void StartGlowWithDelay()
-        {
-            StopGlow();
-            _glowAnimationActive = true;
-            _glowTimer.Start();
-        }
-
-        private void StopGlow()
-        {
-            _glowAnimationActive = false;
-            _glowTimer?.Stop();
-            this.BeginAnimation(GlowOffsetProperty, null);
-            GlowOffset = GlowStartOffset;
-        }
-
-        private void PlayOneShotGlowAnimation()
-        {
-            if (!IsConnectedToVisualTree())
-                return;
-
-            var forwardAnimation = new DoubleAnimation
-            {
-                From = GlowStartOffset,
-                To = GlowEndOffset,
-                Duration = TimeSpan.FromSeconds(GlowAnimationDurationSeconds),
-                FillBehavior = FillBehavior.HoldEnd
-            };
-            
-            forwardAnimation.Completed += (s, e) =>
-            {
-                if (_glowAnimationActive)
-                {
-                    GlowOffset = GlowStartOffset;
-                    _glowTimer.Start();
-                }
-            };
-            
-            this.BeginAnimation(GlowOffsetProperty, forwardAnimation);
-        }
-
-        private bool IsConnectedToVisualTree()
-        {
-            return PresentationSource.FromVisual(this) != null;
         }
 
         // --------------- Обновление контента ---------------
@@ -294,6 +270,7 @@ namespace EZ2Play.App
             }
         }
 
+        // Очистка кэша кистей
         public static void ClearBrushCache()
         {
             lock (CacheLock)

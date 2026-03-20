@@ -14,14 +14,6 @@ namespace EZ2Play.Main
 
     public partial class App : Application
     {
-        // --------------- Публичные свойства ---------------
-
-        // Использование кастомного логотипа
-        // public static bool UseCustomLogoImage { get; private set; } = false;
-
-        // Путь к кастомному логотипу
-        // public static string CustomLogo { get; private set; } = null;
-
         // --------------- Поля класса ---------------
 
         private MainWindow _mainWindow;
@@ -62,9 +54,9 @@ namespace EZ2Play.Main
                 _mainWindow = new MainWindow(hotSwap);
 
                 // Глобальный обработчик для отключения фокуса
-                // EventManager.RegisterClassHandler(typeof(UIElement),
-                //     UIElement.GotFocusEvent,
-                //     new RoutedEventHandler(OnAnyElementGotFocus));
+                EventManager.RegisterClassHandler(typeof(UIElement),
+                    UIElement.GotFocusEvent,
+                    new RoutedEventHandler(OnAnyElementGotFocus));
 
                 // Настройка видимости и запуск с анимацией
                 _mainWindow.Visibility = Visibility.Hidden;
@@ -82,31 +74,31 @@ namespace EZ2Play.Main
         // --------------- Обработчики событий ---------------
 
         // Глобальная обработка получения фокуса элементами
-        // private void OnAnyElementGotFocus(object sender, RoutedEventArgs e)
-        // {
-        //     if (sender is FrameworkElement element)
-        //     {
-        //         // Отключаем визуальное отображение фокуса
-        //         element.FocusVisualStyle = null;
+        private void OnAnyElementGotFocus(object sender, RoutedEventArgs e)
+        {
+            if (sender is FrameworkElement element)
+            {
+                // Отключаем визуальное отображение фокуса
+                element.FocusVisualStyle = null;
 
-        //         // Для Rectangle (_cover)
-        //         if (element is Rectangle rect)
-        //         {
-        //             rect.Focusable = false;
-        //         }
+                // Для Rectangle (_cover)
+                if (element is Rectangle rect)
+                {
+                    rect.Focusable = false;
+                }
 
-        //         // Для TextBlock
-        //         if (element is TextBlock textBlock)
-        //         {
-        //             textBlock.Focusable = false;
-        //         }
+                // Для TextBlock
+                if (element is TextBlock textBlock)
+                {
+                    textBlock.Focusable = false;
+                }
 
-        //         // Для Border
-        //         if (element is Border border)
-        //         {
-        //             border.Focusable = false;
-        //         }
-        //     }
-        // }
+                // Для Border
+                if (element is Border border)
+                {
+                    border.Focusable = false;
+                }
+            }
+        }
     }
 }

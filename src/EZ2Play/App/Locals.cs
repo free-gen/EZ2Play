@@ -44,10 +44,16 @@ namespace EZ2Play.App
                     "Приложение запущено в HotSwap режиме!\nПри выходе дисплей вернется к исходному."
                 },
 
+                ["MessagePlugGamepad"] = new[]
+                {
+                    "An input device has been detected:",
+                    "Обнаружено устройство ввода:"
+                },
+
                 ["MessageTest"] = new[]
                 {
-                    "The app is running in basic mode. \n This is just a test notification; it doesn't affect anything.",
-                    "Приложение запущено в базовом режиме.\nЭто проверочное уведомление, оно ни на что не влияет."
+                    "Debug notification:\nUsed for configuration and testing.",
+                    "Уведомление для отладки:\nИспользуется для настройки и тестов."
                 },
 
                 ["ExitMessage"] = new[]

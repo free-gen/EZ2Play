@@ -274,6 +274,14 @@ namespace EZ2Play.App
         {
             try
             {
+                // 1. Сначала проверяем комментарий в .lnk файле
+                if (shortcutPath.EndsWith(".lnk", StringComparison.OrdinalIgnoreCase))
+                {
+                    string comment = GetCommentFromShortcut(shortcutPath);
+                    if (!string.IsNullOrWhiteSpace(comment))
+                        return comment; // Возвращаем комментарий как SourceType
+                }
+
                 // Для .url файлов
                 if (shortcutPath.EndsWith(".url", StringComparison.OrdinalIgnoreCase))
                 {
@@ -294,7 +302,7 @@ namespace EZ2Play.App
                     }
                 }
 
-                // Для .lnk файлов
+                // Для .lnk файлов (продолжаем проверку если нет комментария)
                 try
                 {
                     Type shellLinkType = Type.GetTypeFromProgID("WScript.Shell");
@@ -305,7 +313,7 @@ namespace EZ2Play.App
 
                         string target = (shortcut.TargetPath ?? " ").Trim();
 
-                        // Если TargetPath пустой — это ярлык из Магазина Windows (Это не точно!)
+                        // Если TargetPath пустой — это ярлык из Магазина Windows
                         if (string.IsNullOrWhiteSpace(target))
                             return "Microsoft Store";
 
@@ -327,6 +335,29 @@ namespace EZ2Play.App
             {
                 return "Portable";
             }
+        }
+
+        // Получение комментария из .lnk ярлыка
+        private static string GetCommentFromShortcut(string shortcutPath)
+        {
+            try
+            {
+                Type shellLinkType = Type.GetTypeFromProgID("WScript.Shell");
+                if (shellLinkType != null)
+                {
+                    dynamic shell = Activator.CreateInstance(shellLinkType);
+                    dynamic shortcut = shell.CreateShortcut(shortcutPath);
+                    
+                    // Читаем комментарий (Description)
+                    string comment = shortcut.Description;
+                    
+                    if (!string.IsNullOrWhiteSpace(comment))
+                        return comment.Trim();
+                }
+            }
+            catch { }
+            
+            return null;
         }
 
         // --------------- Загрузка ярлыков ---------------

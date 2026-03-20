@@ -23,6 +23,7 @@ namespace EZ2Play.App
         // Верхняя панель информации
         public TextBlock TopLeftAppName { get; set; }
         public TextBlock TopRightTime { get; set; }
+        public Notifications Notification { get; private set; }
         public Grid TopInfoPanel { get; set; }
 
         // Элементы пользователя
@@ -68,9 +69,10 @@ namespace EZ2Play.App
 
         // --------------- Конструктор ---------------
 
-        // Инициализирует UIState без параметров.
-        // UI-элементы устанавливаются через свойства после создания.
-        public UIState() { }
+        public UIState() 
+        {
+            Notification = new Notifications(this);
+        }
 
         // --------------- Инициализация ---------------
 
@@ -312,7 +314,7 @@ namespace EZ2Play.App
                 {
                     From = 0,
                     To = 1,
-                    Duration = TimeSpan.FromMilliseconds(1000),
+                    Duration = TimeSpan.FromMilliseconds(500),
                     EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut }
                 };
 
@@ -367,14 +369,36 @@ namespace EZ2Play.App
             delayTimer.Start();
         }
 
-        public void ShowHotSwapNotification(double delaySeconds, double displaySeconds)
-        {
-            ShowNotification(Locals.GetString("MessageHotSwap"), delaySeconds, displaySeconds);
-        }
+        // --------------- Вложенный класс для уведомлений ---------------
 
-        public void ShowTestNotification(double delaySeconds, double displaySeconds)
+        public class Notifications
         {
-            ShowNotification(Locals.GetString("MessageTest"), delaySeconds, displaySeconds);
+            private readonly UIState _uiState;
+
+            public Notifications(UIState uiState)
+            {
+                _uiState = uiState;
+            }
+
+            // Отладочное уведомление
+            public void Debug(double delaySeconds, double displaySeconds)
+            {
+                _uiState.ShowNotification(Locals.GetString("MessageTest"), delaySeconds, displaySeconds);
+            }
+
+            // Уведомление о HotSwap режиме
+            public void HotSwap(double delaySeconds, double displaySeconds)
+            {
+                _uiState.ShowNotification(Locals.GetString("MessageHotSwap"), delaySeconds, displaySeconds);
+            }
+
+            // Уведомление о подключении устройства ввода
+            public void HotPlug(double delaySeconds, double displaySeconds, string deviceName)
+            {
+                string mainMessage = Locals.GetString("MessagePlugGamepad");
+                string fullMessage = $"{mainMessage}\n{deviceName}";
+                _uiState.ShowNotification(fullMessage, delaySeconds, displaySeconds);
+            }
         }
         
         // --------------- Иконки подсказок ---------------

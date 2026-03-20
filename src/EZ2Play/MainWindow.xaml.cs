@@ -230,13 +230,13 @@ namespace EZ2Play
 
                     baseGrid.BeginAnimation(UIElement.OpacityProperty, fadeIn);
 
-                    // Тестовое уведомление
-                    // _uiState.ShowTestNotification(1, 10);
+                    // Отладочное уведомление
+                    _uiState.Notification.Debug(1, 10);
 
                     // HotSwap уведомление
                     if (_wasHotSwapLaunch)
                     {
-                        _uiState.ShowHotSwapNotification(1, 10);
+                        _uiState.Notification.HotSwap(1, 10);
                     }
                 }
             }
@@ -253,10 +253,16 @@ namespace EZ2Play
         // --------------- Обработчики событий ---------------
 
         // Обработчик изменения подключения геймпада
-        private void OnGamepadConnectionChanged(bool connected)
+        private void OnGamepadConnectionChanged(bool connected, string deviceName)
         {
             IsGamepadConnected = connected;
             _uiState.RefreshHintIcons(connected);
+
+            // Если геймпад подключился, показываем уведомление с его именем
+            if (connected)
+            {
+                _uiState.Notification.HotPlug(0, 5, deviceName);
+            }
         }
 
         // Обработчик изменения выбора в ListBox
