@@ -37,14 +37,25 @@ To do this, use the `ui.pack` file in the launcher folder.
 
 #### Package contents
 
-- `logo.png` — splash screen logo
-- `bg.png` or `bg.jpg` — background image
-- `select.mp3` — movement sound
-- `action.mp3` — start sound
-- `abort.mp3` — return sound
-- `ambient.mp3` — background music
+- `logo.png` - splash screen logo
+- `bg.png` or `bg.jpg` - background image
+- `select.mp3` - movement sound
+- `action.mp3` - start sound
+- `abort.mp3` - return sound
+- `ambient.mp3` - background music
 
 > **Note:** If the `ui.pack` file is missing or does not contain any resources, the built-in default value is used.
+
+## Custom Game Source
+
+EZ2Play allows you to set a custom game source name using the "Comment" field in the `.lnk` shortcut.
+
+- In the shortcut properties, find the Comment. field.
+- Enter any value there, and it will be displayed in the game source card in EZ2Play.
+
+This is useful for marking games that are launched using emulators.
+
+> **Note:** If the Comment field is empty, EZ2Play uses the default value (Portable).
 
 ## Command Line Args
 
