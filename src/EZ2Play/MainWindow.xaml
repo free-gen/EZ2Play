@@ -18,7 +18,7 @@
                  MinWidth="1024"
                  MinHeight="576">
 
-    <!-- Window Background -->
+    <!-- Window Background {DynamicResource LayerOnAcrylicFillColorDefaultBrush} -->
     <Border Background="{DynamicResource LayerOnAcrylicFillColorDefaultBrush}" Margin="0">
 
         <Grid x:Name="RootGrid"
@@ -26,6 +26,13 @@
               VerticalAlignment="Stretch"
               SnapsToDevicePixels="True"
               UseLayoutRounding="True">
+
+            <!-- Outer Background -->
+            <Image x:Name="BackgroundImage"
+                Stretch="UniformToFill"
+                Opacity="0"
+                Visibility="Collapsed"
+                RenderOptions.BitmapScalingMode="HighQuality"/>
 
             <!-- ParticlesCanvas -->
             <app:ParticlesCanvas x:Name="particles" />
@@ -68,7 +75,20 @@
                        Panel.ZIndex="11">
                 <Run x:Name="ExitMessageRun"/>
                 <Run x:Name="CompanyNameRun" Text=""/>
-            </TextBlock>  
+            </TextBlock>
+
+            <!-- VersionLabel -->
+            <TextBlock  x:Name="VersionLabel"
+                        Visibility="Hidden"
+                        Grid.Row="3"
+                        VerticalAlignment="Bottom"
+                        HorizontalAlignment="Right"
+                        Foreground="{DynamicResource TextFillColorDisabledBrush}"
+                        Margin="{DynamicResource {x:Static app:UiScaleKeys.VersionLabelMargin}}"
+                        FontSize="{DynamicResource {x:Static app:UiScaleKeys.VersionLabelFontSize}}"
+                        TextAlignment="Right">
+                <Run Text="v"/><Run Text="{x:Static app:AppInfo.Version}"/>
+            </TextBlock>
 
             <!-- MainScreenGrid -->
             <Grid x:Name="MainScreenGrid" Visibility="Collapsed" Panel.ZIndex="5">
@@ -168,7 +188,14 @@
                                     FontWeight="Medium"
                                     TextAlignment="Left"
                                     TextWrapping="Wrap"
-                                    HorizontalAlignment="Stretch"/>
+                                    HorizontalAlignment="Stretch">
+                                <TextBlock.Effect>
+                                    <DropShadowEffect BlurRadius="10" 
+                                                    ShadowDepth="2" 
+                                                    Opacity="0.5" 
+                                                    Color="Black"/>
+                                </TextBlock.Effect>
+                            </TextBlock>
 
                             <!-- LoadingProgress -->
                             <ui:ProgressRing x:Name="LoadingProgress" 
@@ -259,18 +286,6 @@
                                     TextWrapping="Wrap"/>
                     </StackPanel>
                 </Border>
-
-                <!-- VersionLabel -->
-                <TextBlock  x:Name="VersionLabel"
-                            Grid.Row="3"
-                            VerticalAlignment="Bottom"
-                            HorizontalAlignment="Right"
-                            Foreground="{DynamicResource TextFillColorDisabledBrush}"
-                            Margin="{DynamicResource {x:Static app:UiScaleKeys.VersionLabelMargin}}"
-                            FontSize="{DynamicResource {x:Static app:UiScaleKeys.VersionLabelFontSize}}"
-                            TextAlignment="Right">
-                    <Run Text="v"/><Run Text="{x:Static app:AppInfo.Version}"/>
-                </TextBlock>
 
             </Grid>
 

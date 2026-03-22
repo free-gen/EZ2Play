@@ -34,8 +34,8 @@ namespace EZ2Play
 
         // --------------- Публичные свойства ---------------
 
-        // Статус подключения геймпада
         public bool IsGamepadConnected { get; private set; }
+
         // --------------- Native импорты ---------------
 
         [DllImport("user32.dll")]
@@ -92,8 +92,13 @@ namespace EZ2Play
                 ScreenSwapIconKeyboard = FindName("ScreenSwapIconKeyboard") as System.Windows.FrameworkElement,
                 SystemMessage = FindName("SystemMessage") as System.Windows.Controls.Border,
                 SystemMessageText = FindName("SystemMessageText") as System.Windows.Controls.TextBlock,
+                BackgroundImage = FindName("BackgroundImage") as System.Windows.Controls.Image,
                 ItemsListBox = ItemsListBox
             };
+
+            // Управление фоном
+            bool hasImage = _uiState.LoadBackgroundImage();
+            _uiState.SetParticlesCanvas(_particlesCanvas);
 
             // Инициализация Launcher с прямыми ссылками
             _launcher = new Launcher(ItemsListBox, _uiState.SelectedGameTitle, this, _audioManager);
@@ -116,7 +121,7 @@ namespace EZ2Play
             Opacity = 0.0;
 
             // Инициализация UI
-            _uiState.InitializeTopRightInfo();
+            _uiState.InitializeToInfoPanel();
             _uiState.UserImage();
         }
 
@@ -145,15 +150,17 @@ namespace EZ2Play
             if (isActive && !_wasActive)
             {
                 _audioManager.PlayBackgroundMusic(Sound.FadeDurationMs * 3);
-                _particlesCanvas?.SetParticlesVisible(true, true, 0.5); // Отобразить частицы
                 HideCursor();
+                
+                _uiState.ShowBackground(true);
             }
             else if (!isActive && _wasActive)
             {
                 _audioManager.StopBackgroundMusicSafe(Sound.FadeDurationMs);
-                _particlesCanvas?.SetParticlesVisible(false, true, 0.5); // Скрыть частицы
                 ShowLoading(false);
                 ShowCursor();
+                
+                _uiState.ShowBackground(false);
             }
 
             _wasActive = isActive;
@@ -204,6 +211,7 @@ namespace EZ2Play
         private void StartPostSplash()
         {   
             _launcher.LoadShortcuts();
+            
             bool isEmpty = _launcher.Shortcuts.Length == 0;
             _uiState.SetEmptyState(isEmpty);
 
@@ -221,18 +229,16 @@ namespace EZ2Play
                         EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut }
                     };
 
-                    // Отобразить частицы
                     fadeIn.Completed += (s, args) =>
                     {
-                        _particlesCanvas?.SetParticlesVisible(true, true, 0.5);
+                        _uiState.ShowBackground(true);
                     };
 
                     baseGrid.BeginAnimation(UIElement.OpacityProperty, fadeIn);
 
-                    // Отладочное уведомление
+                    // Debug Notification
                     // _uiState.Notification.Debug(1, 10);
 
-                    // HotSwap уведомление
                     if (_wasHotSwapLaunch)
                     {
                         _uiState.Notification.HotSwap(1, 10);
@@ -342,10 +348,10 @@ namespace EZ2Play
         {
             _audioManager.PlayBackSound();
             _audioManager.StopBackgroundMusicSafe(Sound.FadeDurationMs);
-            _particlesCanvas?.SetParticlesVisible(false, true, 0.5); // Скрыть частицы
+            
+            _uiState.ShowBackground(false);
 
             _input.OnExitApplication -= ExitApplication;
-
             _uiState.ShowExitOverlay();
 
             Task.Delay(2000).ContinueWith(_ =>

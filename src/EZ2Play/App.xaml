@@ -78,15 +78,15 @@
                 </Setter>
             </Style>
 
-            <!-- Style CardGlassStyle -->
+            <!-- Style CardGlassStyle {DynamicResource CardBackgroundFillColorDefaultBrush} -->
             <Style x:Key="CardGlassStyle" TargetType="Border">
                 <Setter Property="Background" Value="{DynamicResource CardBackgroundFillColorDefaultBrush}"/>
                 <Setter Property="BorderBrush" Value="{StaticResource CardBorderGradientBrush}"/>
             </Style>
 
-            <!-- Style GameSourceCardStyle -->
+            <!-- Style GameSourceCardStyle #B5424242 {DynamicResource LayerFillColorAltBrush} -->
             <Style x:Key="GameSourceCardStyle" TargetType="Border">
-                <Setter Property="Background" Value="#B5424242"/>
+                <Setter Property="Background" Value="#C8424242"/>
                 <Setter Property="CornerRadius" Value="{DynamicResource {x:Static app:UiScaleKeys.SourceCardCornerRadius}}"/>
                 <Setter Property="Padding" Value="{DynamicResource {x:Static app:UiScaleKeys.SourceCardPadding}}"/>
                 <Setter Property="Margin" Value="{DynamicResource {x:Static app:UiScaleKeys.SourceCardMargin}}"/>
