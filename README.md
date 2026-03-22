@@ -6,7 +6,8 @@
 
 EZ2Play - это минималистичный игровой лаунчер для тех, кто ценит простоту и отсутствие лишних настроек. Его логика строится на использовании стандартных ярлыков Windows, которые уже содержат всё необходимое: путь к игре, параметры запуска и иконку .ico в качестве обложки. Лаунчер позволяет управлять играми с геймпада и быстро переключать изображение между монитором и телевизором, делая игру на большом экране максимально удобной.
 
-<img width="2560" height="1440" alt="attach" src="https://github.com/user-attachments/assets/cdbc933b-11d7-4f1e-a9ad-26d982f8d976" />
+![Screenshot](res/img01.jpg)
+![Screenshot](res/img02.jpg)
 
 ## Возможности
 
@@ -75,8 +76,8 @@ EZ2Play.exe --hotswap --nosplash --nomusic
 
 # Вспомогательное приложение EZParser
 
-<img width="960" height="780" alt="Снимок экрана 2026-03-06 085818" src="https://github.com/user-attachments/assets/6bb61e34-8d59-4008-9139-8f79f169f0e8" />
-<img width="960" height="780" alt="Снимок экрана 2026-03-06 085705" src="https://github.com/user-attachments/assets/775261f3-be1f-48ed-a0fc-689e0cb69c1c" />
+![Screenshot](res/img03.jpg)
+![Screenshot](res/img04.jpg)
 
 Позволяет быстро находить обложки для игр и сохранять их в формате иконок, используя встроенный конвертер `.png → .ico`. Поддерживает **PsStore** и **SteamGridDB**.
 
