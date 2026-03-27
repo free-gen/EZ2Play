@@ -11,6 +11,7 @@ using System.Windows.Threading;
 using System.Linq;
 using Microsoft.Win32;
 using System.Security.Principal;
+using System.Windows.Media.Effects;
 
 namespace EZ2Play.App
 {
@@ -64,7 +65,6 @@ namespace EZ2Play.App
 
         // Фон
         public Image BackgroundImage { get; set; }
-        public Rectangle GradientOverlay { get; set; }
 
         // --------------- Поля класса ---------------
 
@@ -477,21 +477,31 @@ namespace EZ2Play.App
                 var bgFromPack = PackLoader.LoadFromPack("bg.jpg") ?? PackLoader.LoadFromPack("bg.png");
                 if (bgFromPack != null)
                 {
-                    var bitmap = new BitmapImage();
-                    bitmap.BeginInit();
-                    bitmap.StreamSource = bgFromPack;
-                    bitmap.CacheOption = BitmapCacheOption.OnLoad;
-                    bitmap.EndInit();
+                    var decoder = BitmapDecoder.Create(
+                        bgFromPack,
+                        BitmapCreateOptions.PreservePixelFormat,
+                        BitmapCacheOption.OnLoad);
 
-                    BackgroundImage.Source = bitmap;
+                    var frame = decoder.Frames[0];
+
+                    int targetHeight = 1080;
+                    double scale = (double)targetHeight / frame.PixelHeight;
+
+                    var small = new TransformedBitmap(frame, new ScaleTransform(scale, scale));
+                    small.Freeze();
+
+                    BackgroundImage.Source = small;
+
+                    // BackgroundImage.Effect = new BlurEffect
+                    // {
+                    //     Radius = 0,
+                    //     RenderingBias = RenderingBias.Performance
+                    // };
+
                     BackgroundImage.Visibility = Visibility.Collapsed;
                     BackgroundImage.Opacity = 0;
 
                     RenderOptions.SetBitmapScalingMode(BackgroundImage, BitmapScalingMode.HighQuality);
-
-                    CreateGradientOverlay();
-                    GradientOverlay.Visibility = Visibility.Collapsed;
-                    GradientOverlay.Opacity = 0;
 
                     return true;
                 }
@@ -500,74 +510,8 @@ namespace EZ2Play.App
 
             BackgroundImage.Source = null;
             BackgroundImage.Visibility = Visibility.Collapsed;
-            HideGradientOverlay();
 
             return false;
-        }
-
-        // Создание градиентного слоя
-        private void CreateGradientOverlay(
-            double topHeight = 0.2,      // высота сверху
-            double bottomHeight = 0.3,   // высота снизу
-            double strength = 0.7        // сила затемнения
-        )
-        {
-            if (GradientOverlay == null)
-            {
-                GradientOverlay = new Rectangle();
-
-                var gradient = new LinearGradientBrush
-                {
-                    StartPoint = new Point(0.5, 0),
-                    EndPoint = new Point(0.5, 0.99)
-                };
-
-                byte alpha = (byte)(255 * strength);
-
-                var topColor = Color.FromArgb(alpha, 20, 20, 20);
-                var transparent = Color.FromArgb(0, 0, 0, 0);
-
-                // Верх
-                gradient.GradientStops.Add(new GradientStop(topColor, 0));
-                gradient.GradientStops.Add(new GradientStop(transparent, topHeight));
-
-                // Центр (чистый)
-                gradient.GradientStops.Add(new GradientStop(transparent, 1 - bottomHeight));
-
-                // Низ
-                gradient.GradientStops.Add(new GradientStop(topColor, 1));
-
-                GradientOverlay.Fill = gradient;
-                GradientOverlay.IsHitTestVisible = false; // чтобы не блокировал клики
-                GradientOverlay.Visibility = Visibility.Collapsed;
-                GradientOverlay.Opacity = 0;
-
-                if (BackgroundImage.Parent is Panel parentPanel)
-                {
-                    GradientOverlay.SetValue(Panel.ZIndexProperty, 1);
-                    parentPanel.Children.Add(GradientOverlay);
-
-                    GradientOverlay.SetBinding(Rectangle.WidthProperty,
-                        new System.Windows.Data.Binding("ActualWidth") { Source = parentPanel });
-
-                    GradientOverlay.SetBinding(Rectangle.HeightProperty,
-                        new System.Windows.Data.Binding("ActualHeight") { Source = parentPanel });
-                }
-            }
-            else
-            {
-                GradientOverlay.Visibility = Visibility.Collapsed;
-                GradientOverlay.Opacity = 0;
-            }
-        }
-
-        // Скрытие градиентного слоя
-        private void HideGradientOverlay()
-        {
-            if (GradientOverlay != null)
-            {
-                GradientOverlay.Visibility = Visibility.Collapsed;
-            }
         }
 
         // Показать фон с анимацией
@@ -590,31 +534,10 @@ namespace EZ2Play.App
 
                 BackgroundImage.Visibility = Visibility.Visible;
                 BackgroundImage.BeginAnimation(UIElement.OpacityProperty, bgAnim);
-
-                if (GradientOverlay != null)
-                {
-                    GradientOverlay.Visibility = Visibility.Visible;
-
-                    var anim = new DoubleAnimation
-                    {
-                        To = visible ? 1 : 0,
-                        Duration = TimeSpan.FromSeconds(0.5),
-                        EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut }
-                    };
-
-                    anim.Completed += (s, e) =>
-                    {
-                        if (!visible)
-                            GradientOverlay.Visibility = Visibility.Collapsed;
-                    };
-
-                    GradientOverlay.BeginAnimation(UIElement.OpacityProperty, anim);
-                }
             }
             else
             {
                 _particlesCanvas?.SetParticlesVisible(visible, true, 0.5);
-                HideGradientOverlay();
             }
         }
 
@@ -631,12 +554,6 @@ namespace EZ2Play.App
             try
             {
                 _clockTimer?.Stop();
-                
-                // Очищаем градиент
-                if (GradientOverlay != null && GradientOverlay.Parent is Panel parentPanel)
-                {
-                    parentPanel.Children.Remove(GradientOverlay);
-                }
             }
             catch { }
         }

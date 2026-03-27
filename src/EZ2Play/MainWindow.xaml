@@ -67,7 +67,6 @@
             <Border x:Name="ExitOverlay" Visibility="Hidden"/>
             <TextBlock x:Name="ExitMessageText"
                        HorizontalAlignment="Center"
-                       VerticalAlignment="Center"
                        TextAlignment="Center"
                        FontSize="{DynamicResource {x:Static app:UiScaleKeys.ExitMessageFontSize}}"
                        FontWeight="ExtraLight"
@@ -95,7 +94,7 @@
                 <Grid.RowDefinitions>
                     <RowDefinition Height="15*"/>
                     <RowDefinition Height="35*"/>
-                    <RowDefinition Height="40*"/>
+                    <RowDefinition Height="30*"/>
                     <RowDefinition Height="20*"/>
                 </Grid.RowDefinitions>
 
@@ -183,18 +182,11 @@
                         <StackPanel Orientation="Horizontal">
                             <!-- TextBlock -->
                             <TextBlock x:Name="SelectedGameTitle"
-                                    VerticalAlignment="Center"
                                     FontSize="{DynamicResource {x:Static app:UiScaleKeys.SelectedGameTitleFontSize}}"
                                     FontWeight="Medium"
                                     TextAlignment="Left"
                                     TextWrapping="Wrap"
                                     HorizontalAlignment="Stretch">
-                                <TextBlock.Effect>
-                                    <DropShadowEffect BlurRadius="10" 
-                                                    ShadowDepth="2" 
-                                                    Opacity="0.5" 
-                                                    Color="Black"/>
-                                </TextBlock.Effect>
                             </TextBlock>
 
                             <!-- LoadingProgress -->
@@ -208,22 +200,54 @@
                         </StackPanel>
 
                         <!-- GameSourceCard -->
-                        <Border x:Name="GameSourceCard"
-                                Style="{StaticResource GameSourceCardStyle}"
-                                VerticalAlignment="Center"
-                                HorizontalAlignment="Left">
-                            <TextBlock Text="{Binding ElementName=ItemsListBox, Path=SelectedItem.SourceType}"
-                                       Style="{StaticResource GameSourceTextStyle}"
-                                       TextAlignment="Center"
-                                       VerticalAlignment="Center"/>
-                        </Border>
+                        <StackPanel Orientation="Horizontal" 
+                                    Margin="{DynamicResource {x:Static app:UiScaleKeys.SourceCardMargin}}">
+                            <Border x:Name="GameSourceCard"
+                                    Style="{StaticResource BasicCardStyle}"
+                                    CornerRadius="{DynamicResource {x:Static app:UiScaleKeys.SourceCardCornerRadius}}"
+                                    Width="{DynamicResource {x:Static app:UiScaleKeys.SourceCardWidth}}"
+                                    Height="{DynamicResource {x:Static app:UiScaleKeys.SourceCardHeight}}"
+                                    VerticalAlignment="Center"
+                                    HorizontalAlignment="Left">
+
+                                <TextBlock Text="{Binding ElementName=ItemsListBox, Path=SelectedItem.SourceType}"
+                                        Style="{StaticResource BasicCardTextStyle}"
+                                        FontSize="{DynamicResource {x:Static app:UiScaleKeys.SourceCardFontSize}}"
+                                        FontWeight="Bold"
+                                        TextAlignment="Center"/>
+                            </Border>
+
+                            <!-- GameCounterCard -->
+                            <Border x:Name="GameCounterCard"
+                                    Background="{DynamicResource ControlFillColorInputActiveBrush}"
+                                    BorderBrush="{DynamicResource LayerFillColorAltBrush}"
+                                    BorderThickness="{DynamicResource {x:Static app:UiScaleKeys.CounterCardThickness}}"
+                                    Padding="{DynamicResource {x:Static app:UiScaleKeys.CounterCardPadding}}"
+                                    Margin="{DynamicResource {x:Static app:UiScaleKeys.CounterCardMargin}}"
+                                    Height="{DynamicResource {x:Static app:UiScaleKeys.CounterCardHeight}}"
+                                    CornerRadius="{DynamicResource {x:Static app:UiScaleKeys.CounterCardCornerRadius}}"
+                                    VerticalAlignment="Center"
+                                    HorizontalAlignment="Right">
+
+                                <StackPanel Orientation="Horizontal">
+                                    <ui:SymbolIcon  Symbol="Clock24" Filled="False" 
+                                            FontSize="{DynamicResource {x:Static app:UiScaleKeys.CounterCardIconSize}}"
+                                            VerticalAlignment="Center" 
+                                            Margin="{DynamicResource {x:Static app:UiScaleKeys.CounterCardIconMargin}}"/>
+                                    
+                                    <TextBlock x:Name="GameCounterText"
+                                            FontSize="{DynamicResource {x:Static app:UiScaleKeys.CounterCardFontSize}}"
+                                            FontWeight="ExtraBold"
+                                            TextAlignment="Center"/>
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
                     </StackPanel>
                 </Grid>
 
                 <!-- BottomPanel -->
                 <Border x:Name="BottomPanel" Tag="BottomPanel" Grid.Row="3"
-                        Style="{StaticResource CardGlassStyle}"
-                        BorderThickness="{DynamicResource {x:Static app:UiScaleKeys.BottomPanelBorderThickness}}"
+                        Style="{StaticResource BotomCardStyle}"
                         HorizontalAlignment="Center"
                         VerticalAlignment="Center"
                         CornerRadius="{DynamicResource {x:Static app:UiScaleKeys.BottomPanelCornerRadius}}"
@@ -266,8 +290,7 @@
                 <Border x:Name="SystemMessage"
                         Grid.Row="0"
                         Visibility="Collapsed"
-                        Style="{StaticResource CardGlassStyle}"
-                        BorderThickness="{DynamicResource {x:Static app:UiScaleKeys.BottomPanelBorderThickness}}"
+                        Style="{StaticResource BasicCardStyle}"
                         CornerRadius="{DynamicResource {x:Static app:UiScaleKeys.SystemMessageCornerRadius}}"
                         Height="{DynamicResource {x:Static app:UiScaleKeys.SystemMessageHeight}}"
                         Padding="{DynamicResource {x:Static app:UiScaleKeys.SystemMessagePadding}}"
@@ -280,6 +303,7 @@
                                         VerticalAlignment="Center" 
                                         Margin="{DynamicResource {x:Static app:UiScaleKeys.SystemMessageMargin}}"/>
                         <TextBlock  x:Name="SystemMessageText"
+                                    Style="{StaticResource BasicCardTextStyle}"
                                     MaxWidth="{DynamicResource {x:Static app:UiScaleKeys.SystemMessageMaxWidth}}"
                                     FontSize="{DynamicResource {x:Static app:UiScaleKeys.SystemMessageFontSize}}"
                                     VerticalAlignment="Center"

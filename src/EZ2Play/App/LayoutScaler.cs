@@ -59,17 +59,18 @@ namespace EZ2Play.App
             target[UiScaleKeys.UserAvatarSize] = s(50); // аватар
 
             // Уведомление
-            target[UiScaleKeys.SystemMessageHeight] = s(100); // высота уведомления
+            double sysMsgHeight = 100;
+            target[UiScaleKeys.SystemMessageHeight] = s(sysMsgHeight);
+            target[UiScaleKeys.SystemMessageCornerRadius] = new CornerRadius(s(sysMsgHeight / 2)); 
             target[UiScaleKeys.SystemMessageMaxWidth] = s(1280); // макс ширина уведомления
-            target[UiScaleKeys.SystemMessageCornerRadius] = new CornerRadius(s(20)); // макс ширина уведомления
-            target[UiScaleKeys.SystemMessagePadding] = new Thickness(s(25), 0, s(25), 0); // внутр. оступы
+            target[UiScaleKeys.SystemMessagePadding] = new Thickness(s(30), 0, s(50), 0); // внутр. оступы
             target[UiScaleKeys.SystemMessageOuterMargin] = new Thickness(s(0), s(20), s(400), 0); // внешний отступ
-            target[UiScaleKeys.SystemMessageMargin] = new Thickness(s(0), 0, s(25), 0);
-            target[UiScaleKeys.SystemMessageFontSize] = fs(24);
-            target[UiScaleKeys.SystemMessageIconSize] = fs(50);
+            target[UiScaleKeys.SystemMessageMargin] = new Thickness(s(0), 0, s(20), 0);
+            target[UiScaleKeys.SystemMessageFontSize] = fs(22);
+            target[UiScaleKeys.SystemMessageIconSize] = fs(42);
 
             // Витрина обложек
-            target[UiScaleKeys.ItemCornerRadius] = s(20); // радиус обложек
+            target[UiScaleKeys.ItemCornerRadius] = s(23); // радиус обложек
             target[UiScaleKeys.SelectorThickness] = s(4); // толщина селектора
             target[UiScaleKeys.SelectorSpacing] = s(4); // оступ от обложки
 
@@ -79,17 +80,32 @@ namespace EZ2Play.App
             target[UiScaleKeys.LoadingProgressScale] = fs(55); // размер LoadingProgress
 
             // Карточка источника 
-            target[UiScaleKeys.SourceCardHeight] = s(70); // высота
+            double sourceCardHeight = 70;
+            target[UiScaleKeys.SourceCardWidth] = s(320);
+            target[UiScaleKeys.SourceCardHeight] = s(sourceCardHeight);
+            target[UiScaleKeys.SourceCardCornerRadius] = new CornerRadius(s(sourceCardHeight / 2));
             target[UiScaleKeys.SourceCardPadding] = new Thickness(s(100), 0, s(100), 0); // внутр. отступы
-            target[UiScaleKeys.SourceCardCornerRadius] = new CornerRadius(s(35)); // радиусы 
+            target[UiScaleKeys.BaseCardThickness] = new Thickness(s(2)); // радиусы 
             target[UiScaleKeys.SourceCardMargin] = new Thickness(0, s(50), 0, 0); // верхний отступ
             target[UiScaleKeys.SourceCardFontSize] = fs(28); // размер шрифта
 
+            // Счетчик времени
+            double counterCardHeight = 60;
+            target[UiScaleKeys.CounterCardHeight] = s(counterCardHeight);
+            target[UiScaleKeys.CounterCardCornerRadius] = new CornerRadius(s(counterCardHeight / 2.5));
+            target[UiScaleKeys.CounterCardPadding] = new Thickness(s(30), 0, s(30), 0);
+            target[UiScaleKeys.CounterCardThickness] = new Thickness(s(2));
+            target[UiScaleKeys.CounterCardMargin] = new Thickness(s(50), 0, 0, 0);
+            target[UiScaleKeys.CounterCardIconMargin] = new Thickness(0, 0, s(10), 0);
+            target[UiScaleKeys.CounterCardFontSize] = fs(20);
+            target[UiScaleKeys.CounterCardIconSize] = fs(24);
+
             // Нижняя панель (подсказки)
-            target[UiScaleKeys.BottomPanelHeight] = s(90); // высота
+            double bottomPanelHeight = 90;
+            target[UiScaleKeys.BottomPanelHeight] = s(bottomPanelHeight);
+            target[UiScaleKeys.BottomPanelCornerRadius] = new CornerRadius(s(bottomPanelHeight / 2));
             target[UiScaleKeys.BottomPanelPadding] = new Thickness(s(50), 0, s(50), 0); // внутр. отступы
-            target[UiScaleKeys.BottomPanelCornerRadius] = new CornerRadius(s(45)); // радиусы
-            target[UiScaleKeys.BottomPanelBorderThickness] = new Thickness(s(2), s(2), s(2), 2); // обводка
+            target[UiScaleKeys.BottomPanelBorderThickness] = new Thickness(s(2)); // обводка
             target[UiScaleKeys.HintBlockMargin] = new Thickness(s(30), 0, s(30), 0); // отступы между элементами
             target[UiScaleKeys.HintTextFontSize] = fs(24); // размер шрифта
             target[UiScaleKeys.HintTextMargin] = new Thickness(s(15), 0, 0, 0); // отступ от иконок
@@ -141,11 +157,23 @@ namespace EZ2Play.App
         public const string LoadingProgressScale = "LoadingProgressScale";
 
         // ======================== Карточка источника ========================
+        public const string SourceCardWidth = "SourceCardWidth";
         public const string SourceCardHeight = "SourceCardHeight";
         public const string SourceCardPadding = "SourceCardPadding";
         public const string SourceCardCornerRadius = "SourceCardCornerRadius";
+        public const string BaseCardThickness = "BaseCardThickness";
         public const string SourceCardMargin = "SourceCardMargin";
         public const string SourceCardFontSize = "SourceCardFontSize";
+
+        // ======================== Счетчик времени ========================
+        public const string CounterCardHeight = "CounterCardHeight";
+        public const string CounterCardPadding = "CounterCardPadding";
+        public const string CounterCardCornerRadius = "CounterCardCornerRadius";
+        public const string CounterCardThickness = "CounterCardThickness";
+        public const string CounterCardMargin = "CounterCardMargin";
+        public const string CounterCardIconMargin = "CounterCardIconMargin";
+        public const string CounterCardFontSize = "CounterCardFontSize";
+        public const string CounterCardIconSize = "CounterCardIconSize";
 
         // ======================== Нижняя панель (подсказки) ========================
         public const string BottomPanelHeight = "BottomPanelHeight";

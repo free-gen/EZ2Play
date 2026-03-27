@@ -14,10 +14,11 @@
             <!-- BasedOn -->
             <Style TargetType="TextBlock">
                 <Setter Property="FontFamily" Value="Manrope"/>
+                <Setter Property="VerticalAlignment" Value="Center"/>
             </Style>
 
-            <!-- CardBorderGradientBrush -->
-            <LinearGradientBrush x:Key="CardBorderGradientBrush" StartPoint="0,0" EndPoint="1,0">
+            <!-- GradientBrush -->
+            <LinearGradientBrush x:Key="GradientBrush" StartPoint="0,0" EndPoint="1,0">
                 <LinearGradientBrush.RelativeTransform>
                     <RotateTransform Angle="45" CenterX="0.5" CenterY="0.5"/>
                 </LinearGradientBrush.RelativeTransform>
@@ -78,29 +79,25 @@
                 </Setter>
             </Style>
 
-            <!-- Style CardGlassStyle {DynamicResource CardBackgroundFillColorDefaultBrush} -->
-            <Style x:Key="CardGlassStyle" TargetType="Border">
+            <!-- Style BotomCardStyle -->
+            <Style x:Key="BotomCardStyle" TargetType="Border">
                 <Setter Property="Background" Value="{DynamicResource CardBackgroundFillColorDefaultBrush}"/>
-                <Setter Property="BorderBrush" Value="{StaticResource CardBorderGradientBrush}"/>
+                <Setter Property="BorderBrush" Value="{DynamicResource SurfaceStrokeColorDefaultBrush}"/>
+                <!-- <Setter Property="BorderBrush" Value="{StaticResource GradientBrush}"/> -->
+                <Setter Property="BorderThickness" Value="{DynamicResource {x:Static app:UiScaleKeys.BaseCardThickness}}"/>
             </Style>
 
-            <!-- Style GameSourceCardStyle #B5424242 {DynamicResource LayerFillColorAltBrush} -->
-            <Style x:Key="GameSourceCardStyle" TargetType="Border">
-                <Setter Property="Background" Value="#C8424242"/>
-                <Setter Property="CornerRadius" Value="{DynamicResource {x:Static app:UiScaleKeys.SourceCardCornerRadius}}"/>
-                <Setter Property="Padding" Value="{DynamicResource {x:Static app:UiScaleKeys.SourceCardPadding}}"/>
-                <Setter Property="Margin" Value="{DynamicResource {x:Static app:UiScaleKeys.SourceCardMargin}}"/>
-                <Setter Property="Height" Value="{DynamicResource {x:Static app:UiScaleKeys.SourceCardHeight}}"/>
+            <!-- Style BasicCardStyle -->
+            <Style x:Key="BasicCardStyle" TargetType="Border">
+                <Setter Property="Background" Value="{DynamicResource LayerFillColorDefaultBrush}"/>
+                <Setter Property="BorderBrush" Value="{DynamicResource ControlElevationBorderBrush}"/>
+                <Setter Property="BorderThickness" Value="{DynamicResource {x:Static app:UiScaleKeys.BaseCardThickness}}"/>
             </Style>
 
-            <!-- Style GameSourceTextStyle -->
-            <Style x:Key="GameSourceTextStyle" TargetType="TextBlock" BasedOn="{StaticResource {x:Type TextBlock}}">
-                <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}"/>
-                <Setter Property="FontSize" Value="{DynamicResource {x:Static app:UiScaleKeys.SourceCardFontSize}}"/>
-                <Setter Property="FontWeight" Value="Bold"/>
+            <!-- Style BasicCardTextStyle -->
+            <Style x:Key="BasicCardTextStyle" TargetType="TextBlock" BasedOn="{StaticResource {x:Type TextBlock}}">
                 <Setter Property="RenderTransform">
                     <Setter.Value>
-                        <!-- OffsetY -->
                         <TranslateTransform Y="-1"/>
                     </Setter.Value>
                 </Setter>

@@ -52,15 +52,19 @@ namespace EZ2Play.App
 
                 ["MessageTest"] = new[]
                 {
-                    "Debug notification:\nUsed for configuration and testing.",
-                    "Уведомление для отладки:\nИспользуется для настройки и тестов."
+                    "Debug notification:\nUsed for configuration and testing. Does not affect anything.",
+                    "Отладочное уведомление:\nИспользуется для настройки и тестов. Ни на что не влияет."
                 },
 
                 ["ExitMessage"] = new[]
                 {
                     "Assembled by",
                     "Assembled by"
-                }
+                },
+
+                ["HoursShort"] = new[] { "h", "ч" },
+                
+                ["MinutesShort"] = new[] { "m", "м" }
             };
 
         // --------------- Инициализация ---------------
@@ -81,6 +85,13 @@ namespace EZ2Play.App
                 return values[_currentLang];
 
             return $"[{key}]";
+        }
+
+        // Получение форматированного времени для отображения
+        public static string GetFormattedTime(int value, bool isHours)
+        {
+            string unit = isHours ? GetString("HoursShort") : GetString("MinutesShort");
+            return $"{value}{unit}";
         }
 
         // Применение локализации к окну

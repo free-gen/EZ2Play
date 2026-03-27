@@ -16,7 +16,7 @@ namespace EZ2Play.App
         private readonly double[] _alphaWeights = { 0.58, 0.30, 0.1, 0.02 };
 
         private const double BaseMaxSpeed = 16;
-        private const double BaseFadeMarginMax = 200;
+        private const double BaseFadeMarginMax = 50;
 
         // ----------------- СТРУКТУРЫ -----------------
 
@@ -366,8 +366,8 @@ namespace EZ2Play.App
         // Обновляет вершины треугольника на основе текущих размеров canvas
         private void UpdateTriangle(double width, double height)
         {
-            _triP1 = new Point(0, height * 0.7);
-            _triP2 = new Point(width * 0.8, height);
+            _triP1 = new Point(0, height * 0.5);
+            _triP2 = new Point(width * 0.9, height);
             _triP3 = new Point(width, height * 0.3);
         }
 

@@ -462,5 +462,7 @@ namespace EZ2Play.App
         public ImageSource Icon { get; set; }
         public string FullPath { get; set; }
         public string SourceType { get; set; }
+
+        public string DisplayName => Name?.Replace(';', ':');
     }
 }

@@ -27,7 +27,7 @@ namespace EZ2Play.Main
                 // Инициализация локализации
                 Locals.InitFromSystem();
 
-                // Применение тёмной темы
+                // Применение темы
                 ApplicationThemeManager.Apply(ApplicationTheme.Dark);
 
                 // Парсинг аргументов командной строки
@@ -78,22 +78,18 @@ namespace EZ2Play.Main
         {
             if (sender is FrameworkElement element)
             {
-                // Отключаем визуальное отображение фокуса
                 element.FocusVisualStyle = null;
 
-                // Для Rectangle (_cover)
                 if (element is Rectangle rect)
                 {
                     rect.Focusable = false;
                 }
 
-                // Для TextBlock
                 if (element is TextBlock textBlock)
                 {
                     textBlock.Focusable = false;
                 }
 
-                // Для Border
                 if (element is Border border)
                 {
                     border.Focusable = false;

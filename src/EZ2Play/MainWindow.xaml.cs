@@ -28,9 +28,11 @@ namespace EZ2Play
 
         private ParticlesCanvas _particlesCanvas;
 
+        private PlaytimeService _playtime;
+
         private DispatcherTimer _activityTimer;
         private bool _wasActive;
-        private bool _wasHotSwapLaunch;
+        private bool _hotSwapLaunch;
 
         // --------------- Публичные свойства ---------------
 
@@ -60,7 +62,7 @@ namespace EZ2Play
 
             // Инициализация компонентов
             _audioManager = new Sound();
-            _wasHotSwapLaunch = hotSwap;
+            _hotSwapLaunch = hotSwap;
             _display = new Display(this, hotSwap, _audioManager);
             _input = new Input();
             _guideHandler = new GuideExitHandler(_audioManager);
@@ -102,6 +104,9 @@ namespace EZ2Play
 
             // Инициализация Launcher с прямыми ссылками
             _launcher = new Launcher(ItemsListBox, _uiState.SelectedGameTitle, this, _audioManager);
+            
+            // Счетчик времени
+            _playtime = _launcher.Playtime;
 
             // Настройка панели переключения дисплея
             SetupDisplayTogglePanel();
@@ -147,19 +152,23 @@ namespace EZ2Play
         {
             bool isActive = IsReallyForeground();
 
+            // Лаунчер стал активным (вернулись из игры)
             if (isActive && !_wasActive)
             {
                 _audioManager.PlayBackgroundMusic(Sound.FadeDurationMs * 3);
                 HideCursor();
-                
                 _uiState.ShowBackground(true);
+
+                _playtime.Stop();       // <-- ФИКСАЦИЯ ВРЕМЕНИ
+                UpdatePlaytime();       // <-- ОБНОВЛЕНИЕ UI
             }
+
+            // Лаунчер потерял фокус (запустили игру)
             else if (!isActive && _wasActive)
             {
                 _audioManager.StopBackgroundMusicSafe(Sound.FadeDurationMs);
                 ShowLoading(false);
                 ShowCursor();
-                
                 _uiState.ShowBackground(false);
             }
 
@@ -237,9 +246,9 @@ namespace EZ2Play
                     baseGrid.BeginAnimation(UIElement.OpacityProperty, fadeIn);
 
                     // Debug Notification
-                    // _uiState.Notification.Debug(1, 10);
+                    // _uiState.Notification.Debug(1, 15);
 
-                    if (_wasHotSwapLaunch)
+                    if (_hotSwapLaunch)
                     {
                         _uiState.Notification.HotSwap(1, 10);
                     }
@@ -276,6 +285,39 @@ namespace EZ2Play
             var listBox = sender as System.Windows.Controls.ListBox;
             if (listBox == ItemsListBox)
                 _launcher.HandleSelectionChangedAndAnimate(listBox, e);
+            
+            UpdatePlaytime();
+        }
+
+        // Обновление счетчика
+        private void UpdatePlaytime()
+        {
+            // Проверяем, что элементы существуют
+            if (GameCounterText == null || GameCounterCard == null)
+                return;
+
+            if (_launcher.Shortcuts.Length == 0)
+                return;
+
+            var shortcut = _launcher.Shortcuts[_launcher.SelectedIndex];
+            string gameId = shortcut.FullPath;
+            
+            int seconds = _playtime.GetSeconds(gameId);
+            
+            if (seconds == 0)
+            {
+                GameCounterCard.Visibility = Visibility.Collapsed;
+            }
+            else
+            {
+                GameCounterCard.Visibility = Visibility.Visible;
+                
+                // Получаем значение и тип (часы или минуты)
+                var (value, isHours) = _playtime.GetFormattedValue(gameId);
+                
+                // Форматируем через локализацию
+                GameCounterText.Text = Locals.GetFormattedTime(value, isHours);
+            }
         }
 
         // Оптимизирует производительность ListBox

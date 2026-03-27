@@ -21,6 +21,8 @@ namespace EZ2Play.App
         // --------------- Состояние ---------------
 
         private ShortcutInfo[] _shortcuts = Array.Empty<ShortcutInfo>();
+        private PlaytimeService _playtime;
+
         private int _selectedIndex = 0;
         private int _visibleWindowStart = 0;
         private bool _pendingWindowShiftAnimation;
@@ -38,6 +40,9 @@ namespace EZ2Play.App
         // Пропуск анимации увеличения для крайних элементов при скролле
         public bool SkipScaleUpAnimationOnEdgeScroll { get; set; } = false;
 
+        // Счетчик времени игры
+        public PlaytimeService Playtime => _playtime;
+
         // --------------- События ---------------
 
         public event Action<int> SelectionChanged;
@@ -51,6 +56,8 @@ namespace EZ2Play.App
             _selectedGameTitle = selectedGameTitle;
             _mainWindow = mainWindow;
             _audioManager = audioManager;
+
+            _playtime = new PlaytimeService();
         }
 
         // --------------- Публичные методы ---------------
@@ -146,6 +153,9 @@ namespace EZ2Play.App
                 _mainWindow?.ShowLoading(true);
 
                 var shortcutPath = _shortcuts[_selectedIndex].FullPath;
+
+                _playtime.Start(shortcutPath);
+
                 Process.Start(new ProcessStartInfo
                 {
                     FileName = shortcutPath,
@@ -214,13 +224,13 @@ namespace EZ2Play.App
                 _itemsListBox.SelectedIndex = visibleIndex;
         }
 
-        // Обновляет отображение имени выбранной игры
+        // Обновляет отображение имени выбранной игры с поддержкой символа ":"
         private void UpdateSelectedName()
         {
             if (_selectedGameTitle == null) return;
 
             _selectedGameTitle.Text = _selectedIndex >= 0 && _selectedIndex < _shortcuts.Length
-                ? _shortcuts[_selectedIndex].Name
+                ? _shortcuts[_selectedIndex].DisplayName
                 : string.Empty;
         }
 
