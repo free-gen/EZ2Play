@@ -92,7 +92,7 @@ namespace EZ2Play.App
             // Счетчик времени
             double counterCardHeight = 60;
             target[UiScaleKeys.CounterCardHeight] = s(counterCardHeight);
-            target[UiScaleKeys.CounterCardCornerRadius] = new CornerRadius(s(counterCardHeight / 2.5));
+            target[UiScaleKeys.CounterCardCornerRadius] = new CornerRadius(s(counterCardHeight / 2));
             target[UiScaleKeys.CounterCardPadding] = new Thickness(s(30), 0, s(30), 0);
             target[UiScaleKeys.CounterCardThickness] = new Thickness(s(2));
             target[UiScaleKeys.CounterCardMargin] = new Thickness(s(50), 0, 0, 0);

@@ -7,7 +7,7 @@ namespace EZ2Play.App
 {
     public class PlaytimeService
     {
-        private Dictionary<string, int> _data;
+        private Dictionary<string, PlaytimeEntry> _data;
         private readonly string _filePath;
 
         private string _currentGameId;
@@ -30,7 +30,7 @@ namespace EZ2Play.App
         {
             Console.WriteLine("START: " + gameId);
             
-            _currentGameId = gameId.ToLower();
+            _currentGameId = NormalizeGameId(gameId);
             _startTime = DateTime.Now;
             _isRunning = true;
         }
@@ -58,10 +58,10 @@ namespace EZ2Play.App
 
         public int GetSeconds(string gameId)
         {
-            gameId = gameId.ToLower();
+            gameId = NormalizeGameId(gameId);
 
             if (_data.ContainsKey(gameId))
-                return _data[gameId];
+                return _data[gameId].Playtime;
 
             return 0;
         }
@@ -69,9 +69,12 @@ namespace EZ2Play.App
         private void AddPlaytime(string gameId, int seconds)
         {
             if (!_data.ContainsKey(gameId))
-                _data[gameId] = 0;
+            {
+                _data[gameId] = new PlaytimeEntry();
+            }
 
-            _data[gameId] += seconds;
+            _data[gameId].Playtime += seconds;
+            _data[gameId].LastPlayed = DateTime.Now;
 
             Save();
         }
@@ -108,6 +111,11 @@ namespace EZ2Play.App
 
         // ========================= JSON =========================
 
+        private string NormalizeGameId(string path)
+        {
+            return Path.GetFileName(path);
+        }
+
         private void Load()
         {
             try
@@ -115,16 +123,37 @@ namespace EZ2Play.App
                 if (File.Exists(_filePath))
                 {
                     string json = File.ReadAllText(_filePath);
-                    _data = JsonConvert.DeserializeObject<Dictionary<string, int>>(json);
+
+                    // Пытаемся загрузить новый формат
+                    try
+                    {
+                        _data = JsonConvert.DeserializeObject<Dictionary<string, PlaytimeEntry>>(json);
+                    }
+                    catch
+                    {
+                        // Если старый формат (int)
+                        var oldData = JsonConvert.DeserializeObject<Dictionary<string, int>>(json);
+
+                        _data = new Dictionary<string, PlaytimeEntry>();
+
+                        foreach (var kv in oldData)
+                        {
+                            _data[kv.Key] = new PlaytimeEntry
+                            {
+                                Playtime = kv.Value,
+                                LastPlayed = DateTime.MinValue
+                            };
+                        }
+                    }
                 }
                 else
                 {
-                    _data = new Dictionary<string, int>();
+                    _data = new Dictionary<string, PlaytimeEntry>();
                 }
             }
             catch
             {
-                _data = new Dictionary<string, int>();
+                _data = new Dictionary<string, PlaytimeEntry>();
             }
         }
 
@@ -137,10 +166,22 @@ namespace EZ2Play.App
                 if (!Directory.Exists(folder))
                     Directory.CreateDirectory(folder);
 
-                string json = JsonConvert.SerializeObject(_data, Formatting.Indented);
+                var sorted = new SortedDictionary<string, PlaytimeEntry>(_data, StringComparer.OrdinalIgnoreCase);
+                var settings = new JsonSerializerSettings
+                {
+                    DateFormatString = "yyyy-MM-dd HH:mm"
+                };
+
+                string json = JsonConvert.SerializeObject(sorted, Formatting.Indented, settings);
                 File.WriteAllText(_filePath, json);
             }
             catch { }
         }
+    }
+
+    public class PlaytimeEntry
+    {
+        public int Playtime { get; set; }
+        public DateTime LastPlayed { get; set; }
     }
 }
