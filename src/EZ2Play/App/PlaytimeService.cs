@@ -24,6 +24,16 @@ namespace EZ2Play.App
             Load();
         }
 
+        public DateTime GetLastPlayed(string gameId)
+        {
+            gameId = NormalizeGameId(gameId);
+
+            if (_data.ContainsKey(gameId))
+                return _data[gameId].LastPlayed;
+
+            return DateTime.MinValue;
+        }
+
         // ========================= СЕССИЯ =========================
 
         public void Start(string gameId)
@@ -37,18 +47,27 @@ namespace EZ2Play.App
 
         public void Stop()
         {
-            Console.WriteLine("STOP CALLED");
-            Console.WriteLine($"Running: {_isRunning}, GameId: {_currentGameId}");
-
             if (!_isRunning || _currentGameId == null)
                 return;
 
             var session = DateTime.Now - _startTime;
 
+            // Убедимся что запись существует
+            if (!_data.ContainsKey(_currentGameId))
+            {
+                _data[_currentGameId] = new PlaytimeEntry();
+            }
+
+            // ВСЕГДА обновляем дату последнего запуска
+            _data[_currentGameId].LastPlayed = DateTime.Now;
+
+            // Добавляем время только если >= 10 сек
             if (session.TotalSeconds >= 10)
             {
-                AddPlaytime(_currentGameId, (int)session.TotalSeconds);
+                _data[_currentGameId].Playtime += (int)session.TotalSeconds;
             }
+
+            Save();
 
             _isRunning = false;
             _currentGameId = null;

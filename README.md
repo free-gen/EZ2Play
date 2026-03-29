@@ -7,6 +7,7 @@
 EZ2Play is a minimalistic game launcher for those who value simplicity and a lack of unnecessary settings. Its logic is based on using standard Windows shortcuts, which already contain everything you need: the game path, launch options, and an .ico icon as a cover. The launcher allows you to control games with a gamepad and quickly switch between your monitor and TV, making playing on a large screen as convenient as possible.
 
 ![Screenshot](res/ez2play01.jpg)
+![Screenshot](res/ez2play02.jpg)
 
 ## Features
 

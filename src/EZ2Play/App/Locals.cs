@@ -5,25 +5,27 @@ using System.Windows;
 
 namespace EZ2Play.App
 {
-    // --------------- Локализация текста приложения ---------------
-
     public static class Locals
     {
-        // --------------- Настройки ---------------
+        // --------------- НАСТРОЙКА ---------------
 
-        // 0 = English, 1 = Russian
+        // null = System
+        // 0 = English
+        // 1 = Russian
+        private static int? _forceLang = null;
+
+        // --------------- Состояние ---------------
+
         private static int _currentLang = 0;
 
-        // Временный проброс текста для тестов
-        public static string MessageHotSwap => GetString("MessageHotSwap");
-
-        // --------------- Словарь переводов ---------------
+        // --------------- Словарь ---------------
 
         private static readonly Dictionary<string, string[]> Translations =
             new Dictionary<string, string[]>
             {
                 ["Launch"] = new[] { "Launch", "Запуск" },
                 ["Exit"] = new[] { "Exit", "Выход" },
+                ["Sorting"] = new[] { "Sorting", "Сортировка" },
                 ["ScreenSwap"] = new[] { "Screen Swap", "Свап дисплея" },
 
                 ["NoShortcutsMessage1"] = new[]
@@ -56,29 +58,29 @@ namespace EZ2Play.App
                     "Отладочное уведомление:\nИспользуется для настройки и тестов. Ни на что не влияет."
                 },
 
-                ["ExitMessage"] = new[]
-                {
-                    "Assembled by",
-                    "Assembled by"
-                },
-
-                ["HoursShort"] = new[] { "h", "ч" },
+                ["TabDefault"] = new[] { "Library", "Библиотека" },
+                ["TabLastPlayed"] = new[] { "Recent games", "Недавние игры" },
                 
+                ["HoursShort"] = new[] { "h", "ч" },
                 ["MinutesShort"] = new[] { "m", "м" }
             };
 
-        // --------------- Инициализация ---------------
+        // --------------- ИНИЦИАЛИЗАЦИЯ ---------------
 
-        // Автоопределение языка из системы
-        public static void InitFromSystem()
+        public static void Init()
         {
+            if (_forceLang.HasValue)
+            {
+                _currentLang = _forceLang.Value;
+                return;
+            }
+
             var lang = CultureInfo.CurrentUICulture.TwoLetterISOLanguageName;
             _currentLang = lang == "ru" ? 1 : 0;
         }
 
-        // --------------- Публичные методы ---------------
+        // --------------- API ---------------
 
-        // Получение строки по ключу
         public static string GetString(string key)
         {
             if (Translations.TryGetValue(key, out var values) && values.Length > _currentLang)
@@ -87,14 +89,12 @@ namespace EZ2Play.App
             return $"[{key}]";
         }
 
-        // Получение форматированного времени для отображения
         public static string GetFormattedTime(int value, bool isHours)
         {
             string unit = isHours ? GetString("HoursShort") : GetString("MinutesShort");
             return $"{value}{unit}";
         }
 
-        // Применение локализации к окну
         public static void ApplyLocalization(FrameworkElement window)
         {
             try
@@ -120,8 +120,11 @@ namespace EZ2Play.App
                 if (window.FindName("MessageTest") is System.Windows.Documents.Run testMsg)
                     testMsg.Text = GetString("MessageTest");
 
-                if (window.FindName("ExitMessageRun") is System.Windows.Documents.Run exitMsg)
-                    exitMsg.Text = GetString("ExitMessage");
+                if (window.FindName("TabGamelistText") is System.Windows.Controls.TextBlock gamelistTab)
+                    gamelistTab.Text = GetString("TabDefault");
+
+                if (window.FindName("TabLastPlayedText") is System.Windows.Controls.TextBlock lastPlayedTab)
+                    lastPlayedTab.Text = GetString("TabLastPlayed");
             }
             catch { }
         }

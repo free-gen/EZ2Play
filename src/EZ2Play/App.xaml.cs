@@ -25,7 +25,7 @@ namespace EZ2Play.Main
             try
             {
                 // Инициализация локализации
-                Locals.InitFromSystem();
+                Locals.Init();
 
                 // Применение темы
                 ApplicationThemeManager.Apply(ApplicationTheme.Dark);

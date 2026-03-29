@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Diagnostics;
 using System.Windows;
 using System.Windows.Controls;
@@ -94,6 +95,36 @@ namespace EZ2Play.App
         {
             _shortcuts = IconExtractor.LoadShortcuts();
             _selectedIndex = 0;
+            ApplyVisibleWindow();
+        }
+
+        // Соритровка по дате
+        public void SortByLastPlayed()
+        {
+            if (_shortcuts.Length == 0) return;
+
+            _shortcuts = _shortcuts
+                .OrderByDescending(s =>
+                {
+                    int seconds = _playtime.GetSeconds(s.FullPath);
+                    return seconds > 0 ? _playtime.GetLastPlayed(s.FullPath) : DateTime.MinValue;
+                })
+                .ToArray();
+
+            ResetView();
+        }
+
+        // Сортировка по алфавиту
+        public void SortDefault()
+        {
+            _shortcuts = IconExtractor.LoadShortcuts();
+            ResetView();
+        }
+
+        private void ResetView()
+        {
+            _selectedIndex = 0;
+            _visibleWindowStart = 0;
             ApplyVisibleWindow();
         }
 

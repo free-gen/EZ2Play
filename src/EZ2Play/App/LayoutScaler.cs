@@ -48,15 +48,17 @@ namespace EZ2Play.App
             target[UiScaleKeys.ExitMessageFontSize] = fs(42); // размер шрифта
 
             // Номер версии
-            target[UiScaleKeys.VersionLabelMargin] = new Thickness( s(50) ); // отступы
-            target[UiScaleKeys.VersionLabelFontSize] = fs(16); // размер шрифта
+            target[UiScaleKeys.AppInfoLabelMargin] = new Thickness( s(50) ); // отступы
+            target[UiScaleKeys.AppInfoLabelFontSize] = fs(18); // размер шрифта
 
             // ===========================================================================
 
             // Верхняя панель
             target[UiScaleKeys.TopInfoPanelMargin] = new Thickness(s(0), s(25), s(0), 0); // общее смещение вниз
-            target[UiScaleKeys.TopInfoFontSize] = fs(42); // размер шрифта
-            target[UiScaleKeys.UserAvatarSize] = s(50); // аватар
+            target[UiScaleKeys.TopInfoTabsMargin] = new Thickness(s(70), s(0), s(0), 0);
+            target[UiScaleKeys.TopInfoPrimalyFontSize] = fs(42);
+            target[UiScaleKeys.TopInfoSecondaryFontSize] = fs(38);
+            target[UiScaleKeys.UserAvatarSize] = s(64); // аватар
 
             // Уведомление
             double sysMsgHeight = 100;
@@ -64,7 +66,7 @@ namespace EZ2Play.App
             target[UiScaleKeys.SystemMessageCornerRadius] = new CornerRadius(s(sysMsgHeight / 2)); 
             target[UiScaleKeys.SystemMessageMaxWidth] = s(1280); // макс ширина уведомления
             target[UiScaleKeys.SystemMessagePadding] = new Thickness(s(30), 0, s(50), 0); // внутр. оступы
-            target[UiScaleKeys.SystemMessageOuterMargin] = new Thickness(s(0), s(20), s(400), 0); // внешний отступ
+            target[UiScaleKeys.SystemMessageOuterMargin] = new Thickness(s(0), s(0), s(70), 0); // внешний отступ
             target[UiScaleKeys.SystemMessageMargin] = new Thickness(s(0), 0, s(20), 0);
             target[UiScaleKeys.SystemMessageFontSize] = fs(22);
             target[UiScaleKeys.SystemMessageIconSize] = fs(42);
@@ -128,12 +130,14 @@ namespace EZ2Play.App
         public const string ExitMessageFontSize = "ExitMessageFontSize";
 
         // ======================== Номер версии ========================
-        public const string VersionLabelMargin = "VersionLabelMargin";
-        public const string VersionLabelFontSize = "VersionLabelFontSize";
+        public const string AppInfoLabelMargin = "AppInfoLabelMargin";
+        public const string AppInfoLabelFontSize = "AppInfoLabelFontSize";
 
         // ======================== Верхняя панель ========================
         public const string TopInfoPanelMargin = "TopInfoPanelMargin";
-        public const string TopInfoFontSize = "TopInfoFontSize";
+        public const string TopInfoTabsMargin = "TopInfoTabsMargin";
+        public const string TopInfoPrimalyFontSize = "TopInfoPrimalyFontSize";
+        public const string TopInfoSecondaryFontSize = "TopInfoSecondaryFontSize";
         public const string UserAvatarSize = "UserAvatarSize";
 
         // ======================== Системные уведомления ========================

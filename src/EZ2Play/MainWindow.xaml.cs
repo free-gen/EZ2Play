@@ -34,6 +34,9 @@ namespace EZ2Play
         private bool _wasActive;
         private bool _hotSwapLaunch;
 
+        private enum TabType { Gamelist, LastPlayed }
+        private TabType _currentTab = TabType.Gamelist;
+
         // --------------- Публичные свойства ---------------
 
         public bool IsGamepadConnected { get; private set; }
@@ -72,7 +75,8 @@ namespace EZ2Play
             // Инициализация UIState с прямыми ссылками на UI-элементы
             _uiState = new UIState
             {
-                TopLeftAppName = FindName("TopLeftAppNameText") as System.Windows.Controls.TextBlock,
+                TabGamelistText = FindName("TabGamelistText") as System.Windows.Controls.TextBlock,
+                TabLastPlayedText = FindName("TabLastPlayedText") as System.Windows.Controls.TextBlock,
                 TopRightTime = FindName("TopRightTimeText") as System.Windows.Controls.TextBlock,
                 UserAvatar = FindName("UserAvatar") as System.Windows.Controls.Image,
                 BottomPanel = FindName("BottomPanel") as System.Windows.Controls.Border,
@@ -80,12 +84,11 @@ namespace EZ2Play
                 NoShortcutsMessage = FindName("NoShortcutsMessage") as System.Windows.Controls.TextBlock,
                 SelectedGameTitle = FindName("SelectedGameTitle") as System.Windows.Controls.TextBlock,
                 GameSourceCard = FindName("GameSourceCard") as System.Windows.Controls.Border,
-                VersionLabel = FindName("VersionLabel") as System.Windows.Controls.TextBlock,
+                AppInfoLabel = FindName("AppInfoLabel") as System.Windows.Controls.TextBlock,
                 SplashLogo = FindName("SplashLogo") as System.Windows.Controls.Image,
                 SplashOverlay = FindName("SplashOverlay") as System.Windows.Controls.Grid,
                 MainScreenGrid = FindName("MainScreenGrid") as System.Windows.Controls.Grid,
                 ExitMessageText = FindName("ExitMessageText") as System.Windows.Controls.TextBlock,
-                CompanyNameRun = FindName("CompanyNameRun") as System.Windows.Documents.Run,
                 LaunchIconXinput = FindName("LaunchIconXinput") as System.Windows.FrameworkElement,
                 LaunchIconKeyboard = FindName("LaunchIconKeyboard") as System.Windows.FrameworkElement,
                 ExitIconGamepad = FindName("ExitIconGamepad") as System.Windows.FrameworkElement,
@@ -97,6 +100,8 @@ namespace EZ2Play
                 BackgroundImage = FindName("BackgroundImage") as System.Windows.Controls.Image,
                 ItemsListBox = ItemsListBox
             };
+
+            _uiState.CarouselWrapper = FindName("CarouselWrapper") as Grid;
 
             // Управление фоном
             bool hasImage = _uiState.LoadBackgroundImage();
@@ -159,8 +164,13 @@ namespace EZ2Play
                 HideCursor();
                 _uiState.ShowBackground(true);
 
-                _playtime.Stop();       // <-- ФИКСАЦИЯ ВРЕМЕНИ
-                UpdatePlaytime();       // <-- ОБНОВЛЕНИЕ UI
+                _playtime.Stop();
+                UpdatePlaytime();
+
+                if (_currentTab == TabType.LastPlayed)
+                {
+                    _launcher.SortByLastPlayed();
+                }
             }
 
             // Лаунчер потерял фокус (запустили игру)
@@ -196,10 +206,130 @@ namespace EZ2Play
             _input.OnLaunchSelected += _launcher.LaunchSelected;
             _input.OnExitApplication += ExitApplication;
 
+            _input.OnSwitchToGamelist += SwitchToGamelist;
+            _input.OnSwitchToLastPlayed += SwitchToLastPlayed;
+
             if (_display.HasMultipleDisplays)
             {
                 _input.OnToggleDisplay += _display.ToggleDisplay;
             }
+        }
+
+        // Переключение в Gamelist
+        private async void SwitchToGamelist()
+        {
+            if (_currentTab == TabType.Gamelist)
+                return;
+
+            _currentTab = TabType.Gamelist;
+
+            AnimateTab(_uiState.TabGamelistText, true);
+            AnimateTab(_uiState.TabLastPlayedText, false);
+
+            // Анимация тела с сортировкой
+            await AnimateCarouselBodyAsync(() => _launcher.SortDefault(), -1);
+        }
+
+        // Переключение в LastPlayed
+        private async void SwitchToLastPlayed()
+        {
+            if (_currentTab == TabType.LastPlayed)
+                return;
+
+            _currentTab = TabType.LastPlayed;
+
+            AnimateTab(_uiState.TabLastPlayedText, true);
+            AnimateTab(_uiState.TabGamelistText, false);
+
+            // Анимация тела с сортировкой
+            await AnimateCarouselBodyAsync(() => _launcher.SortByLastPlayed(), 1);
+        }
+
+        // Анимация переключения табов
+        private void AnimateTab(System.Windows.Controls.TextBlock text, bool active)
+        {
+            var anim = new DoubleAnimation
+            {
+                To = active ? 1.0 : 0.5,
+                Duration = TimeSpan.FromMilliseconds(150),
+                EasingFunction = new QuadraticEase { EasingMode = EasingMode.EaseOut }
+            };
+
+            text.BeginAnimation(UIElement.OpacityProperty, anim);
+
+            if (active)
+            {
+                text.SetResourceReference(
+                    System.Windows.Controls.TextBlock.FontSizeProperty,
+                    UiScaleKeys.TopInfoPrimalyFontSize);
+            }
+            else
+            {
+                text.SetResourceReference(
+                    System.Windows.Controls.TextBlock.FontSizeProperty,
+                    UiScaleKeys.TopInfoSecondaryFontSize);
+            }
+
+            text.FontWeight = active ? FontWeights.ExtraBold : FontWeights.Medium;
+        }
+
+        // Анимация обновления CarouselWrapper
+        private async Task AnimateCarouselBodyAsync(Action sortAction, int direction)
+        {
+            if (_uiState.CarouselWrapper == null)
+                return;
+
+            var wrapper = _uiState.CarouselWrapper;
+
+            // GPU кеш
+            if (wrapper.CacheMode == null)
+                wrapper.CacheMode = new BitmapCache();
+
+            if (!(wrapper.RenderTransform is TranslateTransform))
+            {
+                wrapper.RenderTransform = new TranslateTransform();
+            }
+
+            var transform = (TranslateTransform)wrapper.RenderTransform;
+
+            // Сброс анимаций
+            wrapper.BeginAnimation(UIElement.OpacityProperty, null);
+            transform.BeginAnimation(TranslateTransform.XProperty, null);
+
+            // Отключаем взаимодействие (чтобы WPF не трогал layout во время анимации)
+            wrapper.IsHitTestVisible = false;
+
+            // Стартовая позиция
+            transform.X = ActualWidth * 0.05 * direction;
+
+            // Скрываем
+            wrapper.Opacity = 0;
+
+            // Даем UI скрыться
+            await Dispatcher.Yield(DispatcherPriority.Render);
+
+            // Сортировка
+            sortAction.Invoke();
+
+            // Даем WPF пересобрать layout
+            await Dispatcher.Yield(DispatcherPriority.Background);
+
+            var duration = TimeSpan.FromMilliseconds(150);
+
+            var fadeIn = new DoubleAnimation(0, 1, duration);
+            var slide = new DoubleAnimation(transform.X, 0, duration)
+            {
+                EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut }
+            };
+
+            // Возвращаем hit test после завершения анимации
+            fadeIn.Completed += (s, e) =>
+            {
+                wrapper.IsHitTestVisible = true;
+            };
+
+            wrapper.BeginAnimation(UIElement.OpacityProperty, fadeIn);
+            transform.BeginAnimation(TranslateTransform.XProperty, slide);
         }
 
         // --------------- Управление UI ---------------

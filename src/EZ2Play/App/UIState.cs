@@ -27,6 +27,10 @@ namespace EZ2Play.App
         public Notifications Notification { get; private set; }
         public Grid TopInfoPanel { get; set; }
 
+        // Разделы
+        public TextBlock TabGamelistText { get; set; }
+        public TextBlock TabLastPlayedText { get; set; }
+
         // Элементы пользователя
         public Image UserAvatar { get; set; }
 
@@ -36,7 +40,7 @@ namespace EZ2Play.App
         // Сообщения и заголовки
         public TextBlock NoShortcutsMessage { get; set; }
         public TextBlock SelectedGameTitle { get; set; }
-        public TextBlock VersionLabel { get; set; }
+        public TextBlock AppInfoLabel { get; set; }
         public TextBlock ExitMessageText { get; set; }
 
         // Карточки и контейнеры
@@ -49,9 +53,6 @@ namespace EZ2Play.App
         public Border SystemMessage { get; set; }
         public TextBlock SystemMessageText { get; set; }
 
-        // Текст компании
-        public System.Windows.Documents.Run CompanyNameRun { get; set; }
-
         // Иконки подсказок
         public FrameworkElement LaunchIconXinput { get; set; }
         public FrameworkElement LaunchIconKeyboard { get; set; }
@@ -62,6 +63,7 @@ namespace EZ2Play.App
 
         // ListBox для выхода
         public ListBox ItemsListBox { get; set; }
+        public Grid CarouselWrapper { get; set; }
 
         // Фон
         public Image BackgroundImage { get; set; }
@@ -97,10 +99,9 @@ namespace EZ2Play.App
 
         // Обновляет панель информации (время и название приложения).
         public void UpdateTopInfoPanel()
-        {
-            if (TopLeftAppName != null && TopRightTime != null)
+        {       
+            if (TopRightTime != null)
             {
-                TopLeftAppName.Text = $"{AppInfo.Name} Launcher";
                 TopRightTime.Text = DateTime.Now.ToString("HH:mm");
             }
         }
@@ -185,13 +186,9 @@ namespace EZ2Play.App
             if (NoShortcutsMessage != null)
                 NoShortcutsMessage.Visibility = Visibility.Collapsed;
 
-            // Устанавливаем имя компании
-            if (CompanyNameRun != null)
-                CompanyNameRun.Text = AppInfo.Company;
-
             // Номер версии
-            if (VersionLabel != null)
-                VersionLabel.Visibility = Visibility.Visible;
+            if (AppInfoLabel != null)
+                AppInfoLabel.Visibility = Visibility.Visible;
 
             // Показываем сообщение о выходе с анимацией
             if (ExitMessageText != null)
@@ -491,12 +488,6 @@ namespace EZ2Play.App
                     small.Freeze();
 
                     BackgroundImage.Source = small;
-
-                    // BackgroundImage.Effect = new BlurEffect
-                    // {
-                    //     Radius = 0,
-                    //     RenderingBias = RenderingBias.Performance
-                    // };
 
                     BackgroundImage.Visibility = Visibility.Collapsed;
                     BackgroundImage.Opacity = 0;

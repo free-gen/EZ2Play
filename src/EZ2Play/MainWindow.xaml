@@ -72,20 +72,21 @@
                        FontWeight="ExtraLight"
                        Visibility="Hidden"
                        Panel.ZIndex="11">
-                <Run x:Name="ExitMessageRun"/>
-                <Run x:Name="CompanyNameRun" Text=""/>
+                <Run Text="Assembled by"/>
+                <Run Text="{x:Static app:AppInfo.Company}"/>
             </TextBlock>
 
-            <!-- VersionLabel -->
-            <TextBlock  x:Name="VersionLabel"
+            <!-- AppInfoLabel -->
+            <TextBlock  x:Name="AppInfoLabel"
                         Visibility="Hidden"
                         Grid.Row="3"
                         VerticalAlignment="Bottom"
                         HorizontalAlignment="Right"
                         Foreground="{DynamicResource TextFillColorDisabledBrush}"
-                        Margin="{DynamicResource {x:Static app:UiScaleKeys.VersionLabelMargin}}"
-                        FontSize="{DynamicResource {x:Static app:UiScaleKeys.VersionLabelFontSize}}"
+                        Margin="{DynamicResource {x:Static app:UiScaleKeys.AppInfoLabelMargin}}"
+                        FontSize="{DynamicResource {x:Static app:UiScaleKeys.AppInfoLabelFontSize}}"
                         TextAlignment="Right">
+                <Run Text="{x:Static app:AppInfo.Name}"/>
                 <Run Text="v"/><Run Text="{x:Static app:AppInfo.Version}"/>
             </TextBlock>
 
@@ -107,71 +108,93 @@
 
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="05*"/> <!-- 0 Offset -->
-                        <ColumnDefinition Width="04*"/> <!-- 1 AppLogo -->
-                        <ColumnDefinition Width="16*"/> <!-- 2 AppName -->
-                        <ColumnDefinition Width="50*"/> <!-- 3 Blank -->
-                        <ColumnDefinition Width="16*"/> <!-- 4 Time -->
-                        <ColumnDefinition Width="04*"/> <!-- 5 UserAvatar -->
-                        <ColumnDefinition Width="05*"/> <!-- 6 Offset -->
+                        <ColumnDefinition Width="30*"/> <!-- 1 Tabs (Gamelist/LastPlayed) -->
+                        <ColumnDefinition Width="50*"/> <!-- 2 SystemMessage -->
+                        <ColumnDefinition Width="05*"/> <!-- 3 UserAvatar -->
+                        <ColumnDefinition Width="05*"/> <!-- 4 Time -->
+                        <ColumnDefinition Width="05*"/> <!-- 5 Offset -->
                     </Grid.ColumnDefinitions>
 
-                    <!-- AppLogo -->
-                    <Image  Grid.Column="1"
-                            Source="/Assets/logo.png"
+                    <!-- Tabs -->
+                    <StackPanel Orientation="Horizontal" Grid.Column="1">
+                        <TextBlock x:Name="TabGamelistText"
+                                Opacity="1"
+                                FontSize="{DynamicResource {x:Static app:UiScaleKeys.TopInfoPrimalyFontSize}}"
+                                FontWeight="ExtraBold"/>
+                        <TextBlock x:Name="TabLastPlayedText"
+                                Margin="{DynamicResource {x:Static app:UiScaleKeys.TopInfoTabsMargin}}"
+                                Opacity="0.5"
+                                FontSize="{DynamicResource {x:Static app:UiScaleKeys.TopInfoSecondaryFontSize}}"
+                                />
+                    </StackPanel>
+
+                    <!-- SystemMessage -->
+                    <Border x:Name="SystemMessage"
+                            Grid.Column="2"
+                            Visibility="Collapsed"
+                            Style="{StaticResource BasicCardStyle}"
+                            CornerRadius="{DynamicResource {x:Static app:UiScaleKeys.SystemMessageCornerRadius}}"
+                            Height="{DynamicResource {x:Static app:UiScaleKeys.SystemMessageHeight}}"
+                            Padding="{DynamicResource {x:Static app:UiScaleKeys.SystemMessagePadding}}"
+                            Margin="{DynamicResource {x:Static app:UiScaleKeys.SystemMessageOuterMargin}}"
+                            HorizontalAlignment="Right" 
+                            VerticalAlignment="Center">
+                        <StackPanel Orientation="Horizontal">
+                            <ui:SymbolIcon  Symbol="Info12" Filled="True" 
+                                            FontSize="{DynamicResource {x:Static app:UiScaleKeys.SystemMessageIconSize}}"
+                                            VerticalAlignment="Center" 
+                                            Margin="{DynamicResource {x:Static app:UiScaleKeys.SystemMessageMargin}}"/>
+                            <TextBlock  x:Name="SystemMessageText"
+                                        Style="{StaticResource BasicCardTextStyle}"
+                                        MaxWidth="{DynamicResource {x:Static app:UiScaleKeys.SystemMessageMaxWidth}}"
+                                        FontSize="{DynamicResource {x:Static app:UiScaleKeys.SystemMessageFontSize}}"
+                                        VerticalAlignment="Center"
+                                        TextWrapping="Wrap"/>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- UserAvatar -->
+                    <Image  x:Name="UserAvatar" Grid.Column="3"
                             Width="{DynamicResource {x:Static app:UiScaleKeys.UserAvatarSize}}"
                             Height="{DynamicResource {x:Static app:UiScaleKeys.UserAvatarSize}}"
                             Stretch="UniformToFill"
-                            HorizontalAlignment="Left"
+                            HorizontalAlignment="Center"
                             VerticalAlignment="Center"/>
-
-                    <!-- AppName -->
-                    <TextBlock  x:Name="TopLeftAppNameText" Grid.Column="2"
-                                Text="{x:Static app:AppInfo.Name}"
-                                HorizontalAlignment="Left"
-                                VerticalAlignment="Center"
-                                FontSize="{DynamicResource {x:Static app:UiScaleKeys.TopInfoFontSize}}"
-                                FontWeight="ExtraBold"/>
 
                     <!-- Time -->
                     <TextBlock x:Name="TopRightTimeText" Grid.Column="4"
                                HorizontalAlignment="Right"
                                VerticalAlignment="Center"
-                               FontSize="{DynamicResource {x:Static app:UiScaleKeys.TopInfoFontSize}}"
+                               FontSize="{DynamicResource {x:Static app:UiScaleKeys.TopInfoPrimalyFontSize}}"
                                FontWeight="Light"/>
-
-                    <!-- UserAvatar -->
-                    <Image  x:Name="UserAvatar" Grid.Column="5"
-                            Width="{DynamicResource {x:Static app:UiScaleKeys.UserAvatarSize}}"
-                            Height="{DynamicResource {x:Static app:UiScaleKeys.UserAvatarSize}}"
-                            Stretch="UniformToFill"
-                            HorizontalAlignment="Right"
-                            VerticalAlignment="Center"/>
 
                 </Grid>
 
                 <!-- ItemsListBox -->
-                <ListBox x:Name="ItemsListBox" Grid.Row="1"
-                         HorizontalAlignment="Stretch"
-                         VerticalAlignment="Stretch"
-                         BorderThickness="0"
-                         Padding="0"
-                         ClipToBounds="False"
-                         ScrollViewer.HorizontalScrollBarVisibility="Disabled"
-                         ScrollViewer.VerticalScrollBarVisibility="Disabled"
-                         SelectionChanged="ItemsListBox_SelectionChanged"
-                         ItemContainerStyle="{StaticResource ListBoxItemStyle}"
-                         VirtualizingPanel.IsVirtualizing="False">
-                    <ListBox.ItemsPanel>
-                        <ItemsPanelTemplate>
-                            <app:CarouselPanel/>
-                        </ItemsPanelTemplate>
-                    </ListBox.ItemsPanel>
-                    <ListBox.ItemTemplate>
-                        <DataTemplate>
-                            <app:CarouselItem IsSelected="{Binding IsSelected, RelativeSource={RelativeSource AncestorType=ListBoxItem}}"/>
-                        </DataTemplate>
-                    </ListBox.ItemTemplate>
-                </ListBox>
+                <Grid x:Name="CarouselWrapper" Grid.Row="1" ClipToBounds="True">
+                    <ListBox x:Name="ItemsListBox" 
+                            HorizontalAlignment="Stretch"
+                            VerticalAlignment="Stretch"
+                            BorderThickness="0"
+                            Padding="0"
+                            ClipToBounds="False"
+                            ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                            ScrollViewer.VerticalScrollBarVisibility="Disabled"
+                            SelectionChanged="ItemsListBox_SelectionChanged"
+                            ItemContainerStyle="{StaticResource ListBoxItemStyle}"
+                            VirtualizingPanel.IsVirtualizing="False">
+                        <ListBox.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <app:CarouselPanel/>
+                            </ItemsPanelTemplate>
+                        </ListBox.ItemsPanel>
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <app:CarouselItem IsSelected="{Binding IsSelected, RelativeSource={RelativeSource AncestorType=ListBoxItem}}"/>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                </Grid>
 
                 <!-- SelectedGameTitle -->
                 <Grid Grid.Row="2">
@@ -284,31 +307,6 @@
                             </StackPanel>
                         </StackPanel>
 
-                </Border>
-
-                <!-- SystemMessage -->
-                <Border x:Name="SystemMessage"
-                        Grid.Row="0"
-                        Visibility="Collapsed"
-                        Style="{StaticResource BasicCardStyle}"
-                        CornerRadius="{DynamicResource {x:Static app:UiScaleKeys.SystemMessageCornerRadius}}"
-                        Height="{DynamicResource {x:Static app:UiScaleKeys.SystemMessageHeight}}"
-                        Padding="{DynamicResource {x:Static app:UiScaleKeys.SystemMessagePadding}}"
-                        Margin="{DynamicResource {x:Static app:UiScaleKeys.SystemMessageOuterMargin}}"
-                        HorizontalAlignment="Right" 
-                        VerticalAlignment="Center">
-                    <StackPanel Orientation="Horizontal">
-                        <ui:SymbolIcon  Symbol="Info12" Filled="True" 
-                                        FontSize="{DynamicResource {x:Static app:UiScaleKeys.SystemMessageIconSize}}"
-                                        VerticalAlignment="Center" 
-                                        Margin="{DynamicResource {x:Static app:UiScaleKeys.SystemMessageMargin}}"/>
-                        <TextBlock  x:Name="SystemMessageText"
-                                    Style="{StaticResource BasicCardTextStyle}"
-                                    MaxWidth="{DynamicResource {x:Static app:UiScaleKeys.SystemMessageMaxWidth}}"
-                                    FontSize="{DynamicResource {x:Static app:UiScaleKeys.SystemMessageFontSize}}"
-                                    VerticalAlignment="Center"
-                                    TextWrapping="Wrap"/>
-                    </StackPanel>
                 </Border>
 
             </Grid>

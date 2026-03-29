@@ -57,6 +57,9 @@ namespace EZ2Play.App
         public event Action OnToggleDisplay;
         public event Action<bool, string> OnGamepadConnectionChanged;
 
+        public event Action OnSwitchToGamelist;
+        public event Action OnSwitchToLastPlayed;
+
         // --------------- Публичные свойства ---------------
 
         public bool IsGamepadConnected { get; private set; }
@@ -289,6 +292,14 @@ namespace EZ2Play.App
                     case System.Windows.Input.Key.X:
                         OnToggleDisplay?.Invoke();
                         break;
+
+                    case System.Windows.Input.Key.Q:
+                        OnSwitchToGamelist?.Invoke();
+                        break;
+
+                    case System.Windows.Input.Key.E:
+                        OnSwitchToLastPlayed?.Invoke();
+                        break;
                 }
             }
             catch { }
@@ -337,13 +348,17 @@ namespace EZ2Play.App
                 bool backPressed = state.Buttons[1];
                 bool xButtonPressed = state.Buttons[2];
 
+                // Кнопки L R
+                bool lButtonPressed = state.Buttons[4];
+                bool rButtonPressed = state.Buttons[5];
+
                 long now = _stopwatch.ElapsedMilliseconds;
 
                 // Обработка навигации с задержками
                 HandleGamepadNavigation(leftPressed, rightPressed, now);
 
-                // Обработка кнопок с cooldown
-                HandleGamepadButtons(selectPressed, backPressed, xButtonPressed, now);
+                // Обработка кнопок с cooldown (передаем L/R кнопки)
+                HandleGamepadButtons(selectPressed, backPressed, xButtonPressed, lButtonPressed, rButtonPressed, now);
             }
             catch { }
         }
@@ -384,7 +399,7 @@ namespace EZ2Play.App
         }
 
         // Обработка кнопок геймпада (A, Back, X)
-        private void HandleGamepadButtons(bool selectPressed, bool backPressed, bool xButtonPressed, long now)
+        private void HandleGamepadButtons(bool selectPressed, bool backPressed, bool xButtonPressed, bool lButtonPressed, bool rButtonPressed, long now)
         {
             if (selectPressed && now - _lastGamepadButtonInput >= GamepadButtonCooldown)
             {
@@ -400,6 +415,16 @@ namespace EZ2Play.App
             {
                 _lastGamepadButtonInput = now;
                 OnToggleDisplay?.Invoke();
+            }
+            else if (lButtonPressed && now - _lastGamepadButtonInput >= GamepadButtonCooldown)
+            {
+                _lastGamepadButtonInput = now;
+                OnSwitchToGamelist?.Invoke();
+            }
+            else if (rButtonPressed && now - _lastGamepadButtonInput >= GamepadButtonCooldown)
+            {
+                _lastGamepadButtonInput = now;
+                OnSwitchToLastPlayed?.Invoke();
             }
         }
 
