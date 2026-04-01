@@ -60,6 +60,8 @@ namespace EZ2Play.App
         public FrameworkElement ExitIconKeyboard { get; set; }
         public FrameworkElement ScreenSwapIconGamepad { get; set; }
         public FrameworkElement ScreenSwapIconKeyboard { get; set; }
+        public FrameworkElement SortingIconGamepad { get; set; }
+        public FrameworkElement SortingIconKeyboard { get; set; }
 
         // ListBox для выхода
         public ListBox ItemsListBox { get; set; }
@@ -393,7 +395,7 @@ namespace EZ2Play.App
                 _uiState.ShowNotification(Locals.GetString("MessageTest"), delaySeconds, displaySeconds);
             }
 
-            // Уведомление о HotSwap режиме
+            // Уведомление HotSwap
             public void HotSwap(double delaySeconds, double displaySeconds)
             {
                 _uiState.ShowNotification(Locals.GetString("MessageHotSwap"), delaySeconds, displaySeconds);
@@ -422,6 +424,8 @@ namespace EZ2Play.App
             if (ExitIconKeyboard != null) ExitIconKeyboard.Visibility = visKeyboard;
             if (ScreenSwapIconGamepad != null) ScreenSwapIconGamepad.Visibility = visGamepad;
             if (ScreenSwapIconKeyboard != null) ScreenSwapIconKeyboard.Visibility = visKeyboard;
+            if (SortingIconGamepad != null) SortingIconGamepad.Visibility = visGamepad;
+            if (SortingIconKeyboard != null) SortingIconKeyboard.Visibility = visKeyboard;
         }
 
         // --------------- Загрузка ресурсов ---------------

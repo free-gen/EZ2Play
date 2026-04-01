@@ -5,6 +5,7 @@ namespace EZ2Play.App
 {
     public static class LayoutScaler
     {
+        public const double ReferenceWidth = 2560.0;
         public const double ReferenceHeight = 1440.0;
         public static double MinScale { get; set; } = 0.5;
         public static double MaxScale { get; set; } = 2.0;
@@ -66,7 +67,7 @@ namespace EZ2Play.App
             target[UiScaleKeys.SystemMessageCornerRadius] = new CornerRadius(s(sysMsgHeight / 2)); 
             target[UiScaleKeys.SystemMessageMaxWidth] = s(1280); // макс ширина уведомления
             target[UiScaleKeys.SystemMessagePadding] = new Thickness(s(30), 0, s(50), 0); // внутр. оступы
-            target[UiScaleKeys.SystemMessageOuterMargin] = new Thickness(s(0), s(0), s(70), 0); // внешний отступ
+            target[UiScaleKeys.SystemMessageOuterMargin] = new Thickness(s(0), s(0), s(50), 0); // внешний отступ
             target[UiScaleKeys.SystemMessageMargin] = new Thickness(s(0), 0, s(20), 0);
             target[UiScaleKeys.SystemMessageFontSize] = fs(22);
             target[UiScaleKeys.SystemMessageIconSize] = fs(42);
@@ -88,7 +89,7 @@ namespace EZ2Play.App
             target[UiScaleKeys.SourceCardCornerRadius] = new CornerRadius(s(sourceCardHeight / 2));
             target[UiScaleKeys.SourceCardPadding] = new Thickness(s(100), 0, s(100), 0); // внутр. отступы
             target[UiScaleKeys.BaseCardThickness] = new Thickness(s(2)); // радиусы 
-            target[UiScaleKeys.SourceCardMargin] = new Thickness(0, s(50), 0, 0); // верхний отступ
+            target[UiScaleKeys.SourceCardMargin] = new Thickness(0, s(70), 0, 0); // верхний отступ
             target[UiScaleKeys.SourceCardFontSize] = fs(28); // размер шрифта
 
             // Счетчик времени
@@ -103,16 +104,17 @@ namespace EZ2Play.App
             target[UiScaleKeys.CounterCardIconSize] = fs(24);
 
             // Нижняя панель (подсказки)
-            double bottomPanelHeight = 90;
+            double bottomPanelHeight = 80;
             target[UiScaleKeys.BottomPanelHeight] = s(bottomPanelHeight);
             target[UiScaleKeys.BottomPanelCornerRadius] = new CornerRadius(s(bottomPanelHeight / 2));
-            target[UiScaleKeys.BottomPanelPadding] = new Thickness(s(50), 0, s(50), 0); // внутр. отступы
+            target[UiScaleKeys.BottomPanelMargin] = new Thickness(0, 0, 0, s(70));
+            target[UiScaleKeys.BottomPanelPadding] = new Thickness(s(60), 0, s(60), 0); // внутр. отступы
             target[UiScaleKeys.BottomPanelBorderThickness] = new Thickness(s(2)); // обводка
-            target[UiScaleKeys.HintBlockMargin] = new Thickness(s(30), 0, s(30), 0); // отступы между элементами
-            target[UiScaleKeys.HintTextFontSize] = fs(24); // размер шрифта
+            target[UiScaleKeys.HintBlockMargin] = new Thickness(s(20), 0, s(20), 0); // отступы между элементами
+            target[UiScaleKeys.HintTextFontSize] = fs(22); // размер шрифта
             target[UiScaleKeys.HintTextMargin] = new Thickness(s(15), 0, 0, 0); // отступ от иконок
-            target[UiScaleKeys.HintIconHeightGamepad] = s(30); // высота иконки Pad
-            target[UiScaleKeys.HintIconHeightKeyboard] = s(32); // высота иконки Key
+            target[UiScaleKeys.HintIconHeightGamepad] = s(26); // высота иконки Pad
+            target[UiScaleKeys.HintIconHeightKeyboard] = s(26); // высота иконки Key
         }
     }
 
@@ -181,6 +183,7 @@ namespace EZ2Play.App
 
         // ======================== Нижняя панель (подсказки) ========================
         public const string BottomPanelHeight = "BottomPanelHeight";
+        public const string BottomPanelMargin = "BottomPanelMargin";
         public const string BottomPanelPadding = "BottomPanelPadding";
         public const string BottomPanelCornerRadius = "BottomPanelCornerRadius";
         public const string BottomPanelBorderThickness = "BottomPanelBorderThickness";

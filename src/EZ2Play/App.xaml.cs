@@ -7,37 +7,38 @@ using EZ2Play.App;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Shapes;
+using System.Diagnostics;
+using System.Linq;
 
 namespace EZ2Play.Main
 {
-    // --------------- Главное приложение (Entry Point) ---------------
-
     public partial class App : Application
     {
-        // --------------- Поля класса ---------------
-
         private MainWindow _mainWindow;
-
-        // --------------- Запуск приложения ---------------
 
         protected override void OnStartup(StartupEventArgs e)
         {
+            // --------------- ЗАПРЕТ ВТОРОГО ЭКЗЕМПЛЯРА ---------------
+            
+            string processName = Process.GetCurrentProcess().ProcessName;
+            int count = Process.GetProcessesByName(processName).Length;
+            
+            if (count > 1)
+                Environment.Exit(0);
+            
+            // --------------- ОСНОВНОЙ ЗАПУСК ---------------
+            
             try
             {
-                // Инициализация локализации
                 Locals.Init();
-
-                // Применение темы
                 ApplicationThemeManager.Apply(ApplicationTheme.Dark);
 
-                // Парсинг аргументов командной строки
                 bool noSplash = false;
                 bool hotSwap = false;
                 bool noMusic = false;
 
-                for (int i = 0; i < e.Args.Length; i++)
+                foreach (string arg in e.Args)
                 {
-                    string arg = e.Args[i];
                     if (string.Equals(arg, "--nosplash", StringComparison.OrdinalIgnoreCase))
                         noSplash = true;
                     else if (string.Equals(arg, "--hotswap", StringComparison.OrdinalIgnoreCase))
@@ -46,19 +47,15 @@ namespace EZ2Play.Main
                         noMusic = true;
                 }
 
-                // Отключение музыки если указано
                 if (noMusic)
                     Sound.DisableMusic = true;
 
-                // Запуск с hotswap
                 _mainWindow = new MainWindow(hotSwap);
 
-                // Глобальный обработчик для отключения фокуса
                 EventManager.RegisterClassHandler(typeof(UIElement),
                     UIElement.GotFocusEvent,
                     new RoutedEventHandler(OnAnyElementGotFocus));
 
-                // Настройка видимости и запуск с анимацией
                 _mainWindow.Visibility = Visibility.Hidden;
                 _mainWindow.ShowInTaskbar = false;
                 _mainWindow.ShowWithAnimation(noSplash);
@@ -71,9 +68,6 @@ namespace EZ2Play.Main
             }
         }
 
-        // --------------- Обработчики событий ---------------
-
-        // Глобальная обработка получения фокуса элементами
         private void OnAnyElementGotFocus(object sender, RoutedEventArgs e)
         {
             if (sender is FrameworkElement element)
@@ -81,19 +75,11 @@ namespace EZ2Play.Main
                 element.FocusVisualStyle = null;
 
                 if (element is Rectangle rect)
-                {
                     rect.Focusable = false;
-                }
-
-                if (element is TextBlock textBlock)
-                {
+                else if (element is TextBlock textBlock)
                     textBlock.Focusable = false;
-                }
-
-                if (element is Border border)
-                {
+                else if (element is Border border)
                     border.Focusable = false;
-                }
             }
         }
     }

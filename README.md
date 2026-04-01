@@ -13,7 +13,7 @@ EZ2Play is a minimalistic game launcher for those who value simplicity and a lac
 
 - **Home/Guide button handler** - return to the launcher from any game by pressing one button
 - **Quick screen switching** - the option is available if you have two or more screens
-- **Multilingual support** - support for Russian and English languages
+- **Multilingual support** - 🇬🇧 🇷🇺 🇩🇪 🇫🇷 🇪🇸 🇵🇹 🇮🇹 🇵🇱 🇨🇳 🇰🇷 🇯🇵
 - **No settings required** - just place the shortcuts in the `shortcuts` folder
 - **WPF-UI** - full support for Windows 11 styles
 
@@ -97,7 +97,7 @@ Allows you to quickly find game covers and save them in icon format using the bu
 ## System requirements
 
 - Windows 10 / 11
-- .NET Framework 4.8
+- .NET Framework 472
 
 ## Build from source code
 

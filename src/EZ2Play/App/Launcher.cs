@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using System.Linq;
 using System.Diagnostics;
 using System.Windows;
@@ -22,7 +23,7 @@ namespace EZ2Play.App
         // --------------- Состояние ---------------
 
         private ShortcutInfo[] _shortcuts = Array.Empty<ShortcutInfo>();
-        private PlaytimeService _playtime;
+        private GameMetadata _metadata;
 
         private int _selectedIndex = 0;
         private int _visibleWindowStart = 0;
@@ -42,7 +43,7 @@ namespace EZ2Play.App
         public bool SkipScaleUpAnimationOnEdgeScroll { get; set; } = false;
 
         // Счетчик времени игры
-        public PlaytimeService Playtime => _playtime;
+        public GameMetadata Playtime => _metadata;
 
         // --------------- События ---------------
 
@@ -58,7 +59,7 @@ namespace EZ2Play.App
             _mainWindow = mainWindow;
             _audioManager = audioManager;
 
-            _playtime = new PlaytimeService();
+            _metadata = new GameMetadata();
         }
 
         // --------------- Публичные методы ---------------
@@ -94,6 +95,17 @@ namespace EZ2Play.App
         public void LoadShortcuts()
         {
             _shortcuts = IconExtractor.LoadShortcuts();
+
+            // --------------- ЧИСТКА МЕТАДАННЫХ ---------------
+            string shortcutsPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "shortcuts");
+            if (Directory.Exists(shortcutsPath))
+            {
+                var existingShortcuts = Directory.GetFiles(shortcutsPath, "*.lnk")
+                    .Concat(Directory.GetFiles(shortcutsPath, "*.url"))
+                    .Select(Path.GetFileName)
+                    .ToList();
+            }
+
             _selectedIndex = 0;
             ApplyVisibleWindow();
         }
@@ -106,8 +118,8 @@ namespace EZ2Play.App
             _shortcuts = _shortcuts
                 .OrderByDescending(s =>
                 {
-                    int seconds = _playtime.GetSeconds(s.FullPath);
-                    return seconds > 0 ? _playtime.GetLastPlayed(s.FullPath) : DateTime.MinValue;
+                    int seconds = _metadata.GetSeconds(s.FullPath);
+                    return seconds > 0 ? _metadata.GetLastPlayed(s.FullPath) : DateTime.MinValue;
                 })
                 .ToArray();
 
@@ -185,7 +197,7 @@ namespace EZ2Play.App
 
                 var shortcutPath = _shortcuts[_selectedIndex].FullPath;
 
-                _playtime.Start(shortcutPath);
+                _metadata.Start(shortcutPath);
 
                 Process.Start(new ProcessStartInfo
                 {

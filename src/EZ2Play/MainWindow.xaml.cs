@@ -28,7 +28,7 @@ namespace EZ2Play
 
         private ParticlesCanvas _particlesCanvas;
 
-        private PlaytimeService _playtime;
+        private GameMetadata _metadata;
 
         private DispatcherTimer _activityTimer;
         private bool _wasActive;
@@ -95,6 +95,8 @@ namespace EZ2Play
                 ExitIconKeyboard = FindName("ExitIconKeyboard") as System.Windows.FrameworkElement,
                 ScreenSwapIconGamepad = FindName("ScreenSwapIconGamepad") as System.Windows.FrameworkElement,
                 ScreenSwapIconKeyboard = FindName("ScreenSwapIconKeyboard") as System.Windows.FrameworkElement,
+                SortingIconGamepad = FindName("SortingIconGamepad") as System.Windows.FrameworkElement,
+                SortingIconKeyboard = FindName("SortingIconKeyboard") as System.Windows.FrameworkElement,
                 SystemMessage = FindName("SystemMessage") as System.Windows.Controls.Border,
                 SystemMessageText = FindName("SystemMessageText") as System.Windows.Controls.TextBlock,
                 BackgroundImage = FindName("BackgroundImage") as System.Windows.Controls.Image,
@@ -111,7 +113,7 @@ namespace EZ2Play
             _launcher = new Launcher(ItemsListBox, _uiState.SelectedGameTitle, this, _audioManager);
             
             // Счетчик времени
-            _playtime = _launcher.Playtime;
+            _metadata = _launcher.Playtime;
 
             // Настройка панели переключения дисплея
             SetupDisplayTogglePanel();
@@ -164,7 +166,7 @@ namespace EZ2Play
                 HideCursor();
                 _uiState.ShowBackground(true);
 
-                _playtime.Stop();
+                _metadata.Stop();
                 UpdatePlaytime();
 
                 if (_currentTab == TabType.LastPlayed)
@@ -432,7 +434,7 @@ namespace EZ2Play
             var shortcut = _launcher.Shortcuts[_launcher.SelectedIndex];
             string gameId = shortcut.FullPath;
             
-            int seconds = _playtime.GetSeconds(gameId);
+            int seconds = _metadata.GetSeconds(gameId);
             
             if (seconds == 0)
             {
@@ -443,7 +445,7 @@ namespace EZ2Play
                 GameCounterCard.Visibility = Visibility.Visible;
                 
                 // Получаем значение и тип (часы или минуты)
-                var (value, isHours) = _playtime.GetFormattedValue(gameId);
+                var (value, isHours) = _metadata.GetFormattedValue(gameId);
                 
                 // Форматируем через локализацию
                 GameCounterText.Text = Locals.GetFormattedTime(value, isHours);

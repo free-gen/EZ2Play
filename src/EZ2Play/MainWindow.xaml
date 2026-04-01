@@ -153,6 +153,14 @@
                         </StackPanel>
                     </Border>
 
+                    <!-- Settings -->
+                    <!-- <StackPanel Grid.Column="3" VerticalAlignment="Center">
+                        <ui:SymbolIcon  Symbol="Settings28" Filled="True" 
+                                        FontSize="55"
+                                        VerticalAlignment="Center"
+                                        HorizontalAlignment="Center"/>
+                    </StackPanel> -->
+
                     <!-- UserAvatar -->
                     <Image  x:Name="UserAvatar" Grid.Column="3"
                             Width="{DynamicResource {x:Static app:UiScaleKeys.UserAvatarSize}}"
@@ -272,7 +280,8 @@
                 <Border x:Name="BottomPanel" Tag="BottomPanel" Grid.Row="3"
                         Style="{StaticResource BotomCardStyle}"
                         HorizontalAlignment="Center"
-                        VerticalAlignment="Center"
+                        VerticalAlignment="Bottom"
+                        Margin="{DynamicResource {x:Static app:UiScaleKeys.BottomPanelMargin}}"
                         CornerRadius="{DynamicResource {x:Static app:UiScaleKeys.BottomPanelCornerRadius}}"
                         Height="{DynamicResource {x:Static app:UiScaleKeys.BottomPanelHeight}}"
                         Padding="{DynamicResource {x:Static app:UiScaleKeys.BottomPanelPadding}}">
@@ -304,6 +313,15 @@
                                     <ContentPresenter Content="{StaticResource KeyX}"/>
                                 </Viewbox>
                                 <TextBlock x:Name="ScreenSwapText" Style="{StaticResource HintTextStyle}"/>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" Margin="{DynamicResource {x:Static app:UiScaleKeys.HintBlockMargin}}">
+                                <Viewbox x:Name="SortingIconGamepad" Height="{DynamicResource {x:Static app:UiScaleKeys.HintIconHeightGamepad}}" Stretch="Uniform" Visibility="Collapsed" VerticalAlignment="Center">
+                                    <ContentPresenter Content="{StaticResource ButtonLR}"/>
+                                </Viewbox>
+                                <Viewbox x:Name="SortingIconKeyboard" Height="{DynamicResource {x:Static app:UiScaleKeys.HintIconHeightKeyboard}}" Stretch="Uniform" Visibility="Visible" VerticalAlignment="Center">
+                                    <ContentPresenter Content="{StaticResource KeyQE}"/>
+                                </Viewbox>
+                                <TextBlock x:Name="SortingText" Style="{StaticResource HintTextStyle}"/>
                             </StackPanel>
                         </StackPanel>
 

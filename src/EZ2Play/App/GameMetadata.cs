@@ -1,11 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using Newtonsoft.Json;
 
 namespace EZ2Play.App
 {
-    public class PlaytimeService
+    public class GameMetadata
     {
         private Dictionary<string, PlaytimeEntry> _data;
         private readonly string _filePath;
@@ -14,12 +15,12 @@ namespace EZ2Play.App
         private DateTime _startTime;
         private bool _isRunning;
 
-        public PlaytimeService()
+        public GameMetadata()
         {
             string appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
             string folder = Path.Combine(appData, AppInfo.Name);
 
-            _filePath = Path.Combine(folder, "playtime.json");
+            _filePath = Path.Combine(folder, "metadata.json");
 
             Load();
         }
