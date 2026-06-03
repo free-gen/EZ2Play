@@ -377,8 +377,11 @@ namespace EZ2Play
 
                     baseGrid.BeginAnimation(UIElement.OpacityProperty, fadeIn);
 
-                    // Debug Notification
+                    // Тестовое уведомление
                     // _uiState.Notification.Debug(1, 15);
+
+                    // Системное уведомление о состоянии XboxGameBar
+                    _uiState.Notification.GameBar(3, 10, Display.IsXboxGameBarInstalled());
 
                     if (_hotSwapLaunch)
                     {

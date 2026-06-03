@@ -54,12 +54,15 @@ namespace EZ2Play.App
         private DispatcherTimer _timer;
         private readonly Sound _audio;
         private long _lastPressMs = 0;
+        private readonly bool _isXboxGameBarInstalled;
 
         // --------------- Конструктор ---------------
 
         public GuideExitHandler(Sound audio)
         {
             _audio = audio;
+            _isXboxGameBarInstalled = Display.IsXboxGameBarInstalled();
+
             _timer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(16) };
             _timer.Tick += Poll;
             _timer.Start();
@@ -78,6 +81,12 @@ namespace EZ2Play.App
                 // Кнопка GUIDE = 0x0400
                 if (result == 0 && (stateEx.Gamepad.wButtons & 0x0400) != 0)
                 {
+                    // Если установлен Xbox Game Bar, полностью игнорируем нажатие Guide.
+                    if (_isXboxGameBarInstalled)
+                    {
+                        return; 
+                    }
+
                     long now = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
                     
                     // Защита от повторных нажатий (debounce)

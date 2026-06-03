@@ -408,6 +408,18 @@ namespace EZ2Play.App
                 string fullMessage = $"{mainMessage}\n{deviceName}";
                 _uiState.ShowNotification(fullMessage, delaySeconds, displaySeconds);
             }
+
+            // Уведомление XboxGameBar
+            public void GameBar(double delaySeconds, double displaySeconds, bool gameBarInstalled)
+            {
+                _uiState.ShowNotification(
+                    Locals.GetString(
+                        gameBarInstalled
+                            ? "MessageGameBarDetected"
+                            : "MessageGameBarNotDetected"),
+                    delaySeconds,
+                    displaySeconds);
+            }
         }
         
         // --------------- Иконки подсказок ---------------

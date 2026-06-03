@@ -121,6 +121,36 @@ namespace EZ2Play.App
                     "入力デバイスが検出されました："
                 },
 
+                ["MessageGameBarDetected"] = new[]
+                {
+                    "XBOX Game Bar detected.\nGame and display control is handled by the system.",
+                    "XBOX Game Bar обнаружен.\nУправление играми и дисплеем осуществляется системой.",
+                    "XBOX Game Bar erkannt.\nDie Steuerung von Spielen und Anzeige erfolgt durch das System.",
+                    "XBOX Game Bar détecté.\nLe contrôle des jeux et de l'affichage est assuré par le système.",
+                    "XBOX Game Bar detectado.\nEl control de juegos y pantalla es gestionado por el sistema.",
+                    "XBOX Game Bar detectado.\nO controle de jogos e exibição é gerenciado pelo sistema.",
+                    "XBOX Game Bar rilevato.\nIl controllo di giochi e display è gestito dal sistema.",
+                    "Wykryto XBOX Game Bar.\nSterowanie grami i wyświetlaczem jest obsługiwane przez system.",
+                    "检测到 XBOX Game Bar。\n游戏和显示控制由系统处理。",
+                    "XBOX Game Bar가 감지되었습니다.\n게임 및 디스플레이 제어는 시스템이 처리합니다.",
+                    "XBOX Game Bar が検出されました。\nゲームとディスプレイの制御はシステムが担当します。"
+                },
+
+                ["MessageGameBarNotDetected"] = new[]
+                {
+                    "XBOX Game Bar not detected.\nGame and display control is handled by the application.",
+                    "XBOX Game Bar не обнаружен.\nУправление играми и дисплеем осуществляется приложением.",
+                    "XBOX Game Bar nicht erkannt.\nDie Steuerung von Spielen und Anzeige erfolgt durch die Anwendung.",
+                    "XBOX Game Bar non détecté.\nLe contrôle des jeux et de l'affichage est assuré par l'application.",
+                    "XBOX Game Bar no detectado.\nEl control de juegos y pantalla es gestionado por la aplicación.",
+                    "XBOX Game Bar não detectado.\nO controle de jogos e exibição é gerenciado pelo aplicativo.",
+                    "XBOX Game Bar non rilevato.\nIl controllo di giochi e display è gestito dall'applicazione.",
+                    "Nie wykryto XBOX Game Bar.\nSterowanie grami i wyświetlaczem jest obsługiwane przez aplikację.",
+                    "未检测到 XBOX Game Bar。\n游戏和显示控制由应用程序处理。",
+                    "XBOX Game Bar가 감지되지 않았습니다.\n게임 및 디스플레이 제어는 애플리케이션이 처리합니다.",
+                    "XBOX Game Bar が検出されませんでした。\nゲームとディスプレイの制御はアプリケーションが担当します。"
+                },
+
                 ["MessageTest"] = new[]
                 {
                     "Debug notification:\nUsed for configuration and testing. Does not affect anything."

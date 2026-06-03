@@ -6,6 +6,7 @@ using System.Windows.Threading;
 using System.Management;
 using Microsoft.Win32;
 using System.Runtime.InteropServices;
+using System.IO;
 
 namespace EZ2Play.App
 {
@@ -21,6 +22,7 @@ namespace EZ2Play.App
         private bool _isExternalDisplay = false;
         private bool _hasMultipleDisplays = false;
         private bool _wasLaunchedWithHotswap = false;
+        private bool _isXboxGameBarInstalled = false;
 
         // Для предотвращения множественных перерасчетов
         private DateTime _lastLayoutRefresh = DateTime.MinValue;
@@ -61,6 +63,10 @@ namespace EZ2Play.App
         {
             _window = window;
             _wasLaunchedWithHotswap = wasLaunchedWithHotswap;
+            _audioManager = audioManager;
+
+            // Проверяем наличие Xbox Game Bar при запуске
+            _isXboxGameBarInstalled = IsXboxGameBarInstalled();
 
             if (_wasLaunchedWithHotswap)
             {
@@ -69,8 +75,6 @@ namespace EZ2Play.App
                     TryInitialHotSwap();
                 }), DispatcherPriority.ApplicationIdle);
             }
-
-            _audioManager = audioManager;
 
             CheckMultipleDisplays();
             SystemEvents.DisplaySettingsChanged += OnDisplaySettingsChanged;
@@ -103,8 +107,34 @@ namespace EZ2Play.App
         }
 
         // --------------- Управление дисплеями ---------------
+        
+        // Проверяет наличие XboxGameBar в системе
+        public static bool IsXboxGameBarInstalled()
+        {
+            try
+            {
+                using (var process = new Process())
+                {
+                    process.StartInfo.FileName = "powershell.exe";
+                    process.StartInfo.Arguments =
+                        "-NoProfile -Command \"if(Get-AppxPackage Microsoft.XboxGamingOverlay){exit 0}else{exit 1}\"";
 
-        // Проверяет наличие нескольких дисплеев в системе
+                    process.StartInfo.UseShellExecute = false;
+                    process.StartInfo.CreateNoWindow = true;
+
+                    process.Start();
+                    process.WaitForExit();
+
+                    return process.ExitCode == 0;
+                }
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        // Проверяет наличие нескольких дисплеев в системе (Если XboxGameBar отсутствует)
         public void CheckMultipleDisplays()
         {
             try
@@ -143,16 +173,21 @@ namespace EZ2Play.App
         public void UpdateDisplayToggleVisibility()
         {
             if (_displayTogglePanel != null)
-                _displayTogglePanel.Visibility =
-                    (_hasMultipleDisplays && !_wasLaunchedWithHotswap)
-                        ? Visibility.Visible
-                        : Visibility.Collapsed;
+            {
+                bool shouldShow = _hasMultipleDisplays 
+                            && !_wasLaunchedWithHotswap 
+                            && !_isXboxGameBarInstalled;
+
+                _displayTogglePanel.Visibility = shouldShow ? Visibility.Visible : Visibility.Collapsed;
+            }
         }
 
         // Переключает режим дисплея (внешний/внутренний)
         public void ToggleDisplay()
         {
-            if (!_hasMultipleDisplays || _wasLaunchedWithHotswap)
+            if (!_hasMultipleDisplays
+                || _wasLaunchedWithHotswap
+                || _isXboxGameBarInstalled)
                 return;
 
             try

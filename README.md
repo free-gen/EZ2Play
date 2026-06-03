@@ -11,11 +11,14 @@ EZ2Play is a minimalistic game launcher for those who value simplicity and a lac
 
 ## Features
 
-- **Home/Guide button handler** - return to the launcher from any game by pressing one button
-- **Quick screen switching** - the option is available if you have two or more screens
+- **Home/Guide button handler** - return to the launcher from any game by pressing one button (when Xbox Game Bar is unavailable)
+- **Quick screen switching** - available on systems with two or more displays (when Xbox Game Bar is unavailable)
+- **Xbox Game Bar compatibility** - automatically uses native Windows game and display controls when available
 - **Multilingual support** - 🇬🇧 🇷🇺 🇩🇪 🇫🇷 🇪🇸 🇵🇹 🇮🇹 🇵🇱 🇨🇳 🇰🇷 🇯🇵
 - **No settings required** - just place the shortcuts in the `shortcuts` folder
 - **WPF-UI** - full support for Windows 11 styles
+
+> **Note:** If Xbox Game Bar is installed, EZ2Play automatically defers game and display management to the operating system. Otherwise, the launcher uses its built-in game closing and display switching functions.
 
 ## Usage
 
