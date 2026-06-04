@@ -2,7 +2,7 @@
 <assembly manifestVersion="1.0" xmlns="urn:schemas-microsoft-com:asm.v1">
   <assemblyIdentity 
     version="0.8.0.0" 
-    name="EZ2Play" 
+    name="EZ2Play Game Launcher" 
     type="win32" 
   />
   

@@ -1,8 +1,0 @@
-is_global = true
-build_property.RootNamespace = EZ2Play
-build_property.ProjectDir = E:\_Launcher\EZ2Play\src\EZ2Play\
-build_property.EnableComHosting = 
-build_property.EnableGeneratedComInterfaceComImportInterop = 
-build_property.CsWinRTUseWindowsUIXamlProjections = false
-build_property.EffectiveAnalysisLevelStyle = 
-build_property.EnableCodeStyleSeverity = 

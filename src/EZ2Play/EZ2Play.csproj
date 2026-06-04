@@ -7,10 +7,10 @@
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <Copyright>Copyright © FreeGen</Copyright>
     <Company>FreeGen</Company>
-    <Description>EZ2Play Launcher</Description>
-    <Product>EZ2Play Launcher</Product>
+    <Description>EZ2Play Game Launcher</Description>
+    <Product>EZ2Play Game Launcher</Product>
     <AppName>EZ2Play</AppName>
-    <AppDescription>EZ2Play Launcher</AppDescription>
+    <AppDescription>EZ2Play Game Launcher</AppDescription>
     <FileVersion>0.8.16</FileVersion>
     <InformationalVersion>0.8.16</InformationalVersion>
   </PropertyGroup>
