@@ -1,7 +1,15 @@
-<h1>
-  <img src="src/EZ2Play/Assets/logo.png" width="50" height="50" style="vertical-align: 14px;">
-  EZ2Play Launcher
-</h1>
+<table>
+  <tr>
+    <td width="60px">
+      <img src="https://raw.githubusercontent.com/free-gen/EZ2Play/refs/heads/main/src/EZ2Play/Assets/logo.png"
+           width="48"
+           height="48">
+    </td>
+    <td>
+      <h1 style="margin:0;">EZ2Play Launcher</h1>
+    </td>
+  </tr>
+</table>
 
 [![GitHub release](https://img.shields.io/github/v/release/free-gen/EZ2Play?style=for-the-badge)](https://github.com/free-gen/EZ2Play/releases/latest)
 [![Platform](https://img.shields.io/badge/.Net-0066ff?style=for-the-badge&logo=data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNSIgaGVpZ2h0PSIxNSIgdmlld0JveD0iMCAwIDE1IDE1Ij48cGF0aCBmaWxsPSIjZmZmIiBkPSJNMTQuODE0LjExMUEuNS41IDAgMCAxIDE1IC41VjdIN1YxLjU5NkwxNC4zOTUuMDFhLjUuNSAwIDAgMSAuNDIuMU02IDEuODFMLjM5NSAzLjAxMUEuNS41IDAgMCAwIDAgMy41VjdoNnpNMCA4djQuNWEuNS41IDAgMCAwIC40My40OTVsNS41Ny43OTZWOHptNyA1LjkzNGw3LjQzIDEuMDYxQS41LjUgMCAwIDAgMTUgMTQuNVY4SDd6Ii8+PC9zdmc+&labelColor=gray)](https://dotnet.microsoft.com)
