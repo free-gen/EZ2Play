@@ -1,5 +1,5 @@
 <h1>
-  <img src="src/EZ2Play/Assets/logo.png" width="28" Height="28" alt="EZ2Play Logo">
+  <img src="src/EZ2Play/Assets/logo.png" width="36" Height="36" alt="EZ2Play Logo">
   EZ2Play Launcher
 </h1>
 
