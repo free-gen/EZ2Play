@@ -1,5 +1,5 @@
 <h1>
-  <img src="https://raw.githubusercontent.com/free-gen/EZ2Play/refs/heads/main/src/EZ2Play/Assets/logo.png"
+  <img src="src/EZ2Play/Assets/logo.png"
        width="50"
        height="50"
        alt="EZ2Play Logo"
