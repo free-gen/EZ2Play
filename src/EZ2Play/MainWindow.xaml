@@ -174,7 +174,7 @@
                                HorizontalAlignment="Right"
                                VerticalAlignment="Center"
                                FontSize="{DynamicResource {x:Static app:UiScaleKeys.TopInfoPrimalyFontSize}}"
-                               FontWeight="Light"/>
+                               FontWeight="SemiBold"/>
 
                 </Grid>
 

@@ -17,6 +17,7 @@ EZ2Play is a minimalistic game launcher for those who value simplicity and a lac
 - **Multilingual support** - 🇬🇧 🇷🇺 🇩🇪 🇫🇷 🇪🇸 🇵🇹 🇮🇹 🇵🇱 🇨🇳 🇰🇷 🇯🇵
 - **No settings required** - just place the shortcuts in the `shortcuts` folder
 - **WPF-UI** - full support for Windows 11 styles
+- **EZ2Play Helper** - background process for launching EZ2Play via the Home/Guide button on a gamepad
 
 > **Note:** If Xbox Game Bar is installed, EZ2Play automatically defers game and display management to the operating system. Otherwise, the launcher uses its built-in game closing and display switching functions.
 
@@ -87,6 +88,11 @@ EZ2Play.exe --nomusic
 # Combinations
 EZ2Play.exe --hotswap --nosplash --nomusic
 ```
+
+## EZ2Play Helper
+
+An optional background helper that allows launching EZ2Play by holding the Home/Guide button on a gamepad.
+The helper can be added to Windows startup and runs in the background even when the EZ2Play is closed. Any command-line arguments passed to EZ2Play Helper are automatically forwarded to EZ2Play when it is launched.
 
 # EZParser Auxiliary application
 

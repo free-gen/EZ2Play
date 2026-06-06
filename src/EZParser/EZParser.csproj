@@ -6,7 +6,7 @@
     <UseWPF>true</UseWPF>
     <Nullable>disable</Nullable>
     <ImplicitUsings>disable</ImplicitUsings>
-    <ApplicationIcon>app.ico</ApplicationIcon>
+    <ApplicationIcon>..\EZ2Play\Assets\app.ico</ApplicationIcon>
     <Copyright>Copyright © FreeGen</Copyright>
     <Company>FreeGen</Company>
     <RootNamespace>EZParser</RootNamespace>

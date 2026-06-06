@@ -1,0 +1,11 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net472</TargetFramework>
+    <ApplicationIcon>..\EZ2Play\Assets\app.ico</ApplicationIcon>
+    <Company>FreeGen</Company>
+    <Product>EZ2Play Launch Daemon</Product>
+    <Description>Background launcher service for EZ2Play</Description>
+    <Copyright>Copyright © FreeGen</Copyright>
+  </PropertyGroup>
+</Project>
