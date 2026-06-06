@@ -2,7 +2,7 @@
   <img src="src/EZ2Play/Assets/logo.png"
        width="50"
        height="50"
-       align="absmiddle"
+       align="middle"
        alt="EZ2Play Logo">
   EZ2Play Launcher
 </h1>
