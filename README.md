@@ -1,10 +1,6 @@
 <h1>
-  <img src="src/EZ2Play/Assets/logo.png"
-       width="50"
-       height="50"
-       alt="EZ2Play Logo"
-       style="vertical-align: middle; margin-right: 12px;">
-  <span style="vertical-align: middle;">EZ2Play Launcher</span>
+  <img src="src/EZ2Play/Assets/logo.png" width="50" height="50" alt="EZ2Play Logo">
+  EZ2Play Launcher
 </h1>
 
 [![GitHub release](https://img.shields.io/github/v/release/free-gen/EZ2Play?style=for-the-badge)](https://github.com/free-gen/EZ2Play/releases/latest)
