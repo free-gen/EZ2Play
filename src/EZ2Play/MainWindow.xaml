@@ -99,9 +99,9 @@
                     <RowDefinition Height="20*"/>
                 </Grid.RowDefinitions>
 
-                <!-- TopInfoPanel -->
-                <Grid x:Name="TopInfoPanel" Grid.Row="0"
-                      Margin="{DynamicResource {x:Static app:UiScaleKeys.TopInfoPanelMargin}}"
+                <!-- TopPanel -->
+                <Grid x:Name="TopPanel" Grid.Row="0"
+                      Margin="{DynamicResource {x:Static app:UiScaleKeys.TopPanelMargin}}"
                       HorizontalAlignment="Stretch"
                       VerticalAlignment="Center"
                       Background="Transparent">
@@ -109,7 +109,7 @@
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="05*"/> <!-- 0 Offset -->
                         <ColumnDefinition Width="30*"/> <!-- 1 Tabs (Gamelist/LastPlayed) -->
-                        <ColumnDefinition Width="50*"/> <!-- 2 SystemMessage -->
+                        <ColumnDefinition Width="50*"/> <!-- 2 NotificationPanel -->
                         <ColumnDefinition Width="05*"/> <!-- 3 UserAvatar -->
                         <ColumnDefinition Width="05*"/> <!-- 4 Time -->
                         <ColumnDefinition Width="05*"/> <!-- 5 Offset -->
@@ -128,26 +128,26 @@
                                 />
                     </StackPanel>
 
-                    <!-- SystemMessage -->
-                    <Border x:Name="SystemMessage"
+                    <!-- NotificationPanel -->
+                    <Border x:Name="NotificationPanel"
                             Grid.Column="2"
                             Visibility="Collapsed"
                             Style="{StaticResource BasicCardStyle}"
-                            CornerRadius="{DynamicResource {x:Static app:UiScaleKeys.SystemMessageCornerRadius}}"
-                            Height="{DynamicResource {x:Static app:UiScaleKeys.SystemMessageHeight}}"
-                            Padding="{DynamicResource {x:Static app:UiScaleKeys.SystemMessagePadding}}"
-                            Margin="{DynamicResource {x:Static app:UiScaleKeys.SystemMessageOuterMargin}}"
+                            CornerRadius="{DynamicResource {x:Static app:UiScaleKeys.NotificationPanelCornerRadius}}"
+                            Height="{DynamicResource {x:Static app:UiScaleKeys.NotificationPanelHeight}}"
+                            Padding="{DynamicResource {x:Static app:UiScaleKeys.NotificationPanelPadding}}"
+                            Margin="{DynamicResource {x:Static app:UiScaleKeys.NotificationPanelOuterMargin}}"
                             HorizontalAlignment="Right" 
                             VerticalAlignment="Center">
                         <StackPanel Orientation="Horizontal">
                             <ui:SymbolIcon  Symbol="Info12" Filled="True" 
-                                            FontSize="{DynamicResource {x:Static app:UiScaleKeys.SystemMessageIconSize}}"
+                                            FontSize="{DynamicResource {x:Static app:UiScaleKeys.NotificationPanelIconSize}}"
                                             VerticalAlignment="Center" 
-                                            Margin="{DynamicResource {x:Static app:UiScaleKeys.SystemMessageMargin}}"/>
-                            <TextBlock  x:Name="SystemMessageText"
+                                            Margin="{DynamicResource {x:Static app:UiScaleKeys.NotificationPanelMargin}}"/>
+                            <TextBlock  x:Name="NotificationText"
                                         Style="{StaticResource BasicCardTextStyle}"
-                                        MaxWidth="{DynamicResource {x:Static app:UiScaleKeys.SystemMessageMaxWidth}}"
-                                        FontSize="{DynamicResource {x:Static app:UiScaleKeys.SystemMessageFontSize}}"
+                                        MaxWidth="{DynamicResource {x:Static app:UiScaleKeys.NotificationPanelMaxWidth}}"
+                                        FontSize="{DynamicResource {x:Static app:UiScaleKeys.NotificationPanelFontSize}}"
                                         VerticalAlignment="Center"
                                         TextWrapping="Wrap"/>
                         </StackPanel>
@@ -170,7 +170,7 @@
                             VerticalAlignment="Center"/>
 
                     <!-- Time -->
-                    <TextBlock x:Name="TopRightTimeText" Grid.Column="4"
+                    <TextBlock x:Name="TimeLabelText" Grid.Column="4"
                                HorizontalAlignment="Right"
                                VerticalAlignment="Center"
                                FontSize="{DynamicResource {x:Static app:UiScaleKeys.TopInfoPrimalyFontSize}}"
@@ -288,37 +288,37 @@
 
                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
                             <StackPanel Orientation="Horizontal" Margin="{DynamicResource {x:Static app:UiScaleKeys.HintBlockMargin}}">
-                                <Viewbox x:Name="LaunchIconXinput" Height="{DynamicResource {x:Static app:UiScaleKeys.HintIconHeightGamepad}}" Stretch="Uniform" Visibility="Collapsed" VerticalAlignment="Center">
+                                <Viewbox x:Name="IconGamepadLaunch" Height="{DynamicResource {x:Static app:UiScaleKeys.HintIconHeightGamepad}}" Stretch="Uniform" Visibility="Collapsed" VerticalAlignment="Center">
                                     <ContentPresenter Content="{StaticResource ButtonA}"/>
                                 </Viewbox>
-                                <Viewbox x:Name="LaunchIconKeyboard" Height="{DynamicResource {x:Static app:UiScaleKeys.HintIconHeightKeyboard}}" Stretch="Uniform" Visibility="Visible" VerticalAlignment="Center">
+                                <Viewbox x:Name="IconKeyboardLaunch" Height="{DynamicResource {x:Static app:UiScaleKeys.HintIconHeightKeyboard}}" Stretch="Uniform" Visibility="Visible" VerticalAlignment="Center">
                                     <ContentPresenter Content="{StaticResource KeyEnter}"/>
                                 </Viewbox>
                                 <TextBlock x:Name="LaunchText" Style="{StaticResource HintTextStyle}"/>
                             </StackPanel>
                             <StackPanel Orientation="Horizontal" Margin="{DynamicResource {x:Static app:UiScaleKeys.HintBlockMargin}}">
-                                <Viewbox x:Name="ExitIconGamepad" Height="{DynamicResource {x:Static app:UiScaleKeys.HintIconHeightGamepad}}" Stretch="Uniform" Visibility="Collapsed" VerticalAlignment="Center">
+                                <Viewbox x:Name="IconGamepadExit" Height="{DynamicResource {x:Static app:UiScaleKeys.HintIconHeightGamepad}}" Stretch="Uniform" Visibility="Collapsed" VerticalAlignment="Center">
                                     <ContentPresenter Content="{StaticResource ButtonB}"/>
                                 </Viewbox>
-                                <Viewbox x:Name="ExitIconKeyboard" Height="{DynamicResource {x:Static app:UiScaleKeys.HintIconHeightKeyboard}}" Stretch="Uniform" Visibility="Visible" VerticalAlignment="Center">
+                                <Viewbox x:Name="IconKeyboardExit" Height="{DynamicResource {x:Static app:UiScaleKeys.HintIconHeightKeyboard}}" Stretch="Uniform" Visibility="Visible" VerticalAlignment="Center">
                                     <ContentPresenter Content="{StaticResource KeyEscape}"/>
                                 </Viewbox>
                                 <TextBlock x:Name="ExitText" Style="{StaticResource HintTextStyle}"/>
                             </StackPanel>
                             <StackPanel Orientation="Horizontal" Margin="{DynamicResource {x:Static app:UiScaleKeys.HintBlockMargin}}">
-                                <Viewbox x:Name="ScreenSwapIconGamepad" Height="{DynamicResource {x:Static app:UiScaleKeys.HintIconHeightGamepad}}" Stretch="Uniform" Visibility="Collapsed" VerticalAlignment="Center">
+                                <Viewbox x:Name="IconGamepadSwap" Height="{DynamicResource {x:Static app:UiScaleKeys.HintIconHeightGamepad}}" Stretch="Uniform" Visibility="Collapsed" VerticalAlignment="Center">
                                     <ContentPresenter Content="{StaticResource ButtonX}"/>
                                 </Viewbox>
-                                <Viewbox x:Name="ScreenSwapIconKeyboard" Height="{DynamicResource {x:Static app:UiScaleKeys.HintIconHeightKeyboard}}" Stretch="Uniform" Visibility="Visible" VerticalAlignment="Center">
+                                <Viewbox x:Name="IconKeyboardSwap" Height="{DynamicResource {x:Static app:UiScaleKeys.HintIconHeightKeyboard}}" Stretch="Uniform" Visibility="Visible" VerticalAlignment="Center">
                                     <ContentPresenter Content="{StaticResource KeyX}"/>
                                 </Viewbox>
                                 <TextBlock x:Name="ScreenSwapText" Style="{StaticResource HintTextStyle}"/>
                             </StackPanel>
                             <StackPanel Orientation="Horizontal" Margin="{DynamicResource {x:Static app:UiScaleKeys.HintBlockMargin}}">
-                                <Viewbox x:Name="SortingIconGamepad" Height="{DynamicResource {x:Static app:UiScaleKeys.HintIconHeightGamepad}}" Stretch="Uniform" Visibility="Collapsed" VerticalAlignment="Center">
+                                <Viewbox x:Name="IconGamepadSort" Height="{DynamicResource {x:Static app:UiScaleKeys.HintIconHeightGamepad}}" Stretch="Uniform" Visibility="Collapsed" VerticalAlignment="Center">
                                     <ContentPresenter Content="{StaticResource ButtonLR}"/>
                                 </Viewbox>
-                                <Viewbox x:Name="SortingIconKeyboard" Height="{DynamicResource {x:Static app:UiScaleKeys.HintIconHeightKeyboard}}" Stretch="Uniform" Visibility="Visible" VerticalAlignment="Center">
+                                <Viewbox x:Name="IconKeyboardSort" Height="{DynamicResource {x:Static app:UiScaleKeys.HintIconHeightKeyboard}}" Stretch="Uniform" Visibility="Visible" VerticalAlignment="Center">
                                     <ContentPresenter Content="{StaticResource KeyQE}"/>
                                 </Viewbox>
                                 <TextBlock x:Name="SortingText" Style="{StaticResource HintTextStyle}"/>

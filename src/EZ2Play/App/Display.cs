@@ -6,7 +6,6 @@ using System.Windows.Threading;
 using System.Management;
 using Microsoft.Win32;
 using System.Runtime.InteropServices;
-using System.IO;
 
 namespace EZ2Play.App
 {
@@ -66,7 +65,7 @@ namespace EZ2Play.App
             _audioManager = audioManager;
 
             // Проверяем наличие Xbox Game Bar при запуске
-            _isXboxGameBarInstalled = IsXboxGameBarInstalled();
+            _isXboxGameBarInstalled = SystemProvider.IsXboxGameBarInstalled();
 
             if (_wasLaunchedWithHotswap)
             {
@@ -107,32 +106,6 @@ namespace EZ2Play.App
         }
 
         // --------------- Управление дисплеями ---------------
-        
-        // Проверяет наличие XboxGameBar в системе
-        public static bool IsXboxGameBarInstalled()
-        {
-            try
-            {
-                using (var process = new Process())
-                {
-                    process.StartInfo.FileName = "powershell.exe";
-                    process.StartInfo.Arguments =
-                        "-NoProfile -Command \"if(Get-AppxPackage Microsoft.XboxGamingOverlay){exit 0}else{exit 1}\"";
-
-                    process.StartInfo.UseShellExecute = false;
-                    process.StartInfo.CreateNoWindow = true;
-
-                    process.Start();
-                    process.WaitForExit();
-
-                    return process.ExitCode == 0;
-                }
-            }
-            catch
-            {
-                return false;
-            }
-        }
 
         // Проверяет наличие нескольких дисплеев в системе (Если XboxGameBar отсутствует)
         public void CheckMultipleDisplays()

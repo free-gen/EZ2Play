@@ -29,6 +29,7 @@ namespace EZ2Play
         private ParticlesCanvas _particlesCanvas;
 
         private GameMetadata _metadata;
+        private AppConfig _config;
 
         private DispatcherTimer _activityTimer;
         private bool _wasActive;
@@ -77,10 +78,10 @@ namespace EZ2Play
             {
                 TabGamelistText = FindName("TabGamelistText") as System.Windows.Controls.TextBlock,
                 TabLastPlayedText = FindName("TabLastPlayedText") as System.Windows.Controls.TextBlock,
-                TopRightTime = FindName("TopRightTimeText") as System.Windows.Controls.TextBlock,
+                TimeLabel = FindName("TimeLabelText") as System.Windows.Controls.TextBlock,
                 UserAvatar = FindName("UserAvatar") as System.Windows.Controls.Image,
                 BottomPanel = FindName("BottomPanel") as System.Windows.Controls.Border,
-                TopInfoPanel = FindName("TopInfoPanel") as System.Windows.Controls.Grid,
+                TopPanel = FindName("TopPanel") as System.Windows.Controls.Grid,
                 NoShortcutsMessage = FindName("NoShortcutsMessage") as System.Windows.Controls.TextBlock,
                 SelectedGameTitle = FindName("SelectedGameTitle") as System.Windows.Controls.TextBlock,
                 GameSourceCard = FindName("GameSourceCard") as System.Windows.Controls.Border,
@@ -89,20 +90,22 @@ namespace EZ2Play
                 SplashOverlay = FindName("SplashOverlay") as System.Windows.Controls.Grid,
                 MainScreenGrid = FindName("MainScreenGrid") as System.Windows.Controls.Grid,
                 ExitMessageText = FindName("ExitMessageText") as System.Windows.Controls.TextBlock,
-                LaunchIconXinput = FindName("LaunchIconXinput") as System.Windows.FrameworkElement,
-                LaunchIconKeyboard = FindName("LaunchIconKeyboard") as System.Windows.FrameworkElement,
-                ExitIconGamepad = FindName("ExitIconGamepad") as System.Windows.FrameworkElement,
-                ExitIconKeyboard = FindName("ExitIconKeyboard") as System.Windows.FrameworkElement,
-                ScreenSwapIconGamepad = FindName("ScreenSwapIconGamepad") as System.Windows.FrameworkElement,
-                ScreenSwapIconKeyboard = FindName("ScreenSwapIconKeyboard") as System.Windows.FrameworkElement,
-                SortingIconGamepad = FindName("SortingIconGamepad") as System.Windows.FrameworkElement,
-                SortingIconKeyboard = FindName("SortingIconKeyboard") as System.Windows.FrameworkElement,
-                SystemMessage = FindName("SystemMessage") as System.Windows.Controls.Border,
-                SystemMessageText = FindName("SystemMessageText") as System.Windows.Controls.TextBlock,
+                IconGamepadLaunch = FindName("IconGamepadLaunch") as System.Windows.FrameworkElement,
+                IconKeyboardLaunch = FindName("IconKeyboardLaunch") as System.Windows.FrameworkElement,
+                IconGamepadExit = FindName("IconGamepadExit") as System.Windows.FrameworkElement,
+                IconKeyboardExit = FindName("IconKeyboardExit") as System.Windows.FrameworkElement,
+                IconGamepadSwap = FindName("IconGamepadSwap") as System.Windows.FrameworkElement,
+                IconKeyboardSwap = FindName("IconKeyboardSwap") as System.Windows.FrameworkElement,
+                IconGamepadSort = FindName("IconGamepadSort") as System.Windows.FrameworkElement,
+                IconKeyboardSort = FindName("IconKeyboardSort") as System.Windows.FrameworkElement,
+                NotificationPanel = FindName("NotificationPanel") as System.Windows.Controls.Border,
+                NotificationText = FindName("NotificationText") as System.Windows.Controls.TextBlock,
                 BackgroundImage = FindName("BackgroundImage") as System.Windows.Controls.Image,
                 ItemsListBox = ItemsListBox
             };
 
+            _uiState.InitializeSplash(SplashLogo, SplashOverlay, MainScreenGrid);
+            _uiState.InitializeNotifications(NotificationPanel, NotificationText);
             _uiState.CarouselWrapper = FindName("CarouselWrapper") as Grid;
 
             // Управление фоном
@@ -114,6 +117,7 @@ namespace EZ2Play
             
             // Счетчик времени
             _metadata = _launcher.Playtime;
+            _config = new AppConfig();
 
             // Настройка панели переключения дисплея
             SetupDisplayTogglePanel();
@@ -133,8 +137,8 @@ namespace EZ2Play
             Opacity = 0.0;
 
             // Инициализация UI
-            _uiState.InitializeToInfoPanel();
-            _uiState.UserImage();
+            _uiState.InitializeClock();
+            _uiState.LoadUserAvatar();
         }
 
         // --------------- Настройка компонентов ---------------
@@ -378,14 +382,19 @@ namespace EZ2Play
                     baseGrid.BeginAnimation(UIElement.OpacityProperty, fadeIn);
 
                     // Тестовое уведомление
-                    // _uiState.Notification.Debug(1, 15);
+                    // _uiState.Notifications.Debug(1, 5);
 
-                    // Системное уведомление о состоянии XboxGameBar
-                    _uiState.Notification.GameBar(3, 10, Display.IsXboxGameBarInstalled());
+                    // Системное уведомление о состоянии XboxGameBar (только при изменении)
+                    bool gamebarInstalled = SystemProvider.IsXboxGameBarInstalled();
+                    if (_config.ShouldShowGamebarNotification(gamebarInstalled))
+                    {
+                        _uiState.Notifications.GameBar(1, 5, gamebarInstalled);
+                        _config.MarkGamebarNotificationShown(gamebarInstalled);
+                    }
 
                     if (_hotSwapLaunch)
                     {
-                        _uiState.Notification.HotSwap(1, 10);
+                        _uiState.Notifications.HotSwap(3, 5);
                     }
                 }
             }
@@ -410,7 +419,7 @@ namespace EZ2Play
             // Если геймпад подключился, показываем уведомление с его именем
             if (connected)
             {
-                _uiState.Notification.HotPlug(0, 5, deviceName);
+                _uiState.Notifications.HotPlug(0, 3, deviceName);
             }
         }
 

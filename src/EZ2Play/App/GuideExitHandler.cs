@@ -61,7 +61,7 @@ namespace EZ2Play.App
         public GuideExitHandler(Sound audio)
         {
             _audio = audio;
-            _isXboxGameBarInstalled = Display.IsXboxGameBarInstalled();
+            _isXboxGameBarInstalled = SystemProvider.IsXboxGameBarInstalled();
 
             _timer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(16) };
             _timer.Tick += Poll;

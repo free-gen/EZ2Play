@@ -55,7 +55,7 @@ namespace EZ2Play.App
             // ===========================================================================
 
             // Верхняя панель
-            target[UiScaleKeys.TopInfoPanelMargin] = new Thickness(s(0), s(25), s(0), 0); // общее смещение вниз
+            target[UiScaleKeys.TopPanelMargin] = new Thickness(s(0), s(25), s(0), 0); // общее смещение вниз
             target[UiScaleKeys.TopInfoTabsMargin] = new Thickness(s(70), s(0), s(0), 0);
             target[UiScaleKeys.TopInfoPrimalyFontSize] = fs(42);
             target[UiScaleKeys.TopInfoSecondaryFontSize] = fs(38);
@@ -63,14 +63,14 @@ namespace EZ2Play.App
 
             // Уведомление
             double sysMsgHeight = 100;
-            target[UiScaleKeys.SystemMessageHeight] = s(sysMsgHeight);
-            target[UiScaleKeys.SystemMessageCornerRadius] = new CornerRadius(s(sysMsgHeight / 2)); 
-            target[UiScaleKeys.SystemMessageMaxWidth] = s(1280); // макс ширина уведомления
-            target[UiScaleKeys.SystemMessagePadding] = new Thickness(s(30), 0, s(50), 0); // внутр. оступы
-            target[UiScaleKeys.SystemMessageOuterMargin] = new Thickness(s(0), s(0), s(50), 0); // внешний отступ
-            target[UiScaleKeys.SystemMessageMargin] = new Thickness(s(0), 0, s(20), 0);
-            target[UiScaleKeys.SystemMessageFontSize] = fs(22);
-            target[UiScaleKeys.SystemMessageIconSize] = fs(42);
+            target[UiScaleKeys.NotificationPanelHeight] = s(sysMsgHeight);
+            target[UiScaleKeys.NotificationPanelCornerRadius] = new CornerRadius(s(sysMsgHeight / 2)); 
+            target[UiScaleKeys.NotificationPanelMaxWidth] = s(1280); // макс ширина уведомления
+            target[UiScaleKeys.NotificationPanelPadding] = new Thickness(s(30), 0, s(50), 0); // внутр. оступы
+            target[UiScaleKeys.NotificationPanelOuterMargin] = new Thickness(s(0), s(0), s(50), 0); // внешний отступ
+            target[UiScaleKeys.NotificationPanelMargin] = new Thickness(s(0), 0, s(20), 0);
+            target[UiScaleKeys.NotificationPanelFontSize] = fs(22);
+            target[UiScaleKeys.NotificationPanelIconSize] = fs(42);
 
             // Витрина обложек
             target[UiScaleKeys.ItemCornerRadius] = s(23); // радиус обложек
@@ -136,21 +136,21 @@ namespace EZ2Play.App
         public const string AppInfoLabelFontSize = "AppInfoLabelFontSize";
 
         // ======================== Верхняя панель ========================
-        public const string TopInfoPanelMargin = "TopInfoPanelMargin";
+        public const string TopPanelMargin = "TopPanelMargin";
         public const string TopInfoTabsMargin = "TopInfoTabsMargin";
         public const string TopInfoPrimalyFontSize = "TopInfoPrimalyFontSize";
         public const string TopInfoSecondaryFontSize = "TopInfoSecondaryFontSize";
         public const string UserAvatarSize = "UserAvatarSize";
 
         // ======================== Системные уведомления ========================
-        public const string SystemMessageHeight = "SystemMessageHeight";
-        public const string SystemMessageMaxWidth = "SystemMessageMaxWidth";
-        public const string SystemMessageCornerRadius = "SystemMessageCornerRadius";
-        public const string SystemMessagePadding = "SystemMessagePadding";
-        public const string SystemMessageOuterMargin = "SystemMessageOuterMargin";
-        public const string SystemMessageMargin = "SystemMessageMargin";
-        public const string SystemMessageFontSize = "SystemMessageFontSize";
-        public const string SystemMessageIconSize = "SystemMessageIconSize";
+        public const string NotificationPanelHeight = "NotificationPanelHeight";
+        public const string NotificationPanelMaxWidth = "NotificationPanelMaxWidth";
+        public const string NotificationPanelCornerRadius = "NotificationPanelCornerRadius";
+        public const string NotificationPanelPadding = "NotificationPanelPadding";
+        public const string NotificationPanelOuterMargin = "NotificationPanelOuterMargin";
+        public const string NotificationPanelMargin = "NotificationPanelMargin";
+        public const string NotificationPanelFontSize = "NotificationPanelFontSize";
+        public const string NotificationPanelIconSize = "NotificationPanelIconSize";
 
         // ======================== Витрина обложек ========================
         public const string ItemCornerRadius = "ItemCornerRadius";
