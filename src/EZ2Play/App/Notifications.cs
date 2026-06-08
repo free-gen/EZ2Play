@@ -9,7 +9,7 @@ namespace EZ2Play.App
 {
     public class Notifications
     {
-        private readonly UIState _ui;
+        private readonly UIRegistry _ui;
         private Border _NotificationPanel;
         private TextBlock _NotificationText;
 
@@ -17,12 +17,12 @@ namespace EZ2Play.App
         private readonly Queue<Action> _queue = new Queue<Action>();
         private bool _running;
 
-        public Notifications(UIState uiState)
+        public Notifications(UIRegistry uiRegistry)
         {
-            _ui = uiState;
+            _ui = uiRegistry;
         }
 
-        // Инициализация UI-элементов (вызывается из UIState после того как они найдены)
+        // Инициализация UI-элементов (вызывается из UIRegistry после того как они найдены)
         public void Initialize(Border NotificationPanel, TextBlock NotificationText)
         {
             _NotificationPanel = NotificationPanel;

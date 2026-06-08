@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Security.Principal;
+using System.Runtime.InteropServices;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
 using Microsoft.Win32;
@@ -9,9 +10,13 @@ namespace EZ2Play.App
 {
     public static class SystemProvider
     {
+        // --------------- Поля ---------------
+
         private static DispatcherTimer _clockTimer;
-        
-        // ----- Аватар -----
+        private static IntPtr _mainWindowHandle;
+
+        // --------------- Аватар пользователя ---------------
+
         public static BitmapImage GetUserAvatar()
         {
             try
@@ -48,8 +53,9 @@ namespace EZ2Play.App
                 return null;
             }
         }
-        
-        // ----- Часы -----
+
+        // --------------- Системное время ---------------
+
         public static void StartClock(Action<string> onTimeChanged)
         {            
             _clockTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
@@ -64,8 +70,9 @@ namespace EZ2Play.App
         }
         
         public static string GetCurrentTime() => DateTime.Now.ToString("HH:mm");
-        
-        // ----- Xbox Game Bar -----
+
+        // --------------- Xbox Game Bar ---------------
+
         public static bool IsXboxGameBarInstalled()
         {
             try
@@ -87,5 +94,32 @@ namespace EZ2Play.App
                 return false;
             }
         }
+
+        // --------------- Окно и курсор ---------------
+
+        public static void SetMainWindowHandle(IntPtr handle)
+        {
+            _mainWindowHandle = handle;
+        }
+
+        public static bool IsForeground()
+        {
+            return GetForegroundWindow() == _mainWindowHandle;
+        }
+
+        public static void HideCursor()
+        {
+            System.Windows.Input.Mouse.OverrideCursor = System.Windows.Input.Cursors.None;
+        }
+
+        public static void ShowCursor()
+        {
+            System.Windows.Input.Mouse.OverrideCursor = null;
+        }
+
+        // --------------- Native imports ---------------
+
+        [DllImport("user32.dll")]
+        private static extern IntPtr GetForegroundWindow();
     }
 }

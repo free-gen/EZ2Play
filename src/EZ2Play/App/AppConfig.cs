@@ -11,6 +11,8 @@ namespace EZ2Play.App
         // Настройки уведомлений
         public bool GamebarNotificationShown { get; set; }
         public bool LastGamebarState { get; set; }
+        public bool HotSwapNotificationShown { get; set; }
+        public bool LastHotSwapState { get; set; }
 
         public AppConfig()
         {
@@ -21,6 +23,7 @@ namespace EZ2Play.App
             Load();
         }
 
+        // Логика уведолмения GameBar
         public bool ShouldShowGamebarNotification(bool currentState)
         {
             // Не показывали никогда → показать
@@ -38,11 +41,28 @@ namespace EZ2Play.App
             Save();
         }
 
+        // Логика уведолмения HotSwap
+        public bool ShouldShowHotSwapNotification(bool currentState)
+        {
+            // Не показывали никогда → показать
+            if (!HotSwapNotificationShown)
+                return true;
+            
+            // Показывали, но состояние изменилось → показать снова
+            return LastHotSwapState != currentState;
+        }
+
+        public void MarkHotSwapNotificationShown(bool currentState)
+        {
+            HotSwapNotificationShown = true;
+            LastHotSwapState = currentState;
+            Save();
+        }
+
         private void Load()
         {
             if (!File.Exists(_filePath))
             {
-                // Значения по умолчанию
                 GamebarNotificationShown = false;
                 LastGamebarState = false;
                 return;
@@ -57,11 +77,12 @@ namespace EZ2Play.App
                 {
                     GamebarNotificationShown = data.Notifications.GamebarShown;
                     LastGamebarState = data.Notifications.LastGamebarState;
+                    HotSwapNotificationShown = data.Notifications.HotSwapShown;
+                    LastHotSwapState = data.Notifications.LastHotSwapState;
                 }
             }
             catch
             {
-                // При ошибке — безопасные значения по умолчанию
                 GamebarNotificationShown = false;
                 LastGamebarState = false;
             }
@@ -80,7 +101,9 @@ namespace EZ2Play.App
                     Notifications = new NotificationSettings
                     {
                         GamebarShown = GamebarNotificationShown,
-                        LastGamebarState = LastGamebarState
+                        LastGamebarState = LastGamebarState,
+                        HotSwapShown = HotSwapNotificationShown,
+                        LastHotSwapState = LastHotSwapState
                     }
                 };
 
@@ -100,6 +123,8 @@ namespace EZ2Play.App
         {
             public bool GamebarShown { get; set; }
             public bool LastGamebarState { get; set; }
+            public bool HotSwapShown { get; set; }
+            public bool LastHotSwapState { get; set; }
         }
     }
 }

@@ -38,9 +38,7 @@ namespace EZ2Play.App
         // ========================= СЕССИЯ =========================
 
         public void Start(string gameId)
-        {
-            Console.WriteLine("START: " + gameId);
-            
+        {            
             _currentGameId = NormalizeGameId(gameId);
             _startTime = DateTime.Now;
             _isRunning = true;

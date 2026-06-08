@@ -16,7 +16,7 @@ namespace EZ2Play.App
         // --------------- Поля класса ---------------
 
         private readonly FrameworkElement _window;
-        private readonly Sound _audioManager;
+        private readonly Sound _sound;
         private StackPanel _displayTogglePanel;
         private bool _isExternalDisplay = false;
         private bool _hasMultipleDisplays = false;
@@ -62,7 +62,7 @@ namespace EZ2Play.App
         {
             _window = window;
             _wasLaunchedWithHotswap = wasLaunchedWithHotswap;
-            _audioManager = audioManager;
+            _sound = audioManager;
 
             // Проверяем наличие Xbox Game Bar при запуске
             _isXboxGameBarInstalled = SystemProvider.IsXboxGameBarInstalled();
@@ -86,19 +86,13 @@ namespace EZ2Play.App
 
             try
             {
-                _audioManager?.PlayBackSound();
+                _sound?.PlayBackSound();
 
                 _isExternalDisplay = !_isExternalDisplay;
 
                 var argument = _isExternalDisplay ? "/external" : "/internal";
 
-                Process.Start(new ProcessStartInfo
-                {
-                    FileName = "DisplaySwitch.exe",
-                    Arguments = argument,
-                    UseShellExecute = true,
-                    CreateNoWindow = true
-                });
+                RunDisplaySwitch(argument);
             }
             catch
             {
@@ -165,18 +159,12 @@ namespace EZ2Play.App
 
             try
             {
-                _audioManager?.PlayBackSound();
+                _sound?.PlayBackSound();
 
                 _isExternalDisplay = !_isExternalDisplay;
                 var argument = _isExternalDisplay ? "/external" : "/internal";
 
-                Process.Start(new ProcessStartInfo
-                {
-                    FileName = "DisplaySwitch.exe",
-                    Arguments = argument,
-                    UseShellExecute = true,
-                    CreateNoWindow = true
-                });
+                RunDisplaySwitch(argument);
             }
             catch (Exception ex)
             {
@@ -279,21 +267,35 @@ namespace EZ2Play.App
             {
                 try
                 {
-                    _audioManager?.PlayBackSound();
+                    _sound?.PlayBackSound();
 
                     var argument = _isExternalDisplay ? "/internal" : "/external";
 
-                    Process.Start(new ProcessStartInfo
-                    {
-                        FileName = "DisplaySwitch.exe",
-                        Arguments = argument,
-                        UseShellExecute = true,
-                        CreateNoWindow = true
-                    });
+                    RunDisplaySwitch(argument);
                 }
                 catch (Exception)
                 {
                 }
+            }
+        }
+
+        // --------------- Вспомогательные методы ---------------
+
+        private void RunDisplaySwitch(string argument)
+        {
+            try
+            {
+                Process.Start(new ProcessStartInfo
+                {
+                    FileName = "DisplaySwitch.exe",
+                    Arguments = argument,
+                    UseShellExecute = true,
+                    CreateNoWindow = true
+                });
+            }
+            catch
+            {
+                // Игнорируем ошибки запуска
             }
         }
 

@@ -1,5 +1,4 @@
 using System;
-using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
@@ -17,12 +16,12 @@ namespace EZ2Play
 
     public partial class MainWindow : FluentWindow
     {
-        // --------------- Поля класса ---------------
+        // --------------- Поля ---------------
 
-        private Sound _audioManager;
+        private Sound _sound;
         private Input _input;
         private Display _display;
-        private UIState _uiState;
+        private UIRegistry _uiRegistry;
         private Launcher _launcher;
         private GuideExitHandler _guideHandler;
 
@@ -42,39 +41,56 @@ namespace EZ2Play
 
         public bool IsGamepadConnected { get; private set; }
 
-        // --------------- Native импорты ---------------
-
-        [DllImport("user32.dll")]
-        private static extern IntPtr GetForegroundWindow();
+        public void ShowLoadingUI(bool show)
+        {
+            _uiRegistry.ShowLoading(show);
+        }
 
         // --------------- Конструктор ---------------
 
-        // Инициализирует главное окно и все компоненты
         public MainWindow(bool hotSwap = false)
         {
             InitializeComponent();
+            _hotSwapLaunch = hotSwap;
 
-            // Подписка на события окна
+            SubscribeEvents();
+            OptimizeListBoxPerformance();
+            InitializeComponents();
+            InitializeUIRegistry();
+            InitializeLauncher();
+            InitializeTimers();
+            InitializeUI();
+        }
+
+        // --------------- Инициализация ---------------
+
+        private void SubscribeEvents()
+        {
             PreviewKeyDown += MainWindow_PreviewKeyDown;
-            RenderOptions.SetBitmapScalingMode(this, BitmapScalingMode.HighQuality);
             SizeChanged += OnWindowSizeChanged;
             Loaded += (s, e) => UpdateUiScaleResources(ActualHeight > 0 ? ActualHeight : LayoutScaler.ReferenceHeight);
+            
+            RenderOptions.SetBitmapScalingMode(this, BitmapScalingMode.HighQuality);
             UpdateUiScaleResources(ActualHeight > 0 ? ActualHeight : LayoutScaler.ReferenceHeight);
+        }
 
-            // Оптимизация ListBox
-            OptimizeListBoxPerformance();
+        private void OptimizeListBoxPerformance()
+        {
+            ItemsListBox.ManipulationBoundaryFeedback += (s, e) => e.Handled = true;
+        }
 
-            // Инициализация компонентов
-            _audioManager = new Sound();
-            _hotSwapLaunch = hotSwap;
-            _display = new Display(this, hotSwap, _audioManager);
+        private void InitializeComponents()
+        {
+            _sound = new Sound();
+            _display = new Display(this, _hotSwapLaunch, _sound);
             _input = new Input();
-            _guideHandler = new GuideExitHandler(_audioManager);
-
+            _guideHandler = new GuideExitHandler(_sound);
             _particlesCanvas = FindName("particles") as ParticlesCanvas;
+        }
 
-            // Инициализация UIState с прямыми ссылками на UI-элементы
-            _uiState = new UIState
+        private void InitializeUIRegistry()
+        {
+            _uiRegistry = new UIRegistry
             {
                 TabGamelistText = FindName("TabGamelistText") as System.Windows.Controls.TextBlock,
                 TabLastPlayedText = FindName("TabLastPlayedText") as System.Windows.Controls.TextBlock,
@@ -101,52 +117,32 @@ namespace EZ2Play
                 NotificationPanel = FindName("NotificationPanel") as System.Windows.Controls.Border,
                 NotificationText = FindName("NotificationText") as System.Windows.Controls.TextBlock,
                 BackgroundImage = FindName("BackgroundImage") as System.Windows.Controls.Image,
+                GameCounterText = FindName("GameCounterText") as System.Windows.Controls.TextBlock,
+                GameCounterCard = FindName("GameCounterCard") as System.Windows.Controls.Border,
                 ItemsListBox = ItemsListBox
             };
 
-            _uiState.InitializeSplash(SplashLogo, SplashOverlay, MainScreenGrid);
-            _uiState.InitializeNotifications(NotificationPanel, NotificationText);
-            _uiState.CarouselWrapper = FindName("CarouselWrapper") as Grid;
-
-            // Управление фоном
-            bool hasImage = _uiState.LoadBackgroundImage();
-            _uiState.SetParticlesCanvas(_particlesCanvas);
-
-            // Инициализация Launcher с прямыми ссылками
-            _launcher = new Launcher(ItemsListBox, _uiState.SelectedGameTitle, this, _audioManager);
-            
-            // Счетчик времени
-            _metadata = _launcher.Playtime;
-            _config = new AppConfig();
-
-            // Настройка панели переключения дисплея
-            SetupDisplayTogglePanel();
-
-            // Таймер активности
-            _activityTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(300) };
-            ItemsListBox.ItemContainerGenerator.StatusChanged += ItemContainerGenerator_StatusChanged;
-            _activityTimer.Tick += CheckAppActivity;
-
-            // Инициализация карусели
-            InitializeCarouselSelectedItem();
-
-            // Локализация
-            Locals.ApplyLocalization(this);
-
-            // Начальная прозрачность
-            Opacity = 0.0;
-
-            // Инициализация UI
-            _uiState.InitializeClock();
-            _uiState.LoadUserAvatar();
+            _uiRegistry.InitializeSplash(SplashLogo, SplashOverlay, MainScreenGrid);
+            _uiRegistry.InitializeNotifications(NotificationPanel, NotificationText);
+            _uiRegistry.CarouselWrapper = FindName("CarouselWrapper") as System.Windows.Controls.Grid;
+            _uiRegistry.LoadBackgroundImage();
+            _uiRegistry.SetParticlesCanvas(_particlesCanvas);
+            _uiRegistry.InitializeLoadingRing(FindName("LoadingProgress") as Wpf.Ui.Controls.ProgressRing);
         }
 
-        // --------------- Настройка компонентов ---------------
+        private void InitializeLauncher()
+        {
+            _launcher = new Launcher(ItemsListBox, _uiRegistry.SelectedGameTitle, this, _sound);
+            _metadata = _launcher.Playtime;
+            _config = new AppConfig();
+            
+            SetupDisplayTogglePanel();
+            InitializeCarouselSelectedItem();
+        }
 
-        // Настраивает панель переключения дисплея
         private void SetupDisplayTogglePanel()
         {
-            if (_uiState.BottomPanel?.Child is System.Windows.Controls.StackPanel mainStackPanel && mainStackPanel.Children.Count >= 3)
+            if (_uiRegistry.BottomPanel?.Child is System.Windows.Controls.StackPanel mainStackPanel && mainStackPanel.Children.Count >= 3)
             {
                 var displayTogglePanel = mainStackPanel.Children[2] as System.Windows.Controls.StackPanel;
                 if (displayTogglePanel != null)
@@ -156,62 +152,81 @@ namespace EZ2Play
             }
         }
 
+        private void InitializeTimers()
+        {
+            _activityTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(300) };
+            _activityTimer.Tick += CheckAppActivity;
+            
+            ItemsListBox.ItemContainerGenerator.StatusChanged += ItemContainerGenerator_StatusChanged;
+        }
+
+        private void InitializeUI()
+        {
+            Locals.ApplyLocalization(this);
+            Opacity = 0.0;
+            
+            _uiRegistry.InitializeClock();
+            _uiRegistry.LoadUserAvatar();
+        }
+
         // --------------- Управление активностью ---------------
 
-        // Проверяет активность приложения и управляет музыкой/курсором
         private void CheckAppActivity(object sender, EventArgs e)
         {
-            bool isActive = IsReallyForeground();
+            bool isActive = SystemProvider.IsForeground();
 
-            // Лаунчер стал активным (вернулись из игры)
             if (isActive && !_wasActive)
             {
-                _audioManager.PlayBackgroundMusic(Sound.FadeDurationMs * 3);
-                HideCursor();
-                _uiState.ShowBackground(true);
-
-                _metadata.Stop();
-                UpdatePlaytime();
-
-                if (_currentTab == TabType.LastPlayed)
-                {
-                    _launcher.SortByLastPlayed();
-                }
+                OnBecameActive();
             }
-
-            // Лаунчер потерял фокус (запустили игру)
             else if (!isActive && _wasActive)
             {
-                _audioManager.StopBackgroundMusicSafe(Sound.FadeDurationMs);
-                ShowLoading(false);
-                ShowCursor();
-                _uiState.ShowBackground(false);
+                OnBecameInactive();
             }
 
             _wasActive = isActive;
         }
 
-        // --------------- Обработка ввода ---------------
+        private void OnBecameActive()
+        {
+            _sound.PlayBackgroundMusic(Sound.FadeDurationMs * 3);
+            SystemProvider.HideCursor();
+            _uiRegistry.ShowBackground(true);
 
-        // Обработчик нажатия клавиш
+            _metadata.Stop();
+            UpdatePlaytimeUI();
+
+            if (_currentTab == TabType.LastPlayed)
+            {
+                _launcher.SortByLastPlayed();
+            }
+        }
+
+        private void OnBecameInactive()
+        {
+            _sound.StopBackgroundMusicSafe(Sound.FadeDurationMs);
+            _uiRegistry.ShowLoading(false);
+            SystemProvider.ShowCursor();
+            _uiRegistry.ShowBackground(false);
+        }
+
+        // --------------- Ввод с клавиатуры ---------------
+
         private void MainWindow_KeyDown(object sender, KeyEventArgs e)
         {
             _input.HandleKeyDown(e.Key);
         }
 
-        // Обработчик отпускания клавиш
         private void MainWindow_KeyUp(object sender, KeyEventArgs e)
         {
             _input.HandleKeyUp(e.Key);
         }
 
-        // Настраивает события ввода
         private void SetupInputEvents()
         {
             _input.OnMoveSelection += _launcher.MoveSelection;
             _input.OnLaunchSelected += _launcher.LaunchSelected;
             _input.OnExitApplication += ExitApplication;
-
             _input.OnSwitchToGamelist += SwitchToGamelist;
             _input.OnSwitchToLastPlayed += SwitchToLastPlayed;
 
@@ -221,227 +236,49 @@ namespace EZ2Play
             }
         }
 
-        // Переключение в Gamelist
+        // --------------- Вкладки ---------------
+
         private async void SwitchToGamelist()
         {
-            if (_currentTab == TabType.Gamelist)
-                return;
-
+            if (_currentTab == TabType.Gamelist) return;
             _currentTab = TabType.Gamelist;
 
-            AnimateTab(_uiState.TabGamelistText, true);
-            AnimateTab(_uiState.TabLastPlayedText, false);
+            TabsAnimation.AnimateTabText(_uiRegistry.TabGamelistText, true);
+            TabsAnimation.AnimateTabText(_uiRegistry.TabLastPlayedText, false);
 
-            // Анимация тела с сортировкой
-            await AnimateCarouselBodyAsync(() => _launcher.SortDefault(), -1);
+            await TabsAnimation.AnimateCarouselSwitch(
+                _uiRegistry.CarouselWrapper,
+                Dispatcher,
+                ActualWidth,
+                () => _launcher.SortDefault(),
+                -1);
         }
 
-        // Переключение в LastPlayed
         private async void SwitchToLastPlayed()
         {
-            if (_currentTab == TabType.LastPlayed)
-                return;
-
+            if (_currentTab == TabType.LastPlayed) return;
             _currentTab = TabType.LastPlayed;
 
-            AnimateTab(_uiState.TabLastPlayedText, true);
-            AnimateTab(_uiState.TabGamelistText, false);
+            TabsAnimation.AnimateTabText(_uiRegistry.TabLastPlayedText, true);
+            TabsAnimation.AnimateTabText(_uiRegistry.TabGamelistText, false);
 
-            // Анимация тела с сортировкой
-            await AnimateCarouselBodyAsync(() => _launcher.SortByLastPlayed(), 1);
+            await TabsAnimation.AnimateCarouselSwitch(
+                _uiRegistry.CarouselWrapper,
+                Dispatcher,
+                ActualWidth,
+                () => _launcher.SortByLastPlayed(),
+                1);
         }
 
-        // Анимация переключения табов
-        private void AnimateTab(System.Windows.Controls.TextBlock text, bool active)
+        // --------------- Обновление UI счетчика ---------------
+
+        private void UpdatePlaytimeUI()
         {
-            var anim = new DoubleAnimation
-            {
-                To = active ? 1.0 : 0.5,
-                Duration = TimeSpan.FromMilliseconds(150),
-                EasingFunction = new QuadraticEase { EasingMode = EasingMode.EaseOut }
-            };
-
-            text.BeginAnimation(UIElement.OpacityProperty, anim);
-
-            if (active)
-            {
-                text.SetResourceReference(
-                    System.Windows.Controls.TextBlock.FontSizeProperty,
-                    UiScaleKeys.TopInfoPrimalyFontSize);
-            }
-            else
-            {
-                text.SetResourceReference(
-                    System.Windows.Controls.TextBlock.FontSizeProperty,
-                    UiScaleKeys.TopInfoSecondaryFontSize);
-            }
-
-            text.FontWeight = active ? FontWeights.ExtraBold : FontWeights.Medium;
-        }
-
-        // Анимация обновления CarouselWrapper
-        private async Task AnimateCarouselBodyAsync(Action sortAction, int direction)
-        {
-            if (_uiState.CarouselWrapper == null)
-                return;
-
-            var wrapper = _uiState.CarouselWrapper;
-
-            // GPU кеш
-            if (wrapper.CacheMode == null)
-                wrapper.CacheMode = new BitmapCache();
-
-            if (!(wrapper.RenderTransform is TranslateTransform))
-            {
-                wrapper.RenderTransform = new TranslateTransform();
-            }
-
-            var transform = (TranslateTransform)wrapper.RenderTransform;
-
-            // Сброс анимаций
-            wrapper.BeginAnimation(UIElement.OpacityProperty, null);
-            transform.BeginAnimation(TranslateTransform.XProperty, null);
-
-            // Отключаем взаимодействие (чтобы WPF не трогал layout во время анимации)
-            wrapper.IsHitTestVisible = false;
-
-            // Стартовая позиция
-            transform.X = ActualWidth * 0.05 * direction;
-
-            // Скрываем
-            wrapper.Opacity = 0;
-
-            // Даем UI скрыться
-            await Dispatcher.Yield(DispatcherPriority.Render);
-
-            // Сортировка
-            sortAction.Invoke();
-
-            // Даем WPF пересобрать layout
-            await Dispatcher.Yield(DispatcherPriority.Background);
-
-            var duration = TimeSpan.FromMilliseconds(150);
-
-            var fadeIn = new DoubleAnimation(0, 1, duration);
-            var slide = new DoubleAnimation(transform.X, 0, duration)
-            {
-                EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut }
-            };
-
-            // Возвращаем hit test после завершения анимации
-            fadeIn.Completed += (s, e) =>
-            {
-                wrapper.IsHitTestVisible = true;
-            };
-
-            wrapper.BeginAnimation(UIElement.OpacityProperty, fadeIn);
-            transform.BeginAnimation(TranslateTransform.XProperty, slide);
-        }
-
-        // --------------- Управление UI ---------------
-
-        // Показывает или скрывает индикатор загрузки
-        public void ShowLoading(bool show)
-        {
-            var ring = FindName("LoadingProgress") as Wpf.Ui.Controls.ProgressRing;
-            if (ring != null)
-            {
-                ring.Visibility = show ? Visibility.Visible : Visibility.Collapsed;
-            }
-        }
-
-        // --------------- Пост-сплеш инициализация ---------------
-
-        // Запускает музыку и управление после завершения сплеша
-        private void StartPostSplash()
-        {   
-            _launcher.LoadShortcuts();
-            
-            bool isEmpty = _launcher.Shortcuts.Length == 0;
-            _uiState.SetEmptyState(isEmpty);
-
-            // Показываем MainScreenGrid только если есть ярлыки
-            if (!isEmpty)
-            {
-                var baseGrid = FindName("MainScreenGrid") as System.Windows.Controls.Grid;
-                if (baseGrid != null)
-                {
-                    baseGrid.Visibility = Visibility.Visible;
-                    baseGrid.Opacity = 0;
-
-                    var fadeIn = new DoubleAnimation(0, 1, TimeSpan.FromMilliseconds(300))
-                    {
-                        EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut }
-                    };
-
-                    fadeIn.Completed += (s, args) =>
-                    {
-                        _uiState.ShowBackground(true);
-                    };
-
-                    baseGrid.BeginAnimation(UIElement.OpacityProperty, fadeIn);
-
-                    // Тестовое уведомление
-                    // _uiState.Notifications.Debug(1, 5);
-
-                    // Системное уведомление о состоянии XboxGameBar (только при изменении)
-                    bool gamebarInstalled = SystemProvider.IsXboxGameBarInstalled();
-                    if (_config.ShouldShowGamebarNotification(gamebarInstalled))
-                    {
-                        _uiState.Notifications.GameBar(1, 5, gamebarInstalled);
-                        _config.MarkGamebarNotificationShown(gamebarInstalled);
-                    }
-
-                    if (_hotSwapLaunch)
-                    {
-                        _uiState.Notifications.HotSwap(3, 5);
-                    }
-                }
-            }
-
-            _activityTimer.Start();
-            SetupInputEvents();
-            KeyDown += MainWindow_KeyDown;
-            KeyUp += MainWindow_KeyUp;
-            _input.OnGamepadConnectionChanged += OnGamepadConnectionChanged;
-            IsGamepadConnected = _input.IsGamepadConnected;
-            _uiState.RefreshHintIcons(IsGamepadConnected);
-        }
-
-        // --------------- Обработчики событий ---------------
-
-        // Обработчик изменения подключения геймпада
-        private void OnGamepadConnectionChanged(bool connected, string deviceName)
-        {
-            IsGamepadConnected = connected;
-            _uiState.RefreshHintIcons(connected);
-
-            // Если геймпад подключился, показываем уведомление с его именем
-            if (connected)
-            {
-                _uiState.Notifications.HotPlug(0, 3, deviceName);
-            }
-        }
-
-        // Обработчик изменения выбора в ListBox
-        private void ItemsListBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            var listBox = sender as System.Windows.Controls.ListBox;
-            if (listBox == ItemsListBox)
-                _launcher.HandleSelectionChangedAndAnimate(listBox, e);
-            
-            UpdatePlaytime();
-        }
-
-        // Обновление счетчика
-        private void UpdatePlaytime()
-        {
-            // Проверяем, что элементы существуют
-            if (GameCounterText == null || GameCounterCard == null)
-                return;
-
             if (_launcher.Shortcuts.Length == 0)
+            {
+                _uiRegistry.UpdatePlaytimeDisplay("", false);
                 return;
+            }
 
             var shortcut = _launcher.Shortcuts[_launcher.SelectedIndex];
             string gameId = shortcut.FullPath;
@@ -450,41 +287,158 @@ namespace EZ2Play
             
             if (seconds == 0)
             {
-                GameCounterCard.Visibility = Visibility.Collapsed;
+                _uiRegistry.UpdatePlaytimeDisplay("", false);
             }
             else
             {
-                GameCounterCard.Visibility = Visibility.Visible;
-                
-                // Получаем значение и тип (часы или минуты)
                 var (value, isHours) = _metadata.GetFormattedValue(gameId);
-                
-                // Форматируем через локализацию
-                GameCounterText.Text = Locals.GetFormattedTime(value, isHours);
+                string text = Locals.GetFormattedTime(value, isHours);
+                _uiRegistry.UpdatePlaytimeDisplay(text, true);
             }
         }
 
-        // Оптимизирует производительность ListBox
-        private void OptimizeListBoxPerformance()
-        {
-            ItemsListBox.ManipulationBoundaryFeedback += (s, e) => e.Handled = true;
-        }
+        // --------------- UI управление ---------------
 
-        // Инициализирует выбранный элемент карусели
         private void InitializeCarouselSelectedItem()
         {
             CarouselAnimation.InitializeSelectedItem(ItemsListBox);
         }
 
-        // Обработчик завершения генерации контейнеров ListBox
         private void ItemContainerGenerator_StatusChanged(object sender, EventArgs e)
         {
             if (ItemsListBox.ItemContainerGenerator.Status ==
                 System.Windows.Controls.Primitives.GeneratorStatus.ContainersGenerated)
+            {
                 InitializeCarouselSelectedItem();
+            }
         }
 
-        // Обработчик изменения размера окна
+        private void UpdateUiScaleResources(double windowHeight)
+        {
+            LayoutScaler.ApplyUiScaleToDictionary(this.Resources, windowHeight);
+        }
+
+        // --------------- Обработчики событий от компонентов ---------------
+
+        private void OnGamepadConnectionChanged(bool connected, string deviceName)
+        {
+            IsGamepadConnected = connected;
+            _uiRegistry.RefreshHintIcons(connected);
+
+            if (connected)
+            {
+                _uiRegistry.Notifications.HotPlug(0, 3, deviceName);
+            }
+        }
+
+        private void ItemsListBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            var listBox = sender as ListBox;
+            if (listBox == ItemsListBox)
+            {
+                _launcher.HandleSelectionChangedAndAnimate(listBox, e);
+            }
+            
+            UpdatePlaytimeUI();
+        }
+
+        // --------------- Пост-сплеш инициализация ---------------
+
+        private void StartPostSplash()
+        {
+            _launcher.LoadShortcuts();
+            
+            bool isEmpty = _launcher.Shortcuts.Length == 0;
+            _uiRegistry.SetEmptyState(isEmpty);
+
+            if (!isEmpty)
+            {
+                ShowMainScreenWithAnimation();
+                ShowStartupNotifications();
+            }
+
+            StartApplication();
+        }
+
+        private void ShowMainScreenWithAnimation()
+        {
+            var baseGrid = FindName("MainScreenGrid") as System.Windows.Controls.Grid;
+            if (baseGrid == null) return;
+
+            baseGrid.Visibility = Visibility.Visible;
+            baseGrid.Opacity = 0;
+
+            var fadeIn = new DoubleAnimation(0, 1, TimeSpan.FromMilliseconds(300))
+            {
+                EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut }
+            };
+
+            fadeIn.Completed += (s, args) => _uiRegistry.ShowBackground(true);
+            baseGrid.BeginAnimation(UIElement.OpacityProperty, fadeIn);
+        }
+
+        private void ShowStartupNotifications()
+        {
+            // Уведомление XboxGameBar
+            bool gamebarInstalled = SystemProvider.IsXboxGameBarInstalled();
+            if (_config.ShouldShowGamebarNotification(gamebarInstalled))
+            {
+                _uiRegistry.Notifications.GameBar(1, 5, gamebarInstalled);
+                _config.MarkGamebarNotificationShown(gamebarInstalled);
+            }
+
+            // Уведомление HotSwap
+            if (_config.ShouldShowHotSwapNotification(_hotSwapLaunch))
+            {
+                if (_hotSwapLaunch)
+                {
+                    _uiRegistry.Notifications.HotSwap(2, 8);
+                }
+                _config.MarkHotSwapNotificationShown(_hotSwapLaunch);
+            }
+        }
+
+        private void StartApplication()
+        {
+            _activityTimer.Start();
+            SetupInputEvents();
+            
+            KeyDown += MainWindow_KeyDown;
+            KeyUp += MainWindow_KeyUp;
+            
+            _input.OnGamepadConnectionChanged += OnGamepadConnectionChanged;
+            IsGamepadConnected = _input.IsGamepadConnected;
+            _uiRegistry.RefreshHintIcons(IsGamepadConnected);
+        }
+
+        // --------------- Управление приложением ---------------
+
+        private void ExitApplication()
+        {
+            _sound.PlayBackSound();
+            _sound.StopBackgroundMusicSafe(Sound.FadeDurationMs);
+            
+            _uiRegistry.ShowBackground(false);
+            _input.OnExitApplication -= ExitApplication;
+            _uiRegistry.ShowExitOverlay();
+
+            Task.Delay(2000).ContinueWith(_ => Dispatcher.Invoke(Close));
+        }
+
+        public void ShowWithAnimation(bool skipSplash = false)
+        {
+            ShowInTaskbar = true;
+            SystemProvider.HideCursor();
+
+            _uiRegistry.ShowWithAnimation(skipSplash, () =>
+            {
+                StartPostSplash();
+                Activate();
+            });
+        }
+
+        // --------------- Размеры и масштабирование ---------------
+
         private void OnWindowSizeChanged(object sender, SizeChangedEventArgs e)
         {
             double h = ActualHeight;
@@ -497,71 +451,8 @@ namespace EZ2Play
             ItemsListBox.Items.Refresh();
         }
 
-        // Обновляет ресурсы масштабирования UI
-        private void UpdateUiScaleResources(double windowHeight)
-        {
-            LayoutScaler.ApplyUiScaleToDictionary(this.Resources, windowHeight);
-        }
+        // --------------- Жизненный цикл окна ---------------
 
-        // --------------- Управление курсором ---------------
-
-        // Скрывает курсор
-        private void HideCursor()
-        {
-            Mouse.OverrideCursor = Cursors.None;
-        }
-
-        // Показывает курсор
-        private void ShowCursor()
-        {
-            Mouse.OverrideCursor = null;
-        }
-
-        // --------------- Состояние окна ---------------
-
-        // Проверяет, является ли окно активным foreground-окном
-        private bool IsReallyForeground()
-        {
-            var hwnd = new WindowInteropHelper(this).Handle;
-            var foreground = GetForegroundWindow();
-            return hwnd == foreground;
-        }
-
-        // --------------- Управление приложением ---------------
-
-        // Выход из приложения с анимацией
-        private void ExitApplication()
-        {
-            _audioManager.PlayBackSound();
-            _audioManager.StopBackgroundMusicSafe(Sound.FadeDurationMs);
-            
-            _uiState.ShowBackground(false);
-
-            _input.OnExitApplication -= ExitApplication;
-            _uiState.ShowExitOverlay();
-
-            Task.Delay(2000).ContinueWith(_ =>
-            {
-                Dispatcher.Invoke(Close);
-            });
-        }
-
-        // Показывает окно с анимацией
-        public void ShowWithAnimation(bool skipSplash = false)
-        {
-            ShowInTaskbar = true;
-            HideCursor();
-
-            _uiState.ShowWithAnimation(skipSplash, () =>
-            {
-                StartPostSplash();
-                Activate();
-            });
-        }
-
-        // --------------- Переопределения жизненного цикла окна ---------------
-
-        // Обработчик активации окна
         protected override void OnActivated(EventArgs e)
         {
             base.OnActivated(e);
@@ -572,23 +463,23 @@ namespace EZ2Play
             }
         }
 
-        // Обработчик закрытия окна
         protected override void OnClosed(EventArgs e)
         {
             _display?.HandleHotswapOnExit();
             _input?.Dispose();
             _guideHandler?.Dispose();
-            _audioManager?.Dispose();
-            _uiState?.Dispose();
+            _sound?.Dispose();
+            _uiRegistry?.Dispose();
             _display?.Dispose();
-            ShowCursor();
+            SystemProvider.ShowCursor();
             base.OnClosed(e);
         }
 
-        // Инициализация источника окна (hook для WndProc)
         protected override void OnSourceInitialized(EventArgs e)
         {
             base.OnSourceInitialized(e);
+            SystemProvider.SetMainWindowHandle(new WindowInteropHelper(this).Handle);
+            
             try
             {
                 var source = (HwndSource)PresentationSource.FromVisual(this);
@@ -597,7 +488,6 @@ namespace EZ2Play
             catch { }
         }
 
-        // Обработчик изменения DPI
         protected override void OnDpiChanged(DpiScale oldDpi, DpiScale newDpi)
         {
             base.OnDpiChanged(oldDpi, newDpi);
@@ -613,7 +503,6 @@ namespace EZ2Play
 
         // --------------- Блокировка ввода ---------------
 
-        // Блокирует нажатие Tab (не будет обрабатываться системой)
         private void MainWindow_PreviewKeyDown(object sender, KeyEventArgs e)
         {
             if (e.Key == Key.Tab)

@@ -48,6 +48,7 @@ namespace EZ2Play.App
 
         private const uint WM_CLOSE = 0x0010;
         private const int DEBOUNCE_MS = 500;
+        private const short GUIDE_BUTTON_MASK = 0x0400;
 
         // --------------- Поля класса ---------------
 
@@ -78,32 +79,31 @@ namespace EZ2Play.App
                 var stateEx = new XInputStateEx();
                 int result = XInputGetState(0, ref stateEx);
 
-                // Кнопка GUIDE = 0x0400
-                if (result == 0 && (stateEx.Gamepad.wButtons & 0x0400) != 0)
+                // Кнопка GUIDE
+                if (result == 0 && (stateEx.Gamepad.wButtons & GUIDE_BUTTON_MASK) != 0)
                 {
-                    // Если установлен Xbox Game Bar, полностью игнорируем нажатие Guide.
+                    // Если установлен Xbox Game Bar, полностью игнорируем нажатие Guide
                     if (_isXboxGameBarInstalled)
                     {
-                        return; 
+                        return;
+                    }
+
+                    // Если лаунчер в фокусе — игнорируем Guide (не нужно закрывать лаунчер)
+                    if (SystemProvider.IsForeground())
+                    {
+                        return;
                     }
 
                     long now = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
-                    
+
                     // Защита от повторных нажатий (debounce)
                     if (now - _lastPressMs > DEBOUNCE_MS)
                     {
                         _lastPressMs = now;
                         _audio?.PlayBackSound();
 
-                        // Закрываем только если лаунчер НЕ в фокусе
+                        // Закрываем окно, которое сейчас в фокусе (игра)
                         IntPtr hwnd = GetForegroundWindow();
-                        if (Application.Current?.MainWindow != null)
-                        {
-                            var launcherHwnd = new WindowInteropHelper(Application.Current.MainWindow).Handle;
-                            if (hwnd == launcherHwnd)
-                                return;
-                        }
-
                         if (hwnd != IntPtr.Zero)
                             PostMessage(hwnd, WM_CLOSE, IntPtr.Zero, IntPtr.Zero);
                     }

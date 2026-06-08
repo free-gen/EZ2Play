@@ -1,10 +1,9 @@
 using System;
-using System.Diagnostics;
 using System.Linq;
-using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Threading;
+using System.Diagnostics;
 using SharpDX.DirectInput;
 
 namespace EZ2Play.App
@@ -13,7 +12,7 @@ namespace EZ2Play.App
 
     public class Input : IDisposable
     {
-        // --------------- Настройки и константы ---------------
+        // --------------- Константы ---------------
 
         // Задержки ввода (мс)
         private const int InitialDelay = 300;
@@ -24,27 +23,33 @@ namespace EZ2Play.App
         private const int GamepadPollInterval = 16;
         private const int GamepadCheckInterval = 2000;
 
-        // --------------- Поля DirectInput ---------------
+        // Мертвые зоны стика
+        private const int StickLeftThreshold = 16384;
+        private const int StickRightThreshold = 49152;
 
+        // D-Pad направления (градусы)
+        private const int DPadLeft = 27000;
+        private const int DPadRight = 9000;
+
+        // --------------- Поля ---------------
+
+        // DirectInput
         private DirectInput _directInput;
         private Joystick _joystick;
 
-        // --------------- Таймеры ---------------
-
+        // Таймеры
         private DispatcherTimer _keyboardTimer;
         private DispatcherTimer _gamepadTimer;
         private DispatcherTimer _gamepadCheckTimer;
 
-        // --------------- Состояние клавиатуры ---------------
-
+        // Состояние клавиатуры
         private bool _leftKeyPressed;
         private bool _rightKeyPressed;
-        private long _keyHoldStart;
+        private long _keyHoldStart = -1;
         private long _lastKeyboardInput;
 
-        // --------------- Состояние геймпада ---------------
-
-        private long _gamepadHoldStart;
+        // Состояние геймпада
+        private long _gamepadHoldStart = -1;
         private long _lastGamepadNavInput;
         private long _lastGamepadButtonInput;
         private readonly Stopwatch _stopwatch = Stopwatch.StartNew();
@@ -56,21 +61,12 @@ namespace EZ2Play.App
         public event Action OnExitApplication;
         public event Action OnToggleDisplay;
         public event Action<bool, string> OnGamepadConnectionChanged;
-
         public event Action OnSwitchToGamelist;
         public event Action OnSwitchToLastPlayed;
 
-        // --------------- Публичные свойства ---------------
+        // --------------- Свойства ---------------
 
         public bool IsGamepadConnected { get; private set; }
-
-        // --------------- Native imports ---------------
-
-        [DllImport("user32.dll")]
-        private static extern IntPtr GetForegroundWindow();
-
-        [DllImport("user32.dll")]
-        private static extern int GetWindowThreadProcessId(IntPtr hWnd, out int lpdwProcessId);
 
         // --------------- Конструктор ---------------
 
@@ -83,7 +79,6 @@ namespace EZ2Play.App
 
         // --------------- Инициализация ---------------
 
-        // Настройка DirectInput и подключение геймпада
         private void InitializeGamepad()
         {
             try
@@ -94,12 +89,10 @@ namespace EZ2Play.App
             catch { }
         }
 
-        // Поиск и подключение первого доступного геймпада
         private void ConnectGamepad()
         {
             try
             {
-                // Освобождаем старое устройство
                 if (_joystick != null)
                 {
                     _joystick.Unacquire();
@@ -107,37 +100,18 @@ namespace EZ2Play.App
                     _joystick = null;
                 }
 
-                // Поиск устройств
                 var devices = _directInput.GetDevices(DeviceType.Gamepad, DeviceEnumerationFlags.AllDevices)
                     .Concat(_directInput.GetDevices(DeviceType.Joystick, DeviceEnumerationFlags.AllDevices))
                     .ToList();
 
                 if (devices.Count > 0)
                 {
-                    // Подключаем первое найденное устройство
                     _joystick = new Joystick(_directInput, devices[0].InstanceGuid);
                     _joystick.Properties.BufferSize = 128;
                     _joystick.Acquire();
 
-                    // Получаем имя устройства
-                    string deviceName = "Gamepad";
-                    try
-                    {
-                        deviceName = devices[0].ProductName;
-                        if (string.IsNullOrWhiteSpace(deviceName))
-                            deviceName = "Gamepad";
-                    }
-                    catch { deviceName = "Gamepad"; }
-
-                    // Запускаем таймер опроса
-                    if (_gamepadTimer == null)
-                    {
-                        _gamepadTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(GamepadPollInterval) };
-                        _gamepadTimer.Tick += CheckGamepadInput;
-                        _gamepadTimer.Start();
-                    }
-
-                    // Передаем true и имя устройства
+                    string deviceName = GetDeviceName(devices[0]);
+                    StartGamepadTimer();
                     UpdateConnectionState(true, deviceName);
                 }
                 else
@@ -148,7 +122,28 @@ namespace EZ2Play.App
             catch { }
         }
 
-        // Таймер обработки клавиатуры
+        private string GetDeviceName(DeviceInstance device)
+        {
+            try
+            {
+                string name = device.ProductName;
+                return string.IsNullOrWhiteSpace(name) ? "Gamepad" : name;
+            }
+            catch
+            {
+                return "Gamepad";
+            }
+        }
+
+        private void StartGamepadTimer()
+        {
+            if (_gamepadTimer != null) return;
+            
+            _gamepadTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(GamepadPollInterval) };
+            _gamepadTimer.Tick += CheckGamepadInput;
+            _gamepadTimer.Start();
+        }
+
         private void InitializeKeyboardTimer()
         {
             _keyboardTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(GamepadPollInterval) };
@@ -156,7 +151,6 @@ namespace EZ2Play.App
             _keyboardTimer.Start();
         }
 
-        // Таймер проверки подключения геймпада (каждые 2 секунды)
         private void InitializeGamepadCheckTimer()
         {
             _gamepadCheckTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(GamepadCheckInterval) };
@@ -164,9 +158,8 @@ namespace EZ2Play.App
             _gamepadCheckTimer.Start();
         }
 
-        // --------------- Управление состоянием подключения ---------------
+        // --------------- Подключение геймпада ---------------
 
-        // Обновление статуса подключения геймпада
         private void UpdateConnectionState(bool isConnected, string deviceName)
         {
             if (IsGamepadConnected == isConnected) return;
@@ -180,7 +173,6 @@ namespace EZ2Play.App
             catch { }
         }
 
-        // Проверка подключения геймпада (вызывается таймером)
         private void CheckGamepadConnection(object sender, EventArgs e)
         {
             if (_directInput == null) return;
@@ -189,63 +181,66 @@ namespace EZ2Play.App
             {
                 if (_joystick == null)
                 {
-                    // Пытаемся подключить если отсутствует
-                    var devices = _directInput.GetDevices(DeviceType.Gamepad, DeviceEnumerationFlags.AllDevices)
-                        .Concat(_directInput.GetDevices(DeviceType.Joystick, DeviceEnumerationFlags.AllDevices))
-                        .ToList();
-
-                    if (devices.Count > 0)
-                    {
-                        ConnectGamepad();
-                    }
-                    else
-                    {
-                        UpdateConnectionState(false, "Gamepad");
-                    }
+                    TryReconnectGamepad();
                 }
                 else
                 {
-                    // Проверяем текущее устройство
-                    try
-                    {
-                        _joystick.Poll();
-                        _ = _joystick.GetCurrentState();
-                    }
-                    catch
-                    {
-                        // Устройство отключилось - переподключаем
-                        _joystick.Unacquire();
-                        _joystick.Dispose();
-                        _joystick = null;
-                        ConnectGamepad();
-                    }
+                    ValidateCurrentGamepad();
                 }
             }
             catch { }
         }
 
-        // --------------- Обработка клавиатуры ---------------
+        private void TryReconnectGamepad()
+        {
+            var devices = _directInput.GetDevices(DeviceType.Gamepad, DeviceEnumerationFlags.AllDevices)
+                .Concat(_directInput.GetDevices(DeviceType.Joystick, DeviceEnumerationFlags.AllDevices))
+                .ToList();
 
-        // Проверка зажатых клавиш (повтор при удержании)
+            if (devices.Count > 0)
+            {
+                ConnectGamepad();
+            }
+            else
+            {
+                UpdateConnectionState(false, "Gamepad");
+            }
+        }
+
+        private void ValidateCurrentGamepad()
+        {
+            try
+            {
+                _joystick.Poll();
+                _ = _joystick.GetCurrentState();
+            }
+            catch
+            {
+                _joystick.Unacquire();
+                _joystick.Dispose();
+                _joystick = null;
+                ConnectGamepad();
+            }
+        }
+
+        // --------------- Клавиатура ---------------
+
         private void CheckKeyboardInput(object sender, EventArgs e)
         {
             if (_keyHoldStart < 0) return;
 
-            var now = _stopwatch.ElapsedMilliseconds;
-            var holdDuration = now - _keyHoldStart;
+            long now = _stopwatch.ElapsedMilliseconds;
+            long holdDuration = now - _keyHoldStart;
 
-            // Ждём начальную задержку
             if (holdDuration < InitialDelay) return;
 
-            var timeSinceLastInput = now - _lastKeyboardInput;
+            long timeSinceLastInput = now - _lastKeyboardInput;
 
-            // Обработка влево
             if (_leftKeyPressed && timeSinceLastInput >= RepeatDelay)
             {
                 _lastKeyboardInput = now;
                 OnMoveSelection?.Invoke(-1);
             }
-            // Обработка вправо
             else if (_rightKeyPressed && timeSinceLastInput >= RepeatDelay)
             {
                 _lastKeyboardInput = now;
@@ -253,8 +248,6 @@ namespace EZ2Play.App
             }
         }
 
-        // Обработка нажатия клавиши
-        // Используем полное имя namespace для избежания конфликта с SharpDX.DirectInput.Key
         public void HandleKeyDown(System.Windows.Input.Key key)
         {
             try
@@ -305,8 +298,6 @@ namespace EZ2Play.App
             catch { }
         }
 
-        // Обработка отпускания клавиши
-        // Используем полное имя namespace для избежания конфликта с SharpDX.DirectInput.Key
         public void HandleKeyUp(System.Windows.Input.Key key)
         {
             try
@@ -327,50 +318,40 @@ namespace EZ2Play.App
             catch { }
         }
 
-        // --------------- Обработка геймпада ---------------
+        // --------------- Геймпад ---------------
 
-        // Опрос состояния геймпада (каждые 16 мс)
         private void CheckGamepadInput(object sender, EventArgs e)
         {
-            if (_joystick == null || !IsApplicationActive()) return;
+            if (_joystick == null || !SystemProvider.IsForeground()) return;
 
             try
             {
                 _joystick.Poll();
                 var state = _joystick.GetCurrentState();
 
-                // Навигация: D-Pad или левый стик
-                bool leftPressed = state.PointOfViewControllers[0] == 27000 || state.X < 16384;
-                bool rightPressed = state.PointOfViewControllers[0] == 9000 || state.X > 49152;
+                bool leftPressed = state.PointOfViewControllers[0] == DPadLeft || state.X < StickLeftThreshold;
+                bool rightPressed = state.PointOfViewControllers[0] == DPadRight || state.X > StickRightThreshold;
 
-                // Кнопки: A, Back, X
                 bool selectPressed = state.Buttons[0];
                 bool backPressed = state.Buttons[1];
                 bool xButtonPressed = state.Buttons[2];
-
-                // Кнопки L R
                 bool lButtonPressed = state.Buttons[4];
                 bool rButtonPressed = state.Buttons[5];
 
                 long now = _stopwatch.ElapsedMilliseconds;
 
-                // Обработка навигации с задержками
                 HandleGamepadNavigation(leftPressed, rightPressed, now);
-
-                // Обработка кнопок с cooldown (передаем L/R кнопки)
                 HandleGamepadButtons(selectPressed, backPressed, xButtonPressed, lButtonPressed, rButtonPressed, now);
             }
             catch { }
         }
 
-        // Обработка навигации геймпада (влево/вправо)
         private void HandleGamepadNavigation(bool leftPressed, bool rightPressed, long now)
         {
             bool navigationPressed = leftPressed || rightPressed;
 
             if (navigationPressed)
             {
-                // Первое нажатие
                 if (_gamepadHoldStart < 0)
                 {
                     _gamepadHoldStart = now;
@@ -379,7 +360,6 @@ namespace EZ2Play.App
                     if (leftPressed) OnMoveSelection?.Invoke(-1);
                     else if (rightPressed) OnMoveSelection?.Invoke(1);
                 }
-                // Повтор при удержании
                 else if (now - _gamepadHoldStart >= InitialDelay)
                 {
                     if (now - _lastGamepadNavInput >= RepeatDelay)
@@ -393,13 +373,12 @@ namespace EZ2Play.App
             }
             else
             {
-                // Сброс при отпускании
                 _gamepadHoldStart = -1;
             }
         }
 
-        // Обработка кнопок геймпада (A, Back, X)
-        private void HandleGamepadButtons(bool selectPressed, bool backPressed, bool xButtonPressed, bool lButtonPressed, bool rButtonPressed, long now)
+        private void HandleGamepadButtons(bool selectPressed, bool backPressed, bool xButtonPressed,
+                                          bool lButtonPressed, bool rButtonPressed, long now)
         {
             if (selectPressed && now - _lastGamepadButtonInput >= GamepadButtonCooldown)
             {
@@ -425,25 +404,6 @@ namespace EZ2Play.App
             {
                 _lastGamepadButtonInput = now;
                 OnSwitchToLastPlayed?.Invoke();
-            }
-        }
-
-        // --------------- Проверка активности окна ---------------
-
-        // Проверка: наше ли окно сейчас активно
-        private bool IsApplicationActive()
-        {
-            try
-            {
-                var foregroundWindow = GetForegroundWindow();
-                if (foregroundWindow == IntPtr.Zero) return false;
-
-                GetWindowThreadProcessId(foregroundWindow, out int foregroundProcessId);
-                return foregroundProcessId == Process.GetCurrentProcess().Id;
-            }
-            catch 
-            { 
-                return false; 
             }
         }
 
