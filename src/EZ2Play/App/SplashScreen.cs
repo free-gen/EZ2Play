@@ -122,7 +122,7 @@ namespace EZ2Play.App
 
             try
             {
-                var logoFromPack = PackLoader.LoadFromPack("logo.png");
+                var logoFromPack = PackLoader.LoadFromPack("Logo.png");
                 if (logoFromPack != null)
                 {
                     var bitmap = new BitmapImage();
@@ -139,7 +139,7 @@ namespace EZ2Play.App
 
             try
             {
-                var uri = new Uri("pack://application:,,,/Assets/logo.png", UriKind.Absolute);
+                var uri = new Uri("pack://application:,,,/Assets/Logo.png", UriKind.Absolute);
                 var bitmap = new BitmapImage(uri);
                 RenderOptions.SetBitmapScalingMode(image, BitmapScalingMode.HighQuality);
                 image.Source = bitmap;

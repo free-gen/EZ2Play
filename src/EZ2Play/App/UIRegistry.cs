@@ -20,9 +20,7 @@ namespace EZ2Play.App
         public Grid SplashOverlay { get; set; }
         public TextBlock NoShortcutsMessage { get; set; }
         public TextBlock ExitMessageText { get; set; }
-        public TextBlock AppInfoLabel { get; set; }
         
-        // Верхняя панель
         public Grid TopPanel { get; set; }
         public TextBlock TabGamelistText { get; set; }
         public TextBlock TabLastPlayedText { get; set; }
@@ -32,7 +30,6 @@ namespace EZ2Play.App
         public Image UserAvatar { get; set; }
         public TextBlock TimeLabel { get; set; } 
 
-        // Список игр
         public Border GameSourceCard { get; set; }
         public Grid MainScreenGrid { get; set; }
         public TextBlock SelectedGameTitle { get; set; }
@@ -42,16 +39,7 @@ namespace EZ2Play.App
         public Grid CarouselWrapper { get; set; }
         public Image BackgroundImage { get; set; }        
         
-        // Иконки подсказок
-        public Border BottomPanel { get; set; }
-        public FrameworkElement IconGamepadLaunch { get; set; }
-        public FrameworkElement IconGamepadExit { get; set; }
-        public FrameworkElement IconGamepadSwap { get; set; }
-        public FrameworkElement IconGamepadSort { get; set; }
-        public FrameworkElement IconKeyboardLaunch { get; set; }
-        public FrameworkElement IconKeyboardExit { get; set; }
-        public FrameworkElement IconKeyboardSwap { get; set; }
-        public FrameworkElement IconKeyboardSort { get; set; }
+        public HintPanel BottomHintPanel { get; set; }
 
         // --------------- Поля класса ---------------
 
@@ -137,6 +125,9 @@ namespace EZ2Play.App
             if (MainScreenGrid != null)
                 MainScreenGrid.Visibility = isEmpty ? Visibility.Collapsed : Visibility.Visible;
 
+            if (BottomHintPanel != null)
+                BottomHintPanel.Visibility = isEmpty ? Visibility.Collapsed : Visibility.Visible;
+
             if (NoShortcutsMessage != null)
                 NoShortcutsMessage.Visibility = isEmpty ? Visibility.Visible : Visibility.Collapsed;
         }
@@ -151,8 +142,8 @@ namespace EZ2Play.App
             if (NoShortcutsMessage != null)
                 NoShortcutsMessage.Visibility = Visibility.Collapsed;
 
-            if (AppInfoLabel != null)
-                AppInfoLabel.Visibility = Visibility.Visible;
+            if (BottomHintPanel != null)
+                BottomHintPanel.Visibility = Visibility.Collapsed;
 
             if (ExitMessageText != null)
             {
@@ -210,17 +201,12 @@ namespace EZ2Play.App
 
         public void RefreshHintIcons(bool isGamepad)
         {
-            var visGamepad = isGamepad ? Visibility.Visible : Visibility.Collapsed;
-            var visKeyboard = isGamepad ? Visibility.Collapsed : Visibility.Visible;
-
-            if (IconGamepadLaunch != null) IconGamepadLaunch.Visibility = visGamepad;
-            if (IconKeyboardLaunch != null) IconKeyboardLaunch.Visibility = visKeyboard;
-            if (IconGamepadExit != null) IconGamepadExit.Visibility = visGamepad;
-            if (IconKeyboardExit != null) IconKeyboardExit.Visibility = visKeyboard;
-            if (IconGamepadSwap != null) IconGamepadSwap.Visibility = visGamepad;
-            if (IconKeyboardSwap != null) IconKeyboardSwap.Visibility = visKeyboard;
-            if (IconGamepadSort != null) IconGamepadSort.Visibility = visGamepad;
-            if (IconKeyboardSort != null) IconKeyboardSort.Visibility = visKeyboard;
+            if (BottomHintPanel != null)
+            {
+                BottomHintPanel.Device = isGamepad 
+                    ? HintPanel.InputDevice.Gamepad 
+                    : HintPanel.InputDevice.Keyboard;
+            }
         }
 
         // --------------- Загрузка ресурсов ---------------
@@ -231,7 +217,7 @@ namespace EZ2Play.App
 
             try
             {
-                var bgFromPack = PackLoader.LoadFromPack("bg.jpg") ?? PackLoader.LoadFromPack("bg.png");
+                var bgFromPack = PackLoader.LoadFromPack("Bg.jpg") ?? PackLoader.LoadFromPack("Bg.png");
                 if (bgFromPack != null)
                 {
                     var decoder = BitmapDecoder.Create(
@@ -271,7 +257,7 @@ namespace EZ2Play.App
                 var bgAnim = new DoubleAnimation
                 {
                     To = visible ? 0.7 : 0,
-                    Duration = TimeSpan.FromSeconds(0.5),
+                    Duration = TimeSpan.FromSeconds(0.2),
                     EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut }
                 };
 
@@ -286,7 +272,18 @@ namespace EZ2Play.App
             }
             else
             {
-                _particlesCanvas?.SetParticlesVisible(visible, true, 0.5);
+                _particlesCanvas?.SetParticlesVisible(visible, true, 0.2);
+            }
+            
+            // Добавить управление видимостью BottomHintPanel
+            if (BottomHintPanel != null)
+            {
+                var panelAnim = new DoubleAnimation
+                {
+                    To = visible ? 1 : 0,
+                    Duration = TimeSpan.FromSeconds(0.2),
+                    EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut }
+                };
             }
         }
 

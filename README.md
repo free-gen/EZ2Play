@@ -1,8 +1,8 @@
-# <img src="src/EZ2Play/Assets/logo.png" width="36"> EZ2Play Launcher
+# <img src="src/EZ2Play/Assets/Logo.png" width="36"> EZ2Play Launcher
 
 [![GitHub release](https://img.shields.io/github/v/release/free-gen/EZ2Play?style=for-the-badge)](https://github.com/free-gen/EZ2Play/releases/latest)
 [![Platform](https://img.shields.io/badge/.Net-0066ff?style=for-the-badge&logo=data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNSIgaGVpZ2h0PSIxNSIgdmlld0JveD0iMCAwIDE1IDE1Ij48cGF0aCBmaWxsPSIjZmZmIiBkPSJNMTQuODE0LjExMUEuNS41IDAgMCAxIDE1IC41VjdIN1YxLjU5NkwxNC4zOTUuMDFhLjUuNSAwIDAgMSAuNDIuMU02IDEuODFMLjM5NSAzLjAxMUEuNS41IDAgMCAwIDAgMy41VjdoNnpNMCA4djQuNWEuNS41IDAgMCAwIC40My40OTVsNS41Ny43OTZWOHptNyA1LjkzNGw3LjQzIDEuMDYxQS41LjUgMCAwIDAgMTUgMTQuNVY4SDd6Ii8+PC9zdmc+&labelColor=gray)](https://dotnet.microsoft.com)
-[![Framevork](https://img.shields.io/badge/WPF--UI-0066ff?style=for-the-badge&logo=data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0OCIgaGVpZ2h0PSI0OCIgdmlld0JveD0iMCAwIDQ4IDQ4Ij48cGF0aCBmaWxsPSIjZmZmIiBkPSJNMjUuMTcgNC4xNjNhMS41IDEuNSAwIDAgMC0xLjM0IDBsLTEyIDZhMS41IDEuNSAwIDAgMC0uODMgMS4zNDJ2MjMuNDU2YzAgLjUxNi4yNjUuOTk2LjcwMiAxLjI3bDEyIDcuNTRBMS41IDEuNSAwIDAgMCAyNiA0Mi41VjMwLjQzMmwxMS4xNy01LjU4NWExLjUgMS41IDAgMCAwIDAtMi42ODRsLTkuMzE2LTQuNjU4bDkuMzE3LTQuNjU4YTEuNSAxLjUgMCAwIDAgMC0yLjY4NHoiLz48L3N2Zz4=&labelColor=gray)](https://wpfui.lepo.co/)
+[![Framework](https://img.shields.io/badge/WPF--UI-0066ff?style=for-the-badge&logo=data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0OCIgaGVpZ2h0PSI0OCIgdmlld0JveD0iMCAwIDQ4IDQ4Ij48cGF0aCBmaWxsPSIjZmZmIiBkPSJNMjUuMTcgNC4xNjNhMS41IDEuNSAwIDAgMC0xLjM0IDBsLTEyIDZhMS41IDEuNSAwIDAgMC0uODMgMS4zNDJ2MjMuNDU2YzAgLjUxNi4yNjUuOTk2LjcwMiAxLjI3bDEyIDcuNTRBMS41IDEuNSAwIDAgMCAyNiA0Mi41VjMwLjQzMmwxMS4xNy01LjU4NWExLjUgMS41IDAgMCAwIDAtMi42ODRsLTkuMzE2LTQuNjU4bDkuMzE3LTQuNjU4YTEuNSAxLjUgMCAwIDAgMC0yLjY4NHoiLz48L3N2Zz4=&labelColor=gray)](https://wpfui.lepo.co/)
 
 EZ2Play is a minimalistic game launcher for those who value simplicity and a lack of unnecessary settings. Its logic is based on using standard Windows shortcuts, which already contain everything you need: the game path, launch options, and an .ico icon as a cover. The launcher allows you to control games with a gamepad and quickly switch between your monitor and TV, making playing on a large screen as convenient as possible.
 
@@ -12,12 +12,12 @@ EZ2Play is a minimalistic game launcher for those who value simplicity and a lac
 ## Features
 
 - **Home/Guide button handler** - return to the launcher from any game by pressing one button (when Xbox Game Bar is unavailable)
-- **Quick screen switching** - available on systems with two or more displays (when Xbox Game Bar is unavailable)
+- **Quick screen switching** - available from Settings on systems with two or more displays (when Xbox Game Bar is unavailable)
 - **Xbox Game Bar compatibility** - automatically uses native Windows game and display controls when available
 - **Multilingual support** - 🇬🇧 🇷🇺 🇩🇪 🇫🇷 🇪🇸 🇵🇹 🇮🇹 🇵🇱 🇨🇳 🇰🇷 🇯🇵
-- **No settings required** - just place the shortcuts in the `shortcuts` folder
+- **No game scanning** - just put your shortcuts in the `shortcuts` folder
 - **WPF-UI** - full support for Windows 11 styles
-- **EZ2Play Helper** - background process for launching EZ2Play via the Home/Guide button on a gamepad
+- **EZ2Play Helper** - optional background process for launching EZ2Play via the Home/Guide button on a gamepad (can be enabled in Settings and supports launch arguments)
 
 > **Note:** If Xbox Game Bar is installed, EZ2Play automatically defers game and display management to the operating system. Otherwise, the launcher uses its built-in game closing and display switching functions.
 
@@ -41,12 +41,12 @@ To do this, use the `ui.pack` file in the launcher folder.
 
 #### Package contents
 
-- `logo.png` - splash screen logo
-- `bg.png` or `bg.jpg` - background image
-- `select.mp3` - movement sound
-- `action.mp3` - start sound
-- `abort.mp3` - return sound
-- `ambient.mp3` - background music
+- `Logo.png` - splash screen logo
+- `Bg.png` or `Bg.jpg` - background image
+- `Focus.mp3` - movement sound
+- `Invoke.mp3` - start sound
+- `Back.mp3` - return sound
+- `Ambient.mp3` - background music
 
 > **Note:** If the `ui.pack` file is missing or does not contain any resources, the built-in default value is used.
 
@@ -60,6 +60,18 @@ EZ2Play allows you to set a custom game source name using the "Comment" field in
 This is useful for marking games that are launched using emulators.
 
 > **Note:** If the Comment field is empty, EZ2Play uses the default value (Portable).
+
+## Settings
+
+EZ2Play now includes a basic settings:
+
+- Enable/disable launching EZ2Play via gamepad (Home/Guide button)
+- When enabled, EZ2Play Helper is automatically added to Windows startup
+- Optional launch arguments for Helper:
+  - `--nosplash`
+  - `--nomusic`
+  - `--hotswap`
+- Display switching is now available only from Settings
 
 ## Command Line Args
 
@@ -92,9 +104,9 @@ EZ2Play.exe --hotswap --nosplash --nomusic
 ## EZ2Play Helper
 
 An optional background helper that allows launching EZ2Play by holding the Home/Guide button on a gamepad.
-The helper can be added to Windows startup and runs in the background even when the EZ2Play is closed. Any command-line arguments passed to EZ2Play Helper are automatically forwarded to EZ2Play when it is launched.
+The helper can be enabled from the settings. When enabled, it is automatically added to Windows startup and runs in the background even when EZ2Play is closed. Any launch arguments selected in settings and passed via EZ2Play Helper are automatically forwarded to EZ2Play when it is launched.
 
-# EZParser Auxiliary application
+## EZParser Auxiliary application
 
 ![Screenshot](res/ezparser01.jpg)
 ![Screenshot](res/ezparser02.jpg)

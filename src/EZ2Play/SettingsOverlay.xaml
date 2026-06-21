@@ -1,0 +1,286 @@
+<UserControl x:Class="EZ2Play.App.SettingsOverlay"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:app="clr-namespace:EZ2Play.App"
+             xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+             Background="{DynamicResource SmokeFillColorDefaultBrush}">
+             <!-- {DynamicResource SmokeFillColorDefaultBrush} -->
+    
+    <UserControl.Resources>
+        <Style TargetType="TextBlock">
+            <Setter Property="RenderTransform">
+                <Setter.Value>
+                    <TranslateTransform Y="0"/>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </UserControl.Resources>
+
+    <Border Background="{DynamicResource SolidBackgroundFillColorQuarternaryBrush}"
+            BorderBrush="{DynamicResource DividerStrokeColorDefaultBrush}"
+            BorderThickness="{DynamicResource {x:Static app:UiScaleKeys.SettingsOverlayThickness}}"
+            CornerRadius="{DynamicResource {x:Static app:UiScaleKeys.SettingsOverlayCornerRadius}}"
+            Width="{DynamicResource {x:Static app:UiScaleKeys.SettingsOverlayWidth}}" 
+            Height="Auto"
+            HorizontalAlignment="Center"
+            VerticalAlignment="Center">
+        <Grid>
+            <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="85*"/>
+            <RowDefinition Height="15*"/>
+        </Grid.RowDefinitions>
+
+            <!-- ExitConfirmText -->
+            <TextBlock x:Name="ExitConfirmText"
+                        Grid.Row="0"
+                        Visibility="Collapsed"
+                        FontSize="{DynamicResource {x:Static app:UiScaleKeys.SettingsOverlayLabelFontSize}}"
+                        HorizontalAlignment="Center"
+                        Margin="{DynamicResource {x:Static app:UiScaleKeys.SettingsOverlayItemPadding}}"/>
+
+            <ListBox x:Name="SettingsListBox"
+                     Grid.Row="1"
+                     FontSize="{DynamicResource {x:Static app:UiScaleKeys.SettingsOverlayLabelFontSize}}"
+                     FontWeight="400"
+                     HorizontalContentAlignment="Stretch"
+                     VerticalAlignment="Center"
+                     Background="Transparent">
+
+                <ListBox.ItemContainerStyle>
+                    <Style TargetType="ListBoxItem">
+
+                        <Setter Property="Padding" Value="{DynamicResource {x:Static app:UiScaleKeys.SettingsOverlayItemPadding}}"/>
+                        <Setter Property="Background" Value="Transparent"/>
+
+                        <Setter Property="Template">
+                            <Setter.Value>
+                                <ControlTemplate TargetType="ListBoxItem">
+
+                                    <Grid>
+
+                                        <!-- SelectionBorder -->
+                                        <Border x:Name="SelectionBorder"
+                                                Margin="{DynamicResource {x:Static app:UiScaleKeys.SettingsOverlaySelectionBorderMargin}}"
+                                                BorderThickness="{DynamicResource {x:Static app:UiScaleKeys.SettingsOverlaySelectionBorderThickness}}"
+                                                BorderBrush="Transparent"
+                                                CornerRadius="{DynamicResource {x:Static app:UiScaleKeys.SettingsOverlaySelectionCornerRadius}}">
+
+                                            <Border x:Name="SelectionBackground"
+                                                    Margin="{DynamicResource {x:Static app:UiScaleKeys.SettingsOverlaySelectionBackgroundMargin}}"
+                                                    Background="Transparent"
+                                                    CornerRadius="{DynamicResource {x:Static app:UiScaleKeys.SettingsOverlaySelectionBgCornerRadius}}"/>
+
+                                        </Border>
+
+                                        <!-- ItemBorder -->
+                                        <Border x:Name="ItemBorder"
+                                                Padding="{TemplateBinding Padding}"
+                                                Background="Transparent">
+
+                                            <ContentPresenter VerticalAlignment="Center"/>
+                                        </Border>
+
+                                        <!-- ItemDivider -->
+                                        <Border x:Name="ItemDivider"
+                                                Height="{DynamicResource {x:Static app:UiScaleKeys.SettingsOverlayDividerHeight}}"
+                                                VerticalAlignment="Bottom"
+                                                Margin="{DynamicResource {x:Static app:UiScaleKeys.SettingsOverlayDividerMargin}}"
+                                                Background="{DynamicResource DividerStrokeColorDefaultBrush}"
+                                                SnapsToDevicePixels="True"/>
+
+                                    </Grid>
+
+                                    <ControlTemplate.Triggers>
+
+                                        <Trigger Property="IsSelected" Value="True">
+                                            <Setter TargetName="SelectionBorder"
+                                                    Property="BorderBrush"
+                                                    Value="#C0FFFFFF"/>
+
+                                            <Setter TargetName="SelectionBackground"
+                                                    Property="Background"
+                                                    Value="#10FFFFFF"/>
+                                        </Trigger>
+
+                                        <!-- Trigger TreeHeader -->
+                                        <Trigger Property="Tag" Value="TreeHeader">
+                                            <!-- <Setter TargetName="ItemDivider" Property="Background" Value="{DynamicResource LayerFillColorDefaultBrush}"/> -->
+                                        </Trigger>
+
+                                        <!-- Trigger TreeItem -->
+                                        <Trigger Property="Tag" Value="TreeItem">
+                                            <Setter TargetName="ItemBorder" Property="Background" Value="#15000000"/>
+                                            <!-- <Setter Property="Padding" Value="{DynamicResource {x:Static app:UiScaleKeys.SettingsOverlayItemPadding}}"/> -->
+                                        </Trigger>
+
+                                    </ControlTemplate.Triggers>
+
+                                </ControlTemplate>
+                            </Setter.Value>
+                        </Setter>
+
+                    </Style>
+                </ListBox.ItemContainerStyle>
+
+                <!-- SettingsAutorunApp -->
+                <ListBoxItem x:Name="SettingsAutorunApp" Tag="TreeHeader">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="0.05*"/>
+                            <ColumnDefinition Width="0.80*"/>
+                            <ColumnDefinition Width="0.10*"/>
+                            <ColumnDefinition Width="0.05*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="{DynamicResource {x:Static app:UiScaleKeys.SettingsOverlayLabelMargin}}">
+                            <TextBlock x:Name="SettingsAutorunAppLabel"/>
+                            <TextBlock x:Name="SettingsAutorunAppDesc"
+                                        Foreground="{DynamicResource TextFillColorTertiaryBrush}"
+                                        FontSize="{DynamicResource {x:Static app:UiScaleKeys.SettingsOverlayDescFontSize}}"/>
+                        </StackPanel>
+
+                        <Viewbox Grid.Column="2" 
+                                Width="{DynamicResource {x:Static app:UiScaleKeys.ToggleSwitchWidth}}" 
+                                Height="{DynamicResource {x:Static app:UiScaleKeys.ToggleSwitchHeight}}" 
+                                Stretch="Uniform" HorizontalAlignment="Right">
+                            <ui:ToggleSwitch x:Name="AutorunToggle"/>
+                        </Viewbox>
+
+                    </Grid>
+                </ListBoxItem>
+
+                <!-- NoSplash -->
+                <ListBoxItem x:Name="NoSplash" Tag="TreeItem" Visibility="Collapsed">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="0.10*"/>
+                            <ColumnDefinition Width="0.75*"/>
+                            <ColumnDefinition Width="0.10*"/>
+                            <ColumnDefinition Width="0.05*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <TextBlock Grid.Column="1"
+                        x:Name="SettingsTreeNoSplash" 
+                        FontSize="{DynamicResource {x:Static app:UiScaleKeys.SettingsOverlayLabelTreeFontSize}}"
+                        Margin="{DynamicResource {x:Static app:UiScaleKeys.SettingsOverlayLabelTreeMargin}}"/>
+
+                        <Viewbox Grid.Column="2" 
+                                Width="{DynamicResource {x:Static app:UiScaleKeys.ToggleSwitchWidth}}" 
+                                Height="{DynamicResource {x:Static app:UiScaleKeys.ToggleSwitchHeight}}" 
+                                Stretch="Uniform" HorizontalAlignment="Right">
+                            <ui:ToggleSwitch x:Name="NoSplashToggle"/>
+                        </Viewbox>
+
+                    </Grid>
+                </ListBoxItem>
+
+                <!-- NoMusic -->
+                <ListBoxItem x:Name="NoMusic" Tag="TreeItem" Visibility="Collapsed">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="0.10*"/>
+                            <ColumnDefinition Width="0.75*"/>
+                            <ColumnDefinition Width="0.10*"/>
+                            <ColumnDefinition Width="0.05*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <TextBlock Grid.Column="1"
+                        x:Name="SettingsTreeNoMusic" 
+                        FontSize="{DynamicResource {x:Static app:UiScaleKeys.SettingsOverlayLabelTreeFontSize}}"
+                        Margin="{DynamicResource {x:Static app:UiScaleKeys.SettingsOverlayLabelTreeMargin}}"/>
+
+                        <Viewbox Grid.Column="2" 
+                                Width="{DynamicResource {x:Static app:UiScaleKeys.ToggleSwitchWidth}}" 
+                                Height="{DynamicResource {x:Static app:UiScaleKeys.ToggleSwitchHeight}}" 
+                                Stretch="Uniform" HorizontalAlignment="Right">
+                            <ui:ToggleSwitch x:Name="NoMusicToggle"/>
+                        </Viewbox>
+
+                    </Grid>
+                </ListBoxItem>
+
+                <!-- HotSwap -->
+                <ListBoxItem x:Name="HotSwap" Tag="TreeItem" Visibility="Collapsed">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="0.10*"/>
+                            <ColumnDefinition Width="0.75*"/>
+                            <ColumnDefinition Width="0.10*"/>
+                            <ColumnDefinition Width="0.05*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <TextBlock Grid.Column="1"
+                        x:Name="SettingsTreeHotSwap"  
+                        FontSize="{DynamicResource {x:Static app:UiScaleKeys.SettingsOverlayLabelTreeFontSize}}"
+                        Margin="{DynamicResource {x:Static app:UiScaleKeys.SettingsOverlayLabelTreeMargin}}"/>
+
+                        <Viewbox Grid.Column="2" 
+                                Width="{DynamicResource {x:Static app:UiScaleKeys.ToggleSwitchWidth}}" 
+                                Height="{DynamicResource {x:Static app:UiScaleKeys.ToggleSwitchHeight}}" 
+                                Stretch="Uniform" HorizontalAlignment="Right">
+                            <ui:ToggleSwitch x:Name="HotSwapToggle"/>
+                        </Viewbox>
+
+                    </Grid>
+                </ListBoxItem>
+
+                <!-- SettingsSourceDisplay -->
+                <ListBoxItem x:Name="SettingsSourceDisplay">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="0.05*"/>
+                            <ColumnDefinition Width="0.80*"/>
+                            <ColumnDefinition Width="0.10*"/>
+                            <ColumnDefinition Width="0.05*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="{DynamicResource {x:Static app:UiScaleKeys.SettingsOverlayLabelMargin}}">
+                            <TextBlock x:Name="SettingsSourceDisplayLabel"/>
+                            <TextBlock x:Name="SettingsSourceDisplayDesc"
+                                        Foreground="{DynamicResource TextFillColorTertiaryBrush}"
+                                        FontSize="{DynamicResource {x:Static app:UiScaleKeys.SettingsOverlayDescFontSize}}"/>
+                        </StackPanel>
+
+                        <TextBlock Grid.Column="2" 
+                        VerticalAlignment="Center"
+                        HorizontalAlignment="Right"
+                        Foreground="{DynamicResource ControlStrongStrokeColorDefaultBrush}" 
+                        FontSize="{DynamicResource {x:Static app:UiScaleKeys.SettingsOverlayLabelTreeFontSize}}"
+                        FontFamily="Xbox Fluent">&#xE3B2;</TextBlock>
+                    </Grid>
+                </ListBoxItem>
+
+                <!-- SettingsExitApp -->
+                <ListBoxItem x:Name="SettingsExitApp" Tag="Last">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="0.05*"/>
+                            <ColumnDefinition Width="0.90*"/>
+                            <ColumnDefinition Width="0.05*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <TextBlock Grid.Column="1" 
+                        x:Name="SettingsExitAppLabel" 
+                        VerticalAlignment="Center"
+                        Margin="{DynamicResource {x:Static app:UiScaleKeys.SettingsOverlayLabelMargin}}"/>
+
+                    </Grid>
+                </ListBoxItem>
+
+            </ListBox>
+
+            <!-- AppInfo -->
+            <TextBlock Grid.Row="2"
+                       FontSize="{DynamicResource {x:Static app:UiScaleKeys.SettingsOverlayDescFontSize}}"
+                       Foreground="{DynamicResource TextFillColorDisabledBrush}"
+                       HorizontalAlignment="Center"
+                       VerticalAlignment="Center"
+                       Margin="{DynamicResource {x:Static app:UiScaleKeys.SettingsOverlayAppInfoMargin}}">
+                <Run Text="{x:Static app:AppInfo.Description}"/>
+                <Run Text="v"/><Run Text="{x:Static app:AppInfo.Version}"/>
+            </TextBlock>
+            
+        </Grid>
+    </Border>
+</UserControl>

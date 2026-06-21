@@ -62,7 +62,7 @@ class Program
     private const uint KEYEVENTF_KEYUP = 0x0002;
 
     static void Main(string[] args)
-    {
+    {        
         string launcherArgs = "";
         bool debugMode = false;
         

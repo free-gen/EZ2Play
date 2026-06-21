@@ -101,10 +101,10 @@ namespace EZ2Play.App
         public const int FadeDurationMs = 1000;
 
         // Ресурсы звуковых файлов
-        private const string ResMove = "EZ2Play.Assets.select.mp3";
-        private const string ResLaunch = "EZ2Play.Assets.action.mp3";
-        private const string ResBack = "EZ2Play.Assets.abort.mp3";
-        private const string ResMenu = "EZ2Play.Assets.ambient.mp3";
+        private const string ResMove = "EZ2Play.Assets.Focus.mp3";
+        private const string ResLaunch = "EZ2Play.Assets.Invoke.mp3";
+        private const string ResBack = "EZ2Play.Assets.Back.mp3";
+        private const string ResMenu = "EZ2Play.Assets.Ambient.mp3";
 
         // --------------- Поля SFX ---------------
 
@@ -147,9 +147,9 @@ namespace EZ2Play.App
             {
                 _sfxPlayer = new WaveOutEvent();
 
-                _moveStream = LoadSound(ResMove, "select.mp3");
-                _launchStream = LoadSound(ResLaunch, "action.mp3");
-                _backStream = LoadSound(ResBack, "abort.mp3");
+                _moveStream = LoadSound(ResMove, "Focus.mp3");
+                _launchStream = LoadSound(ResLaunch, "Invoke.mp3");
+                _backStream = LoadSound(ResBack, "Back.mp3");
 
                 if (_moveStream != null) _moveReader = new Mp3FileReader(_moveStream);
                 if (_launchStream != null) _launchReader = new Mp3FileReader(_launchStream);
@@ -164,7 +164,7 @@ namespace EZ2Play.App
         {
             try
             {
-                _menuStream = LoadSound(ResMenu, "ambient.mp3");
+                _menuStream = LoadSound(ResMenu, "Ambient.mp3");
                 if (_menuStream == null) return;
 
                 _backgroundReader = new Mp3FileReader(_menuStream);

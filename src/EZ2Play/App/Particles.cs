@@ -17,6 +17,7 @@ namespace EZ2Play.App
 
         private const double BaseMaxSpeed = 16;
         private const double BaseFadeMarginMax = 50;
+        private double _fadeStep = 0.05;
 
         // ----------------- СТРУКТУРЫ -----------------
 
@@ -291,8 +292,10 @@ namespace EZ2Play.App
                 return;
             }
 
-            _currentOpacity += (_targetOpacity > _currentOpacity ? 0.05 : -0.05);
-            if (Math.Abs(_currentOpacity - _targetOpacity) < 0.01) _currentOpacity = _targetOpacity;
+            _currentOpacity += (_targetOpacity > _currentOpacity ? _fadeStep : -_fadeStep);  // ← используем _fadeStep
+            
+            if (Math.Abs(_currentOpacity - _targetOpacity) < _fadeStep) 
+                _currentOpacity = _targetOpacity;
             
             _needsRedraw = true;
             InvalidateVisual();
@@ -301,6 +304,10 @@ namespace EZ2Play.App
         public void SetParticlesVisible(bool visible, bool fade = true, double duration = 0.5)
         {
             _targetOpacity = visible ? 1.0 : 0.0;
+            
+            // Рассчитываем шаг исходя из длительности (при 60fps)
+            if (duration > 0)
+                _fadeStep = 1.0 / (duration * 60);  // 60 кадров в секунду
             
             if (!fade || duration <= 0)
             {

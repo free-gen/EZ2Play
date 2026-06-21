@@ -1,41 +1,30 @@
 using System;
 using System.Diagnostics;
 using System.Windows;
-using System.Windows.Controls;
 using System.Windows.Threading;
 using System.Management;
-using Microsoft.Win32;
+using System.Collections.Generic;
 using System.Runtime.InteropServices;
+using Microsoft.Win32;
 
 namespace EZ2Play.App
 {
-    // --------------- Класс управления настройками дисплея ---------------
-
     public class Display
     {
-        // --------------- Поля класса ---------------
-
         private readonly FrameworkElement _window;
         private readonly Sound _sound;
-        private StackPanel _displayTogglePanel;
-        private bool _isExternalDisplay = false;
-        private bool _hasMultipleDisplays = false;
         private bool _wasLaunchedWithHotswap = false;
+        private bool _hasMultipleDisplays = false;
+        private bool _isExternalDisplay = false;
         private bool _isXboxGameBarInstalled = false;
 
-        // Для предотвращения множественных перерасчетов
+        private int _currentDisplayIndex = 0;
+        private List<string> _displayNames = new List<string>();
+
         private DateTime _lastLayoutRefresh = DateTime.MinValue;
         private const int LayoutRefreshDelayMs = 500;
 
-        // --------------- Публичные свойства ---------------
-
-        // Наличие нескольких дисплеев (только для чтения)
-        public bool HasMultipleDisplays => _hasMultipleDisplays;
-
-        // Текущий режим внешнего дисплея (только для чтения)
-        public bool IsExternalDisplay => _isExternalDisplay;
-
-        // --------------- Native структуры ---------------
+        public event Action<string> OnDisplayChanged;
 
         [StructLayout(LayoutKind.Sequential)]
         private struct RECT
@@ -46,8 +35,6 @@ namespace EZ2Play.App
             public int Bottom;
         }
 
-        // --------------- Native импорты ---------------
-
         [DllImport("user32.dll")]
         private static extern bool SetWindowPos(IntPtr hWnd, IntPtr hWndInsertAfter,
             int X, int Y, int cx, int cy, uint uFlags);
@@ -55,16 +42,12 @@ namespace EZ2Play.App
         private const uint SWP_NOZORDER = 0x0004;
         private const uint SWP_NOACTIVATE = 0x0010;
 
-        // --------------- Конструктор ---------------
-
-        // Инициализирует Display с ссылкой на окно и аудиоменеджер
         public Display(FrameworkElement window, bool wasLaunchedWithHotswap = false, Sound audioManager = null)
         {
             _window = window;
             _wasLaunchedWithHotswap = wasLaunchedWithHotswap;
             _sound = audioManager;
 
-            // Проверяем наличие Xbox Game Bar при запуске
             _isXboxGameBarInstalled = SystemProvider.IsXboxGameBarInstalled();
 
             if (_wasLaunchedWithHotswap)
@@ -87,21 +70,14 @@ namespace EZ2Play.App
             try
             {
                 _sound?.PlayBackSound();
-
-                _isExternalDisplay = !_isExternalDisplay;
-
-                var argument = _isExternalDisplay ? "/external" : "/internal";
-
-                RunDisplaySwitch(argument);
+                _isExternalDisplay = true; // При hotswap всегда переключаем на external
+                _currentDisplayIndex = 1; // Синхронизируем индекс
+                RunDisplaySwitch("/external");
+                OnDisplayChanged?.Invoke(GetCurrentDisplayName());
             }
-            catch
-            {
-            }
+            catch { }
         }
 
-        // --------------- Управление дисплеями ---------------
-
-        // Проверяет наличие нескольких дисплеев в системе (Если XboxGameBar отсутствует)
         public void CheckMultipleDisplays()
         {
             try
@@ -110,79 +86,69 @@ namespace EZ2Play.App
                     "root\\WMI",
                     "SELECT * FROM WmiMonitorBasicDisplayParams"))
                 {
-                    var monitors = searcher.Get();
                     int monitorCount = 0;
-
-                    foreach (ManagementObject monitor in monitors)
+                    foreach (ManagementObject monitor in searcher.Get())
                     {
                         monitorCount++;
                     }
-
                     _hasMultipleDisplays = monitorCount > 1;
-                    UpdateDisplayToggleVisibility();
                 }
             }
-            catch (Exception)
+            catch
             {
                 _hasMultipleDisplays = false;
-                UpdateDisplayToggleVisibility();
             }
         }
 
-        // Устанавливает панель переключения дисплея для управления видимостью
-        public void SetDisplayTogglePanel(StackPanel panel)
+        // Восстанавливает настройки дисплея при выходе (если был hotswap)
+        public void HandleHotswapOnExit()
         {
-            _displayTogglePanel = panel;
-            UpdateDisplayToggleVisibility();
+            if (_wasLaunchedWithHotswap && _hasMultipleDisplays && _isExternalDisplay)
+            {
+                try
+                {
+                    _sound?.PlayBackSound();
+                    RunDisplaySwitch("/internal");
+                }
+                catch { }
+            }
         }
 
-        // Обновляет видимость панели переключения дисплея
-        public void UpdateDisplayToggleVisibility()
+        public void RefreshDisplayList()
         {
-            if (_displayTogglePanel != null)
-            {
-                bool shouldShow = _hasMultipleDisplays 
-                            && !_wasLaunchedWithHotswap 
-                            && !_isXboxGameBarInstalled;
-
-                _displayTogglePanel.Visibility = shouldShow ? Visibility.Visible : Visibility.Collapsed;
-            }
+            _displayNames.Clear();
+            _currentDisplayIndex = 0;
+            _displayNames.Add("Default");
+            _displayNames.Add("External");
         }
 
-        // Переключает режим дисплея (внешний/внутренний)
-        public void ToggleDisplay()
+        public string GetCurrentDisplayName()
         {
-            if (!_hasMultipleDisplays
-                || _wasLaunchedWithHotswap
-                || _isXboxGameBarInstalled)
-                return;
-
-            try
-            {
-                _sound?.PlayBackSound();
-
-                _isExternalDisplay = !_isExternalDisplay;
-                var argument = _isExternalDisplay ? "/external" : "/internal";
-
-                RunDisplaySwitch(argument);
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(
-                    $"Failed to switch display: {ex.Message}",
-                    "Error",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Error);
-            }
+            if (_displayNames.Count == 0) RefreshDisplayList();
+            if (_currentDisplayIndex >= _displayNames.Count) _currentDisplayIndex = 0;
+            return _displayNames[_currentDisplayIndex];
         }
 
-        // --------------- Управление layout окна ---------------
+        public void SwitchDisplay(int direction)
+        {
+            if (_displayNames.Count <= 1) return;
+            
+            _currentDisplayIndex += direction;
+            if (_currentDisplayIndex < 0) _currentDisplayIndex = _displayNames.Count - 1;
+            if (_currentDisplayIndex >= _displayNames.Count) _currentDisplayIndex = 0;
+            
+            bool isExternal = _currentDisplayIndex > 0;
+            
+            // Синхронизируем _isExternalDisplay
+            _isExternalDisplay = isExternal;
+            
+            RunDisplaySwitch(isExternal ? "/external" : "/internal");
+            
+            OnDisplayChanged?.Invoke(GetCurrentDisplayName());
+        }
 
-        // Гарантирует максимизацию окна и обновляет layout
-        // Защищено от слишком частых вызовов
         public void EnsureMaximizedAndRefreshLayout()
         {
-            // Защита от слишком частых вызовов
             if ((DateTime.Now - _lastLayoutRefresh).TotalMilliseconds < LayoutRefreshDelayMs)
                 return;
 
@@ -198,21 +164,14 @@ namespace EZ2Play.App
                     window.Width = SystemParameters.PrimaryScreenWidth;
                     window.Height = SystemParameters.PrimaryScreenHeight;
 
-                    // Используем InvalidateVisual для более легкого перерасчета
                     window.InvalidateVisual();
-
                     window.WindowState = WindowState.Maximized;
-
-                    // Вызываем UpdateLayout только один раз
                     window.UpdateLayout();
                 }
             }
-            catch (Exception) { }
+            catch { }
         }
 
-        // --------------- Обработчики событий ---------------
-
-        // Обработчик сообщений окна (DPI, изменение дисплея)
         public IntPtr WndProc(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
         {
             const int WM_DISPLAYCHANGE = 0x007E;
@@ -233,7 +192,6 @@ namespace EZ2Play.App
 
                 if (_window is Window window)
                 {
-                    // Используем задержку для группировки событий
                     window.Dispatcher.BeginInvoke(new Action(() =>
                     {
                         System.Threading.Thread.Sleep(100);
@@ -244,12 +202,10 @@ namespace EZ2Play.App
             return IntPtr.Zero;
         }
 
-        // Обработчик изменения настроек дисплея
         private void OnDisplaySettingsChanged(object sender, EventArgs e)
         {
             if (_window is Window window)
             {
-                // Используем Background priority и задержку для группировки событий
                 window.Dispatcher.BeginInvoke(new Action(() =>
                 {
                     System.Threading.Thread.Sleep(100);
@@ -258,30 +214,7 @@ namespace EZ2Play.App
             }
         }
 
-        // --------------- Hotswap логика ---------------
-
-        // Восстанавливает настройки дисплея при выходе (если был hotswap)
-        public void HandleHotswapOnExit()
-        {
-            if (_wasLaunchedWithHotswap && _hasMultipleDisplays)
-            {
-                try
-                {
-                    _sound?.PlayBackSound();
-
-                    var argument = _isExternalDisplay ? "/internal" : "/external";
-
-                    RunDisplaySwitch(argument);
-                }
-                catch (Exception)
-                {
-                }
-            }
-        }
-
-        // --------------- Вспомогательные методы ---------------
-
-        private void RunDisplaySwitch(string argument)
+        public void RunDisplaySwitch(string argument)
         {
             try
             {
@@ -293,15 +226,9 @@ namespace EZ2Play.App
                     CreateNoWindow = true
                 });
             }
-            catch
-            {
-                // Игнорируем ошибки запуска
-            }
+            catch { }
         }
 
-        // --------------- Очистка ресурсов ---------------
-
-        // Освобождает ресурсы (отписка от событий)
         public void Dispose()
         {
             try

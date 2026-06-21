@@ -20,6 +20,7 @@ namespace EZ2Play
 
         private Sound _sound;
         private Input _input;
+        private InputHandler _inputHandler;
         private Display _display;
         private UIRegistry _uiRegistry;
         private Launcher _launcher;
@@ -33,13 +34,21 @@ namespace EZ2Play
         private DispatcherTimer _activityTimer;
         private bool _wasActive;
         private bool _hotSwapLaunch;
+        private bool _isExiting;
 
         private enum TabType { Gamelist, LastPlayed }
         private TabType _currentTab = TabType.Gamelist;
 
+        private SettingsOverlay _settingsOverlay;
+
         // --------------- Публичные свойства ---------------
 
         public bool IsGamepadConnected { get; private set; }
+
+        public bool IsHotSwapLaunch() => _hotSwapLaunch;
+
+        public Display GetDisplay() => _display;
+        public AppConfig GetConfig() => _config;
 
         public void ShowLoadingUI(bool show)
         {
@@ -60,6 +69,14 @@ namespace EZ2Play
             InitializeLauncher();
             InitializeTimers();
             InitializeUI();
+
+            // Применить сохранённые настройки дисплея сразу (работает криво без применения масштабирования)
+            // if (_config.ForceDisplayEnabled)
+            // {
+            //     string target = _config.ForceDisplayIndex == 1 ? "/external" : "/internal";
+            //     _display.RunDisplaySwitch(target);
+            //     _display.SetCurrentDisplayIndex(_config.ForceDisplayIndex);
+            // }
         }
 
         // --------------- Инициализация ---------------
@@ -84,8 +101,16 @@ namespace EZ2Play
             _sound = new Sound();
             _display = new Display(this, _hotSwapLaunch, _sound);
             _input = new Input();
+            _inputHandler = new InputHandler(_input);
             _guideHandler = new GuideExitHandler(_sound);
             _particlesCanvas = FindName("particles") as ParticlesCanvas;
+
+            _config = new AppConfig();
+
+            _settingsOverlay = new SettingsOverlay(_inputHandler, this);
+            _inputHandler.RegisterSettingsOverlay(_settingsOverlay);
+            OverlayHost.Content = _settingsOverlay;
+            _settingsOverlay.Visibility = Visibility.Collapsed;
         }
 
         private void InitializeUIRegistry()
@@ -96,24 +121,15 @@ namespace EZ2Play
                 TabLastPlayedText = FindName("TabLastPlayedText") as System.Windows.Controls.TextBlock,
                 TimeLabel = FindName("TimeLabelText") as System.Windows.Controls.TextBlock,
                 UserAvatar = FindName("UserAvatar") as System.Windows.Controls.Image,
-                BottomPanel = FindName("BottomPanel") as System.Windows.Controls.Border,
                 TopPanel = FindName("TopPanel") as System.Windows.Controls.Grid,
                 NoShortcutsMessage = FindName("NoShortcutsMessage") as System.Windows.Controls.TextBlock,
                 SelectedGameTitle = FindName("SelectedGameTitle") as System.Windows.Controls.TextBlock,
                 GameSourceCard = FindName("GameSourceCard") as System.Windows.Controls.Border,
-                AppInfoLabel = FindName("AppInfoLabel") as System.Windows.Controls.TextBlock,
                 SplashLogo = FindName("SplashLogo") as System.Windows.Controls.Image,
                 SplashOverlay = FindName("SplashOverlay") as System.Windows.Controls.Grid,
                 MainScreenGrid = FindName("MainScreenGrid") as System.Windows.Controls.Grid,
                 ExitMessageText = FindName("ExitMessageText") as System.Windows.Controls.TextBlock,
-                IconGamepadLaunch = FindName("IconGamepadLaunch") as System.Windows.FrameworkElement,
-                IconKeyboardLaunch = FindName("IconKeyboardLaunch") as System.Windows.FrameworkElement,
-                IconGamepadExit = FindName("IconGamepadExit") as System.Windows.FrameworkElement,
-                IconKeyboardExit = FindName("IconKeyboardExit") as System.Windows.FrameworkElement,
-                IconGamepadSwap = FindName("IconGamepadSwap") as System.Windows.FrameworkElement,
-                IconKeyboardSwap = FindName("IconKeyboardSwap") as System.Windows.FrameworkElement,
-                IconGamepadSort = FindName("IconGamepadSort") as System.Windows.FrameworkElement,
-                IconKeyboardSort = FindName("IconKeyboardSort") as System.Windows.FrameworkElement,
+                BottomHintPanel = FindName("BottomPanel") as HintPanel,
                 NotificationPanel = FindName("NotificationPanel") as System.Windows.Controls.Border,
                 NotificationText = FindName("NotificationText") as System.Windows.Controls.TextBlock,
                 BackgroundImage = FindName("BackgroundImage") as System.Windows.Controls.Image,
@@ -134,22 +150,14 @@ namespace EZ2Play
         {
             _launcher = new Launcher(ItemsListBox, _uiRegistry.SelectedGameTitle, this, _sound);
             _metadata = _launcher.Playtime;
-            _config = new AppConfig();
+            // _config = new AppConfig();
             
-            SetupDisplayTogglePanel();
             InitializeCarouselSelectedItem();
         }
 
-        private void SetupDisplayTogglePanel()
+        public void SetHintsMode(HintPanel.HintMode mode)
         {
-            if (_uiRegistry.BottomPanel?.Child is System.Windows.Controls.StackPanel mainStackPanel && mainStackPanel.Children.Count >= 3)
-            {
-                var displayTogglePanel = mainStackPanel.Children[2] as System.Windows.Controls.StackPanel;
-                if (displayTogglePanel != null)
-                {
-                    _display.SetDisplayTogglePanel(displayTogglePanel);
-                }
-            }
+            BottomPanel.Mode = mode;
         }
 
         private void InitializeTimers()
@@ -224,16 +232,28 @@ namespace EZ2Play
 
         private void SetupInputEvents()
         {
-            _input.OnMoveSelection += _launcher.MoveSelection;
-            _input.OnLaunchSelected += _launcher.LaunchSelected;
-            _input.OnExitApplication += ExitApplication;
-            _input.OnSwitchToGamelist += SwitchToGamelist;
-            _input.OnSwitchToLastPlayed += SwitchToLastPlayed;
+            _inputHandler.OnMoveSelection += _launcher.MoveSelection;
+            // _inputHandler.OnLaunchSelected += _launcher.LaunchSelected;
 
-            if (_display.HasMultipleDisplays)
+            _inputHandler.OnLaunchSelected += () =>
             {
-                _input.OnToggleDisplay += _display.ToggleDisplay;
-            }
+                if (_isExiting) return;
+                _launcher.LaunchSelected();
+            };
+
+            _inputHandler.OnSwitchToGamelist += SwitchToGamelist;
+            _inputHandler.OnSwitchToLastPlayed += SwitchToLastPlayed;
+
+            _inputHandler.OnOpenSettings += async () =>
+            {
+                _settingsOverlay.Open();
+            };
+
+            _inputHandler.OnSettingsBack += () => _settingsOverlay.Close();
+            _inputHandler.OnSettingsConfirm += () => _settingsOverlay.Confirm();
+
+            _inputHandler.OnSettingsNavigate += (dir) => _settingsOverlay.Navigate(dir, true);
+            _inputHandler.OnSettingsNavigateVertical += (dir) => _settingsOverlay.Navigate(dir, false);
         }
 
         // --------------- Вкладки ---------------
@@ -379,6 +399,9 @@ namespace EZ2Play
 
         private void ShowStartupNotifications()
         {
+            // Debug notification
+            // _uiRegistry.Notifications.Debug(0, 30);
+
             // Уведомление XboxGameBar
             bool gamebarInstalled = SystemProvider.IsXboxGameBarInstalled();
             if (_config.ShouldShowGamebarNotification(gamebarInstalled))
@@ -413,13 +436,15 @@ namespace EZ2Play
 
         // --------------- Управление приложением ---------------
 
-        private void ExitApplication()
+        public void ExitApplication()
         {
+            _isExiting = true;
+            _display?.HandleHotswapOnExit();
+            
             _sound.PlayBackSound();
             _sound.StopBackgroundMusicSafe(Sound.FadeDurationMs);
             
             _uiRegistry.ShowBackground(false);
-            _input.OnExitApplication -= ExitApplication;
             _uiRegistry.ShowExitOverlay();
 
             Task.Delay(2000).ContinueWith(_ => Dispatcher.Invoke(Close));
@@ -465,7 +490,8 @@ namespace EZ2Play
 
         protected override void OnClosed(EventArgs e)
         {
-            _display?.HandleHotswapOnExit();
+            _isExiting = false;
+            
             _input?.Dispose();
             _guideHandler?.Dispose();
             _sound?.Dispose();

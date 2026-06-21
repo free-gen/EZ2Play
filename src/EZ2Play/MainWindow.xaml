@@ -17,6 +17,7 @@
                  ResizeMode="NoResize"
                  MinWidth="1024"
                  MinHeight="576">
+    
 
     <!-- Window Background {DynamicResource LayerOnAcrylicFillColorDefaultBrush} -->
     <Border Background="{DynamicResource LayerOnAcrylicFillColorDefaultBrush}" Margin="0">
@@ -58,9 +59,9 @@
                        FontWeight="ExtraLight"
                        Visibility="Collapsed"
                        Style="{StaticResource HintTextStyle}">
-                <Run x:Name="NoShortcutsMessage1"/>
+                <Run x:Name="NoShortcutsMessageTop"/>
                 <LineBreak/><LineBreak/>
-                <Run x:Name="NoShortcutsMessage2"/>
+                <Run x:Name="NoShortcutsMessageBottom"/>
             </TextBlock>
 
             <!-- ExitOverlay -->
@@ -76,19 +77,21 @@
                 <Run Text="{x:Static app:AppInfo.Company}"/>
             </TextBlock>
 
-            <!-- AppInfoLabel -->
-            <TextBlock  x:Name="AppInfoLabel"
-                        Visibility="Hidden"
-                        Grid.Row="3"
-                        VerticalAlignment="Bottom"
-                        HorizontalAlignment="Right"
-                        Foreground="{DynamicResource TextFillColorDisabledBrush}"
-                        Margin="{DynamicResource {x:Static app:UiScaleKeys.AppInfoLabelMargin}}"
-                        FontSize="{DynamicResource {x:Static app:UiScaleKeys.AppInfoLabelFontSize}}"
-                        TextAlignment="Right">
-                <Run Text="{x:Static app:AppInfo.Name}"/>
-                <Run Text="v"/><Run Text="{x:Static app:AppInfo.Version}"/>
-            </TextBlock>
+            <!-- Overlay -->
+            <ContentControl x:Name="OverlayHost" Panel.ZIndex="100"/>
+
+            <!-- <Border Panel.ZIndex="100"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center">
+
+                <Border.Effect>
+                    <DropShadowEffect BlurRadius="40"
+                                    ShadowDepth="0"
+                                    Opacity="0.35"/>
+                </Border.Effect>
+
+                <ContentControl x:Name="OverlayHost"/>
+            </Border> -->
 
             <!-- MainScreenGrid -->
             <Grid x:Name="MainScreenGrid" Visibility="Collapsed" Panel.ZIndex="5">
@@ -124,8 +127,7 @@
                         <TextBlock x:Name="TabLastPlayedText"
                                 Margin="{DynamicResource {x:Static app:UiScaleKeys.TopInfoTabsMargin}}"
                                 Opacity="0.5"
-                                FontSize="{DynamicResource {x:Static app:UiScaleKeys.TopInfoSecondaryFontSize}}"
-                                />
+                                FontSize="{DynamicResource {x:Static app:UiScaleKeys.TopInfoSecondaryFontSize}}"/>
                     </StackPanel>
 
                     <!-- NotificationPanel -->
@@ -133,17 +135,17 @@
                             Grid.Column="2"
                             Visibility="Collapsed"
                             Style="{StaticResource BasicCardStyle}"
-                            CornerRadius="{DynamicResource {x:Static app:UiScaleKeys.NotificationPanelCornerRadius}}"
+                            CornerRadius="{DynamicResource {x:Static app:UiScaleKeys.BaseCornerRadius}}"
                             Height="{DynamicResource {x:Static app:UiScaleKeys.NotificationPanelHeight}}"
                             Padding="{DynamicResource {x:Static app:UiScaleKeys.NotificationPanelPadding}}"
                             Margin="{DynamicResource {x:Static app:UiScaleKeys.NotificationPanelOuterMargin}}"
                             HorizontalAlignment="Right" 
                             VerticalAlignment="Center">
                         <StackPanel Orientation="Horizontal">
-                            <ui:SymbolIcon  Symbol="Info12" Filled="True" 
-                                            FontSize="{DynamicResource {x:Static app:UiScaleKeys.NotificationPanelIconSize}}"
-                                            VerticalAlignment="Center" 
-                                            Margin="{DynamicResource {x:Static app:UiScaleKeys.NotificationPanelMargin}}"/>
+                            <TextBlock  FontSize="{DynamicResource {x:Static app:UiScaleKeys.NotificationPanelIconSize}}"
+                                        VerticalAlignment="Center" 
+                                        Margin="{DynamicResource {x:Static app:UiScaleKeys.NotificationPanelMargin}}"
+                                        FontFamily="Xbox Fluent">&#xE686;</TextBlock>
                             <TextBlock  x:Name="NotificationText"
                                         Style="{StaticResource BasicCardTextStyle}"
                                         MaxWidth="{DynamicResource {x:Static app:UiScaleKeys.NotificationPanelMaxWidth}}"
@@ -152,14 +154,6 @@
                                         TextWrapping="Wrap"/>
                         </StackPanel>
                     </Border>
-
-                    <!-- Settings -->
-                    <!-- <StackPanel Grid.Column="3" VerticalAlignment="Center">
-                        <ui:SymbolIcon  Symbol="Settings28" Filled="True" 
-                                        FontSize="55"
-                                        VerticalAlignment="Center"
-                                        HorizontalAlignment="Center"/>
-                    </StackPanel> -->
 
                     <!-- UserAvatar -->
                     <Image  x:Name="UserAvatar" Grid.Column="3"
@@ -220,14 +214,6 @@
                                     HorizontalAlignment="Stretch">
                             </TextBlock>
 
-                            <!-- LoadingProgress -->
-                            <ui:ProgressRing x:Name="LoadingProgress" 
-                                    Margin="{DynamicResource {x:Static app:UiScaleKeys.HintBlockMargin}}"
-                                    Width="{DynamicResource {x:Static app:UiScaleKeys.LoadingProgressScale}}" 
-                                    Height="{DynamicResource {x:Static app:UiScaleKeys.LoadingProgressScale}}"
-                                    IsIndeterminate="True"
-                                    Visibility="Collapsed"/>
-
                         </StackPanel>
 
                         <!-- GameSourceCard -->
@@ -235,7 +221,7 @@
                                     Margin="{DynamicResource {x:Static app:UiScaleKeys.SourceCardMargin}}">
                             <Border x:Name="GameSourceCard"
                                     Style="{StaticResource BasicCardStyle}"
-                                    CornerRadius="{DynamicResource {x:Static app:UiScaleKeys.SourceCardCornerRadius}}"
+                                    CornerRadius="{DynamicResource {x:Static app:UiScaleKeys.BaseCornerRadius}}"
                                     Width="{DynamicResource {x:Static app:UiScaleKeys.SourceCardWidth}}"
                                     Height="{DynamicResource {x:Static app:UiScaleKeys.SourceCardHeight}}"
                                     VerticalAlignment="Center"
@@ -256,78 +242,46 @@
                                     Padding="{DynamicResource {x:Static app:UiScaleKeys.CounterCardPadding}}"
                                     Margin="{DynamicResource {x:Static app:UiScaleKeys.CounterCardMargin}}"
                                     Height="{DynamicResource {x:Static app:UiScaleKeys.CounterCardHeight}}"
-                                    CornerRadius="{DynamicResource {x:Static app:UiScaleKeys.CounterCardCornerRadius}}"
+                                    CornerRadius="{DynamicResource {x:Static app:UiScaleKeys.BaseCornerRadius}}"
                                     VerticalAlignment="Center"
                                     HorizontalAlignment="Right">
 
                                 <StackPanel Orientation="Horizontal">
-                                    <ui:SymbolIcon  Symbol="Clock24" Filled="False" 
-                                            FontSize="{DynamicResource {x:Static app:UiScaleKeys.CounterCardIconSize}}"
-                                            VerticalAlignment="Center" 
-                                            Margin="{DynamicResource {x:Static app:UiScaleKeys.CounterCardIconMargin}}"/>
+                                    <TextBlock  FontSize="{DynamicResource {x:Static app:UiScaleKeys.CounterCardIconSize}}"
+                                                VerticalAlignment="Center" 
+                                                Margin="{DynamicResource {x:Static app:UiScaleKeys.CounterCardIconMargin}}"
+                                                FontFamily="Xbox Fluent">&#xE35F;</TextBlock><!-- E7FB -->
                                     
-                                    <TextBlock x:Name="GameCounterText"
-                                            FontSize="{DynamicResource {x:Static app:UiScaleKeys.CounterCardFontSize}}"
-                                            FontWeight="ExtraBold"
-                                            TextAlignment="Center"/>
+                                    <TextBlock  x:Name="GameCounterText"
+                                                FontSize="{DynamicResource {x:Static app:UiScaleKeys.CounterCardFontSize}}"
+                                                FontWeight="ExtraBold"
+                                                TextAlignment="Center"/>
                                 </StackPanel>
                             </Border>
+
+                            <!-- LoadingProgress -->
+                            <ui:ProgressRing x:Name="LoadingProgress" 
+                                    Margin="{DynamicResource {x:Static app:UiScaleKeys.CounterCardMargin}}"
+                                    Width="{DynamicResource {x:Static app:UiScaleKeys.LoadingProgressScale}}" 
+                                    Height="{DynamicResource {x:Static app:UiScaleKeys.LoadingProgressScale}}"
+                                    IsIndeterminate="True"
+                                    Visibility="Collapsed"/>
                         </StackPanel>
                     </StackPanel>
                 </Grid>
-
-                <!-- BottomPanel -->
-                <Border x:Name="BottomPanel" Tag="BottomPanel" Grid.Row="3"
-                        Style="{StaticResource BotomCardStyle}"
-                        HorizontalAlignment="Center"
-                        VerticalAlignment="Bottom"
-                        Margin="{DynamicResource {x:Static app:UiScaleKeys.BottomPanelMargin}}"
-                        CornerRadius="{DynamicResource {x:Static app:UiScaleKeys.BottomPanelCornerRadius}}"
-                        Height="{DynamicResource {x:Static app:UiScaleKeys.BottomPanelHeight}}"
-                        Padding="{DynamicResource {x:Static app:UiScaleKeys.BottomPanelPadding}}">
-
-                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
-                            <StackPanel Orientation="Horizontal" Margin="{DynamicResource {x:Static app:UiScaleKeys.HintBlockMargin}}">
-                                <Viewbox x:Name="IconGamepadLaunch" Height="{DynamicResource {x:Static app:UiScaleKeys.HintIconHeightGamepad}}" Stretch="Uniform" Visibility="Collapsed" VerticalAlignment="Center">
-                                    <ContentPresenter Content="{StaticResource ButtonA}"/>
-                                </Viewbox>
-                                <Viewbox x:Name="IconKeyboardLaunch" Height="{DynamicResource {x:Static app:UiScaleKeys.HintIconHeightKeyboard}}" Stretch="Uniform" Visibility="Visible" VerticalAlignment="Center">
-                                    <ContentPresenter Content="{StaticResource KeyEnter}"/>
-                                </Viewbox>
-                                <TextBlock x:Name="LaunchText" Style="{StaticResource HintTextStyle}"/>
-                            </StackPanel>
-                            <StackPanel Orientation="Horizontal" Margin="{DynamicResource {x:Static app:UiScaleKeys.HintBlockMargin}}">
-                                <Viewbox x:Name="IconGamepadExit" Height="{DynamicResource {x:Static app:UiScaleKeys.HintIconHeightGamepad}}" Stretch="Uniform" Visibility="Collapsed" VerticalAlignment="Center">
-                                    <ContentPresenter Content="{StaticResource ButtonB}"/>
-                                </Viewbox>
-                                <Viewbox x:Name="IconKeyboardExit" Height="{DynamicResource {x:Static app:UiScaleKeys.HintIconHeightKeyboard}}" Stretch="Uniform" Visibility="Visible" VerticalAlignment="Center">
-                                    <ContentPresenter Content="{StaticResource KeyEscape}"/>
-                                </Viewbox>
-                                <TextBlock x:Name="ExitText" Style="{StaticResource HintTextStyle}"/>
-                            </StackPanel>
-                            <StackPanel Orientation="Horizontal" Margin="{DynamicResource {x:Static app:UiScaleKeys.HintBlockMargin}}">
-                                <Viewbox x:Name="IconGamepadSwap" Height="{DynamicResource {x:Static app:UiScaleKeys.HintIconHeightGamepad}}" Stretch="Uniform" Visibility="Collapsed" VerticalAlignment="Center">
-                                    <ContentPresenter Content="{StaticResource ButtonX}"/>
-                                </Viewbox>
-                                <Viewbox x:Name="IconKeyboardSwap" Height="{DynamicResource {x:Static app:UiScaleKeys.HintIconHeightKeyboard}}" Stretch="Uniform" Visibility="Visible" VerticalAlignment="Center">
-                                    <ContentPresenter Content="{StaticResource KeyX}"/>
-                                </Viewbox>
-                                <TextBlock x:Name="ScreenSwapText" Style="{StaticResource HintTextStyle}"/>
-                            </StackPanel>
-                            <StackPanel Orientation="Horizontal" Margin="{DynamicResource {x:Static app:UiScaleKeys.HintBlockMargin}}">
-                                <Viewbox x:Name="IconGamepadSort" Height="{DynamicResource {x:Static app:UiScaleKeys.HintIconHeightGamepad}}" Stretch="Uniform" Visibility="Collapsed" VerticalAlignment="Center">
-                                    <ContentPresenter Content="{StaticResource ButtonLR}"/>
-                                </Viewbox>
-                                <Viewbox x:Name="IconKeyboardSort" Height="{DynamicResource {x:Static app:UiScaleKeys.HintIconHeightKeyboard}}" Stretch="Uniform" Visibility="Visible" VerticalAlignment="Center">
-                                    <ContentPresenter Content="{StaticResource KeyQE}"/>
-                                </Viewbox>
-                                <TextBlock x:Name="SortingText" Style="{StaticResource HintTextStyle}"/>
-                            </StackPanel>
-                        </StackPanel>
-
-                </Border>
-
             </Grid>
+
+            <!-- BottomPanel -->
+            <app:HintPanel x:Name="BottomPanel"
+            Grid.Row="3"
+            Panel.ZIndex="105"
+            Mode="Main"
+            Device="Keyboard"
+            Visibility="Collapsed"
+            Margin="{DynamicResource {x:Static app:UiScaleKeys.BottomPanelMargin}}"
+            CornerRadius="{DynamicResource {x:Static app:UiScaleKeys.BaseCornerRadius}}"
+            Height="{DynamicResource {x:Static app:UiScaleKeys.BottomPanelHeight}}"
+            Padding="{DynamicResource {x:Static app:UiScaleKeys.BottomPanelPadding}}" />
 
         </Grid>
     </Border>

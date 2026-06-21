@@ -13,6 +13,9 @@ namespace EZ2Play.App
         public bool LastGamebarState { get; set; }
         public bool HotSwapNotificationShown { get; set; }
         public bool LastHotSwapState { get; set; }
+        
+        // Настройка автозапуска
+        public bool AutorunEnabled { get; set; }
 
         public AppConfig()
         {
@@ -23,14 +26,12 @@ namespace EZ2Play.App
             Load();
         }
 
-        // Логика уведолмения GameBar
+        // Логика уведомления GameBar
         public bool ShouldShowGamebarNotification(bool currentState)
         {
-            // Не показывали никогда → показать
             if (!GamebarNotificationShown)
                 return true;
             
-            // Показывали, но состояние изменилось → показать снова
             return LastGamebarState != currentState;
         }
 
@@ -41,14 +42,12 @@ namespace EZ2Play.App
             Save();
         }
 
-        // Логика уведолмения HotSwap
+        // Логика уведомления HotSwap
         public bool ShouldShowHotSwapNotification(bool currentState)
         {
-            // Не показывали никогда → показать
             if (!HotSwapNotificationShown)
                 return true;
             
-            // Показывали, но состояние изменилось → показать снова
             return LastHotSwapState != currentState;
         }
 
@@ -65,6 +64,9 @@ namespace EZ2Play.App
             {
                 GamebarNotificationShown = false;
                 LastGamebarState = false;
+                HotSwapNotificationShown = false;
+                LastHotSwapState = false;
+                AutorunEnabled = false;
                 return;
             }
 
@@ -80,15 +82,18 @@ namespace EZ2Play.App
                     HotSwapNotificationShown = data.Notifications.HotSwapShown;
                     LastHotSwapState = data.Notifications.LastHotSwapState;
                 }
+                
+                AutorunEnabled = data?.AutorunEnabled ?? false;
             }
             catch
             {
                 GamebarNotificationShown = false;
                 LastGamebarState = false;
+                AutorunEnabled = false;
             }
         }
 
-        private void Save()
+        public void Save()
         {
             try
             {
@@ -104,7 +109,8 @@ namespace EZ2Play.App
                         LastGamebarState = LastGamebarState,
                         HotSwapShown = HotSwapNotificationShown,
                         LastHotSwapState = LastHotSwapState
-                    }
+                    },
+                    AutorunEnabled = AutorunEnabled
                 };
 
                 string json = JsonConvert.SerializeObject(data, Formatting.Indented);
@@ -113,10 +119,10 @@ namespace EZ2Play.App
             catch { }
         }
 
-        // Внутренние классы для сериализации
         private class AppConfigData
         {
             public NotificationSettings Notifications { get; set; }
+            public bool AutorunEnabled { get; set; }
         }
 
         private class NotificationSettings

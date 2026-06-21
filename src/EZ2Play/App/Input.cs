@@ -1,74 +1,61 @@
 using System;
-using System.Linq;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Threading;
 using System.Diagnostics;
-using SharpDX.DirectInput;
+using SharpDX.XInput;
 
 namespace EZ2Play.App
 {
-    // --------------- Класс управления вводом (клавиатура + геймпад) ---------------
-
     public class Input : IDisposable
     {
-        // --------------- Константы ---------------
-
         // Задержки ввода (мс)
-        private const int InitialDelay = 300;
-        private const int RepeatDelay = 70;
+        private const int InitialDelay = 250;
+        private const int RepeatDelay = 75;
         private const int GamepadButtonCooldown = 200;
 
         // Частота опроса геймпада (мс)
         private const int GamepadPollInterval = 16;
         private const int GamepadCheckInterval = 2000;
 
-        // Мертвые зоны стика
-        private const int StickLeftThreshold = 16384;
-        private const int StickRightThreshold = 49152;
+        // Мертвая зона для стика
+        private const short StickDeadZone = 8000;
 
-        // D-Pad направления (градусы)
-        private const int DPadLeft = 27000;
-        private const int DPadRight = 9000;
-
-        // --------------- Поля ---------------
-
-        // DirectInput
-        private DirectInput _directInput;
-        private Joystick _joystick;
-
-        // Таймеры
+        // Поля
+        private Controller _controller;
         private DispatcherTimer _keyboardTimer;
         private DispatcherTimer _gamepadTimer;
         private DispatcherTimer _gamepadCheckTimer;
-
-        // Состояние клавиатуры
         private bool _leftKeyPressed;
         private bool _rightKeyPressed;
         private long _keyHoldStart = -1;
         private long _lastKeyboardInput;
-
-        // Состояние геймпада
         private long _gamepadHoldStart = -1;
         private long _lastGamepadNavInput;
         private long _lastGamepadButtonInput;
+        private long _verticalHoldStart = -1;
+        private long _lastVerticalInput;
         private readonly Stopwatch _stopwatch = Stopwatch.StartNew();
+        private bool _isReconnecting;
+        private bool _lastStartState;
+        private bool _lastBackState;
 
-        // --------------- События ---------------
-
-        public event Action<int> OnMoveSelection;
-        public event Action OnLaunchSelected;
-        public event Action OnExitApplication;
-        public event Action OnToggleDisplay;
+        // События (нейтральные, без логики)
+        public event Action<int> OnLeftRight;
+        public event Action<int> OnUpDown;
+        public event Action OnA;
+        public event Action OnB;
+        public event Action OnX;
+        public event Action OnLB;
+        public event Action OnRB;
+        public event Action OnStart;
+        public event Action OnBack;
         public event Action<bool, string> OnGamepadConnectionChanged;
-        public event Action OnSwitchToGamelist;
-        public event Action OnSwitchToLastPlayed;
 
-        // --------------- Свойства ---------------
+        public event Action OnStartReleased;
+        public event Action OnBackReleased;
 
         public bool IsGamepadConnected { get; private set; }
-
-        // --------------- Конструктор ---------------
 
         public Input()
         {
@@ -77,68 +64,43 @@ namespace EZ2Play.App
             InitializeGamepadCheckTimer();
         }
 
-        // --------------- Инициализация ---------------
-
         private void InitializeGamepad()
         {
             try
             {
-                _directInput = new DirectInput();
-                ConnectGamepad();
-            }
-            catch { }
-        }
-
-        private void ConnectGamepad()
-        {
-            try
-            {
-                if (_joystick != null)
-                {
-                    _joystick.Unacquire();
-                    _joystick.Dispose();
-                    _joystick = null;
-                }
-
-                var devices = _directInput.GetDevices(DeviceType.Gamepad, DeviceEnumerationFlags.AllDevices)
-                    .Concat(_directInput.GetDevices(DeviceType.Joystick, DeviceEnumerationFlags.AllDevices))
-                    .ToList();
-
-                if (devices.Count > 0)
-                {
-                    _joystick = new Joystick(_directInput, devices[0].InstanceGuid);
-                    _joystick.Properties.BufferSize = 128;
-                    _joystick.Acquire();
-
-                    string deviceName = GetDeviceName(devices[0]);
-                    StartGamepadTimer();
-                    UpdateConnectionState(true, deviceName);
-                }
-                else
-                {
-                    UpdateConnectionState(false, "Gamepad");
-                }
-            }
-            catch { }
-        }
-
-        private string GetDeviceName(DeviceInstance device)
-        {
-            try
-            {
-                string name = device.ProductName;
-                return string.IsNullOrWhiteSpace(name) ? "Gamepad" : name;
+                ConnectToFirstAvailableGamepad();
             }
             catch
             {
-                return "Gamepad";
+                UpdateConnectionState(false, "XInput initialization failed");
             }
+        }
+
+        private void ConnectToFirstAvailableGamepad()
+        {
+            for (int i = 0; i < 4; i++)
+            {
+                var testController = new Controller((UserIndex)i);
+                if (testController.IsConnected)
+                {
+                    SetActiveController(testController, i);
+                    return;
+                }
+            }
+            UpdateConnectionState(false, "No XInput controller found");
+        }
+
+        private void SetActiveController(Controller newController, int userId)
+        {
+            _controller = newController;
+            string deviceName = $"XInput Controller {userId + 1}";
+            UpdateConnectionState(true, deviceName);
+            StartGamepadTimer();
         }
 
         private void StartGamepadTimer()
         {
             if (_gamepadTimer != null) return;
-            
             _gamepadTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(GamepadPollInterval) };
             _gamepadTimer.Tick += CheckGamepadInput;
             _gamepadTimer.Start();
@@ -158,217 +120,172 @@ namespace EZ2Play.App
             _gamepadCheckTimer.Start();
         }
 
-        // --------------- Подключение геймпада ---------------
-
         private void UpdateConnectionState(bool isConnected, string deviceName)
         {
             if (IsGamepadConnected == isConnected) return;
-
             IsGamepadConnected = isConnected;
-
-            try
-            {
-                OnGamepadConnectionChanged?.Invoke(isConnected, deviceName);
-            }
-            catch { }
+            OnGamepadConnectionChanged?.Invoke(isConnected, deviceName);
         }
 
         private void CheckGamepadConnection(object sender, EventArgs e)
         {
-            if (_directInput == null) return;
-            
+            if (_isReconnecting) return;
             try
             {
-                if (_joystick == null)
+                if (_controller == null) { TryReconnectGamepad(); return; }
+                if (!_controller.IsConnected)
                 {
+                    _controller = null;
+                    UpdateConnectionState(false, "Gamepad disconnected");
                     TryReconnectGamepad();
                 }
-                else
-                {
-                    ValidateCurrentGamepad();
-                }
             }
-            catch { }
+            catch
+            {
+                _controller = null;
+                UpdateConnectionState(false, "Gamepad error");
+                TryReconnectGamepad();
+            }
         }
 
         private void TryReconnectGamepad()
         {
-            var devices = _directInput.GetDevices(DeviceType.Gamepad, DeviceEnumerationFlags.AllDevices)
-                .Concat(_directInput.GetDevices(DeviceType.Joystick, DeviceEnumerationFlags.AllDevices))
-                .ToList();
-
-            if (devices.Count > 0)
-            {
-                ConnectGamepad();
-            }
-            else
-            {
-                UpdateConnectionState(false, "Gamepad");
-            }
-        }
-
-        private void ValidateCurrentGamepad()
-        {
+            _isReconnecting = true;
             try
             {
-                _joystick.Poll();
-                _ = _joystick.GetCurrentState();
+                for (int i = 0; i < 4; i++)
+                {
+                    var testController = new Controller((UserIndex)i);
+                    if (testController.IsConnected)
+                    {
+                        SetActiveController(testController, i);
+                        return;
+                    }
+                }
             }
-            catch
-            {
-                _joystick.Unacquire();
-                _joystick.Dispose();
-                _joystick = null;
-                ConnectGamepad();
-            }
+            finally { _isReconnecting = false; }
         }
-
-        // --------------- Клавиатура ---------------
 
         private void CheckKeyboardInput(object sender, EventArgs e)
         {
+            if (!SystemProvider.IsForeground()) return;
             if (_keyHoldStart < 0) return;
 
             long now = _stopwatch.ElapsedMilliseconds;
-            long holdDuration = now - _keyHoldStart;
+            if (now - _keyHoldStart < InitialDelay) return;
 
-            if (holdDuration < InitialDelay) return;
-
-            long timeSinceLastInput = now - _lastKeyboardInput;
-
-            if (_leftKeyPressed && timeSinceLastInput >= RepeatDelay)
+            long timeSinceLast = now - _lastKeyboardInput;
+            if (_leftKeyPressed && timeSinceLast >= RepeatDelay)
             {
                 _lastKeyboardInput = now;
-                OnMoveSelection?.Invoke(-1);
+                OnLeftRight?.Invoke(-1);
             }
-            else if (_rightKeyPressed && timeSinceLastInput >= RepeatDelay)
+            else if (_rightKeyPressed && timeSinceLast >= RepeatDelay)
             {
                 _lastKeyboardInput = now;
-                OnMoveSelection?.Invoke(1);
+                OnLeftRight?.Invoke(1);
             }
         }
 
-        public void HandleKeyDown(System.Windows.Input.Key key)
+        public void HandleKeyDown(Key key)
         {
-            try
+            if (!SystemProvider.IsForeground()) return;
+
+            switch (key)
             {
-                switch (key)
-                {
-                    case System.Windows.Input.Key.Left:
-                        if (!_leftKeyPressed)
-                        {
-                            _leftKeyPressed = true;
-                            _keyHoldStart = _stopwatch.ElapsedMilliseconds;
-                            _lastKeyboardInput = _stopwatch.ElapsedMilliseconds;
-                            OnMoveSelection?.Invoke(-1);
-                        }
-                        break;
-
-                    case System.Windows.Input.Key.Right:
-                        if (!_rightKeyPressed)
-                        {
-                            _rightKeyPressed = true;
-                            _keyHoldStart = _stopwatch.ElapsedMilliseconds;
-                            _lastKeyboardInput = _stopwatch.ElapsedMilliseconds;
-                            OnMoveSelection?.Invoke(1);
-                        }
-                        break;
-
-                    case System.Windows.Input.Key.Enter:
-                        OnLaunchSelected?.Invoke();
-                        break;
-
-                    case System.Windows.Input.Key.Escape:
-                        OnExitApplication?.Invoke();
-                        break;
-
-                    case System.Windows.Input.Key.X:
-                        OnToggleDisplay?.Invoke();
-                        break;
-
-                    case System.Windows.Input.Key.Q:
-                        OnSwitchToGamelist?.Invoke();
-                        break;
-
-                    case System.Windows.Input.Key.E:
-                        OnSwitchToLastPlayed?.Invoke();
-                        break;
-                }
+                case Key.Left:
+                    if (!_leftKeyPressed)
+                    {
+                        _leftKeyPressed = true;
+                        _keyHoldStart = _stopwatch.ElapsedMilliseconds;
+                        _lastKeyboardInput = _stopwatch.ElapsedMilliseconds;
+                        OnLeftRight?.Invoke(-1);
+                    }
+                    break;
+                case Key.Right:
+                    if (!_rightKeyPressed)
+                    {
+                        _rightKeyPressed = true;
+                        _keyHoldStart = _stopwatch.ElapsedMilliseconds;
+                        _lastKeyboardInput = _stopwatch.ElapsedMilliseconds;
+                        OnLeftRight?.Invoke(1);
+                    }
+                    break;
+                case Key.Up:
+                    OnUpDown?.Invoke(-1);
+                    break;
+                case Key.Down:
+                    OnUpDown?.Invoke(1);
+                    break;
+                case Key.Enter:
+                    OnA?.Invoke();
+                    break;
+                case Key.Escape:
+                    OnBack?.Invoke();
+                    break;
+                case Key.Q:
+                    OnLB?.Invoke();
+                    break;
+                case Key.E:
+                    OnRB?.Invoke();
+                    break;
             }
-            catch { }
         }
 
-        public void HandleKeyUp(System.Windows.Input.Key key)
+        public void HandleKeyUp(Key key)
         {
-            try
+            if (!SystemProvider.IsForeground()) return;
+            switch (key)
             {
-                switch (key)
-                {
-                    case System.Windows.Input.Key.Left:
-                        _leftKeyPressed = false;
-                        _keyHoldStart = -1;
-                        break;
-
-                    case System.Windows.Input.Key.Right:
-                        _rightKeyPressed = false;
-                        _keyHoldStart = -1;
-                        break;
-                }
+                case Key.Left:
+                    _leftKeyPressed = false;
+                    _keyHoldStart = -1;
+                    break;
+                case Key.Right:
+                    _rightKeyPressed = false;
+                    _keyHoldStart = -1;
+                    break;
             }
-            catch { }
         }
-
-        // --------------- Геймпад ---------------
 
         private void CheckGamepadInput(object sender, EventArgs e)
         {
-            if (_joystick == null || !SystemProvider.IsForeground()) return;
+            if (!SystemProvider.IsForeground()) return;
+            if (_controller == null || !_controller.IsConnected) return;
 
             try
             {
-                _joystick.Poll();
-                var state = _joystick.GetCurrentState();
-
-                bool leftPressed = state.PointOfViewControllers[0] == DPadLeft || state.X < StickLeftThreshold;
-                bool rightPressed = state.PointOfViewControllers[0] == DPadRight || state.X > StickRightThreshold;
-
-                bool selectPressed = state.Buttons[0];
-                bool backPressed = state.Buttons[1];
-                bool xButtonPressed = state.Buttons[2];
-                bool lButtonPressed = state.Buttons[4];
-                bool rButtonPressed = state.Buttons[5];
-
+                var state = _controller.GetState();
+                var gamepad = state.Gamepad;
                 long now = _stopwatch.ElapsedMilliseconds;
 
-                HandleGamepadNavigation(leftPressed, rightPressed, now);
-                HandleGamepadButtons(selectPressed, backPressed, xButtonPressed, lButtonPressed, rButtonPressed, now);
+                bool left = (gamepad.Buttons & GamepadButtonFlags.DPadLeft) != 0 || gamepad.LeftThumbX < -StickDeadZone;
+                bool right = (gamepad.Buttons & GamepadButtonFlags.DPadRight) != 0 || gamepad.LeftThumbX > StickDeadZone;
+                bool up = (gamepad.Buttons & GamepadButtonFlags.DPadUp) != 0 || gamepad.LeftThumbY > StickDeadZone;
+                bool down = (gamepad.Buttons & GamepadButtonFlags.DPadDown) != 0 || gamepad.LeftThumbY < -StickDeadZone;
+
+                HandleHorizontalNavigation(left, right, now);
+                HandleVerticalNavigation(up, down, now);
+                HandleGamepadButtons(gamepad, now);
             }
             catch { }
         }
 
-        private void HandleGamepadNavigation(bool leftPressed, bool rightPressed, long now)
+        private void HandleHorizontalNavigation(bool left, bool right, long now)
         {
-            bool navigationPressed = leftPressed || rightPressed;
-
-            if (navigationPressed)
+            bool pressed = left || right;
+            if (pressed)
             {
                 if (_gamepadHoldStart < 0)
                 {
                     _gamepadHoldStart = now;
                     _lastGamepadNavInput = now;
-
-                    if (leftPressed) OnMoveSelection?.Invoke(-1);
-                    else if (rightPressed) OnMoveSelection?.Invoke(1);
+                    OnLeftRight?.Invoke(left ? -1 : 1);
                 }
-                else if (now - _gamepadHoldStart >= InitialDelay)
+                else if (now - _gamepadHoldStart >= InitialDelay && now - _lastGamepadNavInput >= RepeatDelay)
                 {
-                    if (now - _lastGamepadNavInput >= RepeatDelay)
-                    {
-                        _lastGamepadNavInput = now;
-
-                        if (leftPressed) OnMoveSelection?.Invoke(-1);
-                        else if (rightPressed) OnMoveSelection?.Invoke(1);
-                    }
+                    _lastGamepadNavInput = now;
+                    OnLeftRight?.Invoke(left ? -1 : 1);
                 }
             }
             else
@@ -377,55 +294,88 @@ namespace EZ2Play.App
             }
         }
 
-        private void HandleGamepadButtons(bool selectPressed, bool backPressed, bool xButtonPressed,
-                                          bool lButtonPressed, bool rButtonPressed, long now)
+        private void HandleVerticalNavigation(bool up, bool down, long now)
         {
-            if (selectPressed && now - _lastGamepadButtonInput >= GamepadButtonCooldown)
+            bool pressed = up || down;
+            if (pressed)
             {
-                _lastGamepadButtonInput = now;
-                OnLaunchSelected?.Invoke();
+                if (_verticalHoldStart < 0)
+                {
+                    _verticalHoldStart = now;
+                    _lastVerticalInput = now;
+                    OnUpDown?.Invoke(up ? -1 : 1);
+                }
+                else if (now - _verticalHoldStart >= InitialDelay && now - _lastVerticalInput >= RepeatDelay)
+                {
+                    _lastVerticalInput = now;
+                    OnUpDown?.Invoke(up ? -1 : 1);
+                }
             }
-            else if (backPressed && now - _lastGamepadButtonInput >= GamepadButtonCooldown)
+            else
             {
-                _lastGamepadButtonInput = now;
-                OnExitApplication?.Invoke();
-            }
-            else if (xButtonPressed && now - _lastGamepadButtonInput >= GamepadButtonCooldown)
-            {
-                _lastGamepadButtonInput = now;
-                OnToggleDisplay?.Invoke();
-            }
-            else if (lButtonPressed && now - _lastGamepadButtonInput >= GamepadButtonCooldown)
-            {
-                _lastGamepadButtonInput = now;
-                OnSwitchToGamelist?.Invoke();
-            }
-            else if (rButtonPressed && now - _lastGamepadButtonInput >= GamepadButtonCooldown)
-            {
-                _lastGamepadButtonInput = now;
-                OnSwitchToLastPlayed?.Invoke();
+                _verticalHoldStart = -1;
             }
         }
 
-        // --------------- Очистка ресурсов ---------------
+        private void HandleGamepadButtons(Gamepad gamepad, long now)
+        {
+            if (now - _lastGamepadButtonInput < GamepadButtonCooldown) return;
+
+            if ((gamepad.Buttons & GamepadButtonFlags.A) != 0)
+            {
+                _lastGamepadButtonInput = now;
+                OnA?.Invoke();
+            }
+            else if ((gamepad.Buttons & GamepadButtonFlags.B) != 0)
+            {
+                _lastGamepadButtonInput = now;
+                OnB?.Invoke();
+            }
+            else if ((gamepad.Buttons & GamepadButtonFlags.X) != 0)
+            {
+                _lastGamepadButtonInput = now;
+                OnX?.Invoke();
+            }
+            else if ((gamepad.Buttons & GamepadButtonFlags.LeftShoulder) != 0)
+            {
+                _lastGamepadButtonInput = now;
+                OnLB?.Invoke();
+            }
+            else if ((gamepad.Buttons & GamepadButtonFlags.RightShoulder) != 0)
+            {
+                _lastGamepadButtonInput = now;
+                OnRB?.Invoke();
+            }
+            else if ((gamepad.Buttons & GamepadButtonFlags.Start) != 0)
+            {
+                _lastGamepadButtonInput = now;
+                OnStart?.Invoke();
+            }
+            // else if ((gamepad.Buttons & GamepadButtonFlags.Back) != 0)
+            // {
+            //     _lastGamepadButtonInput = now;
+            //     OnBack?.Invoke();
+            // }
+
+            // Отслеживание отпускания кнопок
+            bool currentStart = (gamepad.Buttons & GamepadButtonFlags.Start) != 0;
+            bool currentBack = (gamepad.Buttons & GamepadButtonFlags.Back) != 0;
+
+            if (_lastStartState && !currentStart)
+                OnStartReleased?.Invoke();
+            if (_lastBackState && !currentBack)
+                OnBackReleased?.Invoke();
+
+            _lastStartState = currentStart;
+            _lastBackState = currentBack;
+        }
 
         public void Dispose()
         {
             _gamepadTimer?.Stop();
-            _gamepadTimer = null;
-            
             _keyboardTimer?.Stop();
-            _keyboardTimer = null;
-            
             _gamepadCheckTimer?.Stop();
-            _gamepadCheckTimer = null;
-            
-            _joystick?.Unacquire();
-            _joystick?.Dispose();
-            _joystick = null;
-            
-            _directInput?.Dispose();
-            _directInput = null;
+            _controller = null;
         }
     }
 }

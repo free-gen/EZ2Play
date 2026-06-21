@@ -38,111 +38,159 @@ namespace EZ2Play.App
             double s(double baseVal) => Scale(baseVal, windowHeight);
             double fs(double baseVal) => GetScaledFontSize(baseVal, windowHeight);
 
-            // Заставка
-            target[UiScaleKeys.SplashLogoMaxHeight] = s(256); // высота логотипа
+            // Base
+            target[UiScaleKeys.BaseCornerRadius] = new CornerRadius(s(8));
+            
+            // SettingsOverlay
+            target[UiScaleKeys.SettingsOverlayWidth] = s(1280);
+            target[UiScaleKeys.SettingsOverlayTreeItemWidth] = s(1280 / 3);
+            target[UiScaleKeys.SettingsOverlayThickness] = new Thickness(s(2));
+            target[UiScaleKeys.SettingsOverlayCornerRadius] = new CornerRadius(s(16));
 
-            // Сообщение NoShortcuts
-            target[UiScaleKeys.NoShortcutsMargin] = new Thickness(0, 0, 0, s(100)); // отступ снизу
-            target[UiScaleKeys.NoShortcutsFontSize] = fs(36); // размер шрифта
+            // SettingsOverlayItems
+            target[UiScaleKeys.SettingsOverlayLabelFontSize] = fs(32);
+            target[UiScaleKeys.SettingsOverlayLabelTreeFontSize] = fs(24);
+            target[UiScaleKeys.SettingsOverlayLabelMargin] = new Thickness(0, 0, 0, s(8));
+            target[UiScaleKeys.SettingsOverlayLabelTreeMargin] = new Thickness(0, 0, 0, s(4));
+            target[UiScaleKeys.SettingsOverlayDescFontSize] = fs(20);
+            target[UiScaleKeys.SettingsOverlayItemPadding] = new Thickness(0, s(32), 0, s(32));
 
-            // Сообщение при выходе
-            target[UiScaleKeys.ExitMessageFontSize] = fs(42); // размер шрифта
+            // SettingsOverlaySelection
+            target[UiScaleKeys.SettingsOverlaySelectionBorderMargin] = new Thickness(s(6), s(8), s(6), s(10));
+            target[UiScaleKeys.SettingsOverlaySelectionBorderThickness] = new Thickness(s(4));
+            target[UiScaleKeys.SettingsOverlaySelectionBackgroundMargin] = new Thickness(s(6));
+            target[UiScaleKeys.SettingsOverlaySelectionCornerRadius] = new CornerRadius(s(10));
+            target[UiScaleKeys.SettingsOverlaySelectionBgCornerRadius] = new CornerRadius(s(6));
 
-            // Номер версии
-            target[UiScaleKeys.AppInfoLabelMargin] = new Thickness( s(50) ); // отступы
-            target[UiScaleKeys.AppInfoLabelFontSize] = fs(18); // размер шрифта
+            // SettingsOverlayDivider
+            target[UiScaleKeys.SettingsOverlayDividerMargin] = new Thickness(0);
+            target[UiScaleKeys.SettingsOverlayDividerHeight] = s(2);
 
-            // ===========================================================================
+            // SettingsOverlayMisc
+            target[UiScaleKeys.SettingsOverlayAppInfoMargin] = new Thickness(0, s(24), 0, s(24));
+            target[UiScaleKeys.ToggleSwitchWidth] = s(64);
+            target[UiScaleKeys.ToggleSwitchHeight] = s(32);
+            
+            
+            // SplashScreen
+            target[UiScaleKeys.SplashLogoMaxHeight] = s(256);
 
-            // Верхняя панель
-            target[UiScaleKeys.TopPanelMargin] = new Thickness(s(0), s(25), s(0), 0); // общее смещение вниз
-            target[UiScaleKeys.TopInfoTabsMargin] = new Thickness(s(70), s(0), s(0), 0);
+            // NoShortcutsMessage
+            target[UiScaleKeys.NoShortcutsMargin] = new Thickness(0, 0, 0, s(96));
+            target[UiScaleKeys.NoShortcutsFontSize] = fs(36);
+
+            // ExitOverlay
+            target[UiScaleKeys.ExitMessageFontSize] = fs(42);
+
+            // AppInfoLabel
+            target[UiScaleKeys.AppInfoLabelMargin] = new Thickness(s(64));
+            target[UiScaleKeys.AppInfoLabelFontSize] = fs(16);
+
+            // TopPanel
+            target[UiScaleKeys.TopPanelMargin] = new Thickness(0, s(24), 0, 0);
+            target[UiScaleKeys.TopInfoTabsMargin] = new Thickness(s(72), 0, 0, 0);
             target[UiScaleKeys.TopInfoPrimalyFontSize] = fs(42);
             target[UiScaleKeys.TopInfoSecondaryFontSize] = fs(38);
-            target[UiScaleKeys.UserAvatarSize] = s(64); // аватар
+            target[UiScaleKeys.UserAvatarSize] = s(56);
 
-            // Уведомление
-            double sysMsgHeight = 100;
-            target[UiScaleKeys.NotificationPanelHeight] = s(sysMsgHeight);
-            target[UiScaleKeys.NotificationPanelCornerRadius] = new CornerRadius(s(sysMsgHeight / 2)); 
-            target[UiScaleKeys.NotificationPanelMaxWidth] = s(1280); // макс ширина уведомления
-            target[UiScaleKeys.NotificationPanelPadding] = new Thickness(s(30), 0, s(50), 0); // внутр. оступы
-            target[UiScaleKeys.NotificationPanelOuterMargin] = new Thickness(s(0), s(0), s(50), 0); // внешний отступ
-            target[UiScaleKeys.NotificationPanelMargin] = new Thickness(s(0), 0, s(20), 0);
+            // NotificationPanel
+            target[UiScaleKeys.NotificationPanelHeight] = s(96);
+            target[UiScaleKeys.NotificationPanelCornerRadius] = new CornerRadius(s(16)); 
+            target[UiScaleKeys.NotificationPanelMaxWidth] = s(1024);
+            target[UiScaleKeys.NotificationPanelPadding] = new Thickness(s(32), 0, s(32), 0);
+            target[UiScaleKeys.NotificationPanelOuterMargin] = new Thickness(0, 0, s(32), 0);
+            target[UiScaleKeys.NotificationPanelMargin] = new Thickness(0, 0, s(24), 0);
             target[UiScaleKeys.NotificationPanelFontSize] = fs(22);
-            target[UiScaleKeys.NotificationPanelIconSize] = fs(42);
+            target[UiScaleKeys.NotificationPanelIconSize] = fs(32);
 
-            // Витрина обложек
-            target[UiScaleKeys.ItemCornerRadius] = s(23); // радиус обложек
-            target[UiScaleKeys.SelectorThickness] = s(4); // толщина селектора
-            target[UiScaleKeys.SelectorSpacing] = s(4); // оступ от обложки
+            // ItemsListBox
+            target[UiScaleKeys.ItemCornerRadius] = s(12);
+            target[UiScaleKeys.SelectorThickness] = s(4);
+            target[UiScaleKeys.SelectorSpacing] = s(4);
 
-            // Название игры
-            target[UiScaleKeys.GameTitleMargin] = new Thickness(s(200), 0, s(0), 0);
-            target[UiScaleKeys.SelectedGameTitleFontSize] = fs(72); // размер шрифта
-            target[UiScaleKeys.LoadingProgressScale] = fs(55); // размер LoadingProgress
+            // SelectedGameTitle
+            target[UiScaleKeys.GameTitleMargin] = new Thickness(s(192), 0, 0, 0);
+            target[UiScaleKeys.SelectedGameTitleFontSize] = fs(72);
 
-            // Карточка источника 
-            double sourceCardHeight = 70;
+            // GameSourceCard
             target[UiScaleKeys.SourceCardWidth] = s(320);
-            target[UiScaleKeys.SourceCardHeight] = s(sourceCardHeight);
-            target[UiScaleKeys.SourceCardCornerRadius] = new CornerRadius(s(sourceCardHeight / 2));
-            target[UiScaleKeys.SourceCardPadding] = new Thickness(s(100), 0, s(100), 0); // внутр. отступы
-            target[UiScaleKeys.BaseCardThickness] = new Thickness(s(2)); // радиусы 
-            target[UiScaleKeys.SourceCardMargin] = new Thickness(0, s(70), 0, 0); // верхний отступ
-            target[UiScaleKeys.SourceCardFontSize] = fs(28); // размер шрифта
+            target[UiScaleKeys.SourceCardHeight] = s(64);
+            target[UiScaleKeys.SourceCardCornerRadius] = new CornerRadius(s(16));
+            target[UiScaleKeys.SourceCardPadding] = new Thickness(s(96), 0, s(96), 0);
+            target[UiScaleKeys.BaseCardThickness] = new Thickness(s(2));
+            target[UiScaleKeys.SourceCardMargin] = new Thickness(0, s(72), 0, 0);
+            target[UiScaleKeys.SourceCardFontSize] = fs(28);
 
-            // Счетчик времени
-            double counterCardHeight = 60;
-            target[UiScaleKeys.CounterCardHeight] = s(counterCardHeight);
-            target[UiScaleKeys.CounterCardCornerRadius] = new CornerRadius(s(counterCardHeight / 2));
-            target[UiScaleKeys.CounterCardPadding] = new Thickness(s(30), 0, s(30), 0);
+            // GameCounterCard
+            target[UiScaleKeys.CounterCardHeight] = s(64);
+            target[UiScaleKeys.CounterCardCornerRadius] = new CornerRadius(s(16));
+            target[UiScaleKeys.CounterCardPadding] = new Thickness(s(32), 0, s(32), 0);
             target[UiScaleKeys.CounterCardThickness] = new Thickness(s(2));
-            target[UiScaleKeys.CounterCardMargin] = new Thickness(s(50), 0, 0, 0);
-            target[UiScaleKeys.CounterCardIconMargin] = new Thickness(0, 0, s(10), 0);
+            target[UiScaleKeys.CounterCardMargin] = new Thickness(s(48), 0, 0, 0);
+            target[UiScaleKeys.CounterCardIconMargin] = new Thickness(0, 0, s(8), 0);
             target[UiScaleKeys.CounterCardFontSize] = fs(20);
-            target[UiScaleKeys.CounterCardIconSize] = fs(24);
+            target[UiScaleKeys.CounterCardIconSize] = fs(22);
 
-            // Нижняя панель (подсказки)
-            double bottomPanelHeight = 80;
-            target[UiScaleKeys.BottomPanelHeight] = s(bottomPanelHeight);
-            target[UiScaleKeys.BottomPanelCornerRadius] = new CornerRadius(s(bottomPanelHeight / 2));
-            target[UiScaleKeys.BottomPanelMargin] = new Thickness(0, 0, 0, s(70));
-            target[UiScaleKeys.BottomPanelPadding] = new Thickness(s(60), 0, s(60), 0); // внутр. отступы
-            target[UiScaleKeys.BottomPanelBorderThickness] = new Thickness(s(2)); // обводка
-            target[UiScaleKeys.HintBlockMargin] = new Thickness(s(20), 0, s(20), 0); // отступы между элементами
-            target[UiScaleKeys.HintTextFontSize] = fs(22); // размер шрифта
-            target[UiScaleKeys.HintTextMargin] = new Thickness(s(15), 0, 0, 0); // отступ от иконок
-            target[UiScaleKeys.HintIconHeightGamepad] = s(26); // высота иконки Pad
-            target[UiScaleKeys.HintIconHeightKeyboard] = s(26); // высота иконки Key
+            // LoadingProgress
+            target[UiScaleKeys.LoadingProgressScale] = fs(42);
+
+            // BottomPanel
+            target[UiScaleKeys.BottomPanelHeight] = s(64);
+            target[UiScaleKeys.BottomPanelCornerRadius] = new CornerRadius(s(16));
+            target[UiScaleKeys.BottomPanelMargin] = new Thickness(0, 0, s(96), s(64));
+            target[UiScaleKeys.BottomPanelPadding] = new Thickness(s(8), 0, s(8), 0);
+            target[UiScaleKeys.BottomPanelBorderThickness] = new Thickness(s(2));
+            target[UiScaleKeys.HintBlockMargin] = new Thickness(s(16), 0, s(16), 0);
+            target[UiScaleKeys.HintTextMargin] = new Thickness(s(16), 0, 0, 0);
+            target[UiScaleKeys.HintIconHeightGamepad] = s(28);
+            target[UiScaleKeys.HintIconHeightKeyboard] = s(26);
+            target[UiScaleKeys.HintTextFontSize] = fs(24);
         }
     }
 
     //  Ключи ресурсов для масштабируемых значений (DynamicResource). 
     public static class UiScaleKeys
     {
-        // ======================== Заставка ========================
+        public const string BaseCornerRadius = "BaseCornerRadius";
+
+        public const string SettingsOverlayWidth = "SettingsOverlayWidth";
+        public const string SettingsOverlayTreeItemWidth = "SettingsOverlayTreeItemWidth";
+        public const string SettingsOverlayThickness = "SettingsOverlayThickness";
+        public const string SettingsOverlayLabelFontSize = "SettingsOverlayLabelFontSize";
+        public const string SettingsOverlayLabelTreeFontSize = "SettingsOverlayLabelTreeFontSize";
+        public const string SettingsOverlayLabelMargin = "SettingsOverlayLabelMargin";
+        public const string SettingsOverlayLabelTreeMargin = "SettingsOverlayLabelTreeMargin";
+        public const string SettingsOverlayDescFontSize = "SettingsOverlayDescFontSize";
+        public const string SettingsOverlayItemPadding = "SettingsOverlayItemPadding";
+        public const string SettingsOverlaySelectionBorderMargin = "SettingsOverlaySelectionBorderMargin";
+        public const string SettingsOverlaySelectionBorderThickness = "SettingsOverlaySelectionBorderThickness";
+        public const string SettingsOverlaySelectionBackgroundMargin = "SettingsOverlaySelectionBackgroundMargin";
+        public const string SettingsOverlayCornerRadius = "SettingsOverlayCornerRadius";
+        public const string SettingsOverlaySelectionCornerRadius = "SettingsOverlaySelectionCornerRadius";
+        public const string SettingsOverlaySelectionBgCornerRadius = "SettingsOverlaySelectionBgCornerRadius";
+        public const string SettingsOverlayDividerMargin = "SettingsOverlayDividerMargin";
+        public const string SettingsOverlayDividerHeight = "SettingsOverlayDividerHeight";
+        public const string SettingsOverlayAppInfoMargin = "SettingsOverlayAppInfoMargin";
+
+        public const string ToggleSwitchWidth = "ToggleSwitchWidth";
+        public const string ToggleSwitchHeight = "ToggleSwitchHeight";
+
         public const string SplashLogoMaxHeight = "SplashLogoMaxHeight";
 
-        // ======================== Сообщение NoShortcuts ========================
         public const string NoShortcutsMargin = "NoShortcutsMargin";
         public const string NoShortcutsFontSize = "NoShortcutsFontSize";
 
-        // ======================== Сообщение при выходе ========================
         public const string ExitMessageFontSize = "ExitMessageFontSize";
 
-        // ======================== Номер версии ========================
         public const string AppInfoLabelMargin = "AppInfoLabelMargin";
         public const string AppInfoLabelFontSize = "AppInfoLabelFontSize";
 
-        // ======================== Верхняя панель ========================
         public const string TopPanelMargin = "TopPanelMargin";
         public const string TopInfoTabsMargin = "TopInfoTabsMargin";
         public const string TopInfoPrimalyFontSize = "TopInfoPrimalyFontSize";
         public const string TopInfoSecondaryFontSize = "TopInfoSecondaryFontSize";
         public const string UserAvatarSize = "UserAvatarSize";
 
-        // ======================== Системные уведомления ========================
         public const string NotificationPanelHeight = "NotificationPanelHeight";
         public const string NotificationPanelMaxWidth = "NotificationPanelMaxWidth";
         public const string NotificationPanelCornerRadius = "NotificationPanelCornerRadius";
@@ -152,17 +200,14 @@ namespace EZ2Play.App
         public const string NotificationPanelFontSize = "NotificationPanelFontSize";
         public const string NotificationPanelIconSize = "NotificationPanelIconSize";
 
-        // ======================== Витрина обложек ========================
         public const string ItemCornerRadius = "ItemCornerRadius";
         public const string SelectorThickness = "SelectorThickness";
         public const string SelectorSpacing = "SelectorSpacing";
 
-        // ======================== Название игры ========================
         public const string GameTitleMargin = "GameTitleMargin";
         public const string SelectedGameTitleFontSize = "SelectedGameTitleFontSize";
         public const string LoadingProgressScale = "LoadingProgressScale";
 
-        // ======================== Карточка источника ========================
         public const string SourceCardWidth = "SourceCardWidth";
         public const string SourceCardHeight = "SourceCardHeight";
         public const string SourceCardPadding = "SourceCardPadding";
@@ -171,7 +216,6 @@ namespace EZ2Play.App
         public const string SourceCardMargin = "SourceCardMargin";
         public const string SourceCardFontSize = "SourceCardFontSize";
 
-        // ======================== Счетчик времени ========================
         public const string CounterCardHeight = "CounterCardHeight";
         public const string CounterCardPadding = "CounterCardPadding";
         public const string CounterCardCornerRadius = "CounterCardCornerRadius";
@@ -181,7 +225,6 @@ namespace EZ2Play.App
         public const string CounterCardFontSize = "CounterCardFontSize";
         public const string CounterCardIconSize = "CounterCardIconSize";
 
-        // ======================== Нижняя панель (подсказки) ========================
         public const string BottomPanelHeight = "BottomPanelHeight";
         public const string BottomPanelMargin = "BottomPanelMargin";
         public const string BottomPanelPadding = "BottomPanelPadding";
