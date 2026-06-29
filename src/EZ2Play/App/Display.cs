@@ -26,6 +26,8 @@ namespace EZ2Play.App
 
         public event Action<string> OnDisplayChanged;
 
+        public bool IsExternalDisplay => _isExternalDisplay;
+
         [StructLayout(LayoutKind.Sequential)]
         private struct RECT
         {

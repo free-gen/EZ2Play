@@ -49,14 +49,20 @@ namespace EZ2Play.App
 
             // SettingsOverlayItems
             target[UiScaleKeys.SettingsOverlayLabelFontSize] = fs(32);
-            target[UiScaleKeys.SettingsOverlayLabelTreeFontSize] = fs(24);
             target[UiScaleKeys.SettingsOverlayLabelMargin] = new Thickness(0, 0, 0, s(8));
-            target[UiScaleKeys.SettingsOverlayLabelTreeMargin] = new Thickness(0, 0, 0, s(4));
-            target[UiScaleKeys.SettingsOverlayDescFontSize] = fs(20);
+            target[UiScaleKeys.SettingsOverlayDescFontSize] = fs(22);
             target[UiScaleKeys.SettingsOverlayItemPadding] = new Thickness(0, s(32), 0, s(32));
 
+            // TreeItems
+            target[UiScaleKeys.SettingsOverlayLabelTreeFontSize] = fs(24);
+            target[UiScaleKeys.SettingsOverlayLabelTreeMargin] = new Thickness(0, 0, 0, s(4));
+            target[UiScaleKeys.SettingsOverlayTreeItemsContainerMargin] = new Thickness(0, s(-8), 0, 0);
+            target[UiScaleKeys.SettingsOverlayTreeItemsContainerPadding] = new Thickness(s(16), 0, s(16), s(8));
+            target[UiScaleKeys.SettingsOverlayTreeItemsItemMargin] = new Thickness(0, s(8), 0, s(8));
+            target[UiScaleKeys.SettingsOverlayTreeItemsItemPadding] = new Thickness(s(16));
+
             // SettingsOverlaySelection
-            target[UiScaleKeys.SettingsOverlaySelectionBorderMargin] = new Thickness(s(6), s(8), s(6), s(10));
+            target[UiScaleKeys.SettingsOverlaySelectionBorderMargin] = new Thickness(s(8));
             target[UiScaleKeys.SettingsOverlaySelectionBorderThickness] = new Thickness(s(4));
             target[UiScaleKeys.SettingsOverlaySelectionBackgroundMargin] = new Thickness(s(6));
             target[UiScaleKeys.SettingsOverlaySelectionCornerRadius] = new CornerRadius(s(10));
@@ -109,7 +115,7 @@ namespace EZ2Play.App
             target[UiScaleKeys.SelectorSpacing] = s(4);
 
             // SelectedGameTitle
-            target[UiScaleKeys.GameTitleMargin] = new Thickness(s(192), 0, 0, 0);
+            target[UiScaleKeys.GameTitleMargin] = new Thickness(s(224), 0, 0, 0);
             target[UiScaleKeys.SelectedGameTitleFontSize] = fs(72);
 
             // GameSourceCard
@@ -158,6 +164,10 @@ namespace EZ2Play.App
         public const string SettingsOverlayThickness = "SettingsOverlayThickness";
         public const string SettingsOverlayLabelFontSize = "SettingsOverlayLabelFontSize";
         public const string SettingsOverlayLabelTreeFontSize = "SettingsOverlayLabelTreeFontSize";
+        public const string SettingsOverlayTreeItemsContainerMargin = "SettingsOverlayTreeItemsContainerMargin";
+        public const string SettingsOverlayTreeItemsContainerPadding = "SettingsOverlayTreeItemsContainerPadding";
+        public const string SettingsOverlayTreeItemsItemMargin = "SettingsOverlayTreeItemsItemMargin";
+        public const string SettingsOverlayTreeItemsItemPadding = "SettingsOverlayTreeItemsItemPadding";
         public const string SettingsOverlayLabelMargin = "SettingsOverlayLabelMargin";
         public const string SettingsOverlayLabelTreeMargin = "SettingsOverlayLabelTreeMargin";
         public const string SettingsOverlayDescFontSize = "SettingsOverlayDescFontSize";

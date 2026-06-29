@@ -14,7 +14,7 @@ EZ2Play is a minimalistic game launcher for those who value simplicity and a lac
 - **Home/Guide button handler** - return to the launcher from any game by pressing one button (when Xbox Game Bar is unavailable)
 - **Quick screen switching** - available from Settings on systems with two or more displays (when Xbox Game Bar is unavailable)
 - **Xbox Game Bar compatibility** - automatically uses native Windows game and display controls when available
-- **Multilingual support** - 🇬🇧 🇷🇺 🇩🇪 🇫🇷 🇪🇸 🇵🇹 🇮🇹 🇵🇱 🇨🇳 🇰🇷 🇯🇵
+- **Multilingual support** - 🇬🇧 🇷🇺 🇩🇪 🇫🇷 🇨🇳
 - **No game scanning** - just put your shortcuts in the `shortcuts` folder
 - **WPF-UI** - full support for Windows 11 styles
 - **EZ2Play Helper** - optional background process for launching EZ2Play via the Home/Guide button on a gamepad (can be enabled in Settings and supports launch arguments)

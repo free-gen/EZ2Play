@@ -4,7 +4,6 @@
              xmlns:app="clr-namespace:EZ2Play.App"
              xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
              Background="{DynamicResource SmokeFillColorDefaultBrush}">
-             <!-- {DynamicResource SmokeFillColorDefaultBrush} -->
     
     <UserControl.Resources>
         <Style TargetType="TextBlock">
@@ -26,10 +25,10 @@
             VerticalAlignment="Center">
         <Grid>
             <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="85*"/>
-            <RowDefinition Height="15*"/>
-        </Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="85*"/>
+                <RowDefinition Height="15*"/>
+            </Grid.RowDefinitions>
 
             <!-- ExitConfirmText -->
             <TextBlock x:Name="ExitConfirmText"
@@ -49,35 +48,30 @@
 
                 <ListBox.ItemContainerStyle>
                     <Style TargetType="ListBoxItem">
-
                         <Setter Property="Padding" Value="{DynamicResource {x:Static app:UiScaleKeys.SettingsOverlayItemPadding}}"/>
                         <Setter Property="Background" Value="Transparent"/>
+                        <Setter Property="BorderBrush" Value="Transparent"/>
 
                         <Setter Property="Template">
                             <Setter.Value>
                                 <ControlTemplate TargetType="ListBoxItem">
-
                                     <Grid>
-
                                         <!-- SelectionBorder -->
                                         <Border x:Name="SelectionBorder"
                                                 Margin="{DynamicResource {x:Static app:UiScaleKeys.SettingsOverlaySelectionBorderMargin}}"
                                                 BorderThickness="{DynamicResource {x:Static app:UiScaleKeys.SettingsOverlaySelectionBorderThickness}}"
                                                 BorderBrush="Transparent"
                                                 CornerRadius="{DynamicResource {x:Static app:UiScaleKeys.SettingsOverlaySelectionCornerRadius}}">
-
                                             <Border x:Name="SelectionBackground"
                                                     Margin="{DynamicResource {x:Static app:UiScaleKeys.SettingsOverlaySelectionBackgroundMargin}}"
                                                     Background="Transparent"
                                                     CornerRadius="{DynamicResource {x:Static app:UiScaleKeys.SettingsOverlaySelectionBgCornerRadius}}"/>
-
                                         </Border>
 
                                         <!-- ItemBorder -->
                                         <Border x:Name="ItemBorder"
                                                 Padding="{TemplateBinding Padding}"
                                                 Background="Transparent">
-
                                             <ContentPresenter VerticalAlignment="Center"/>
                                         </Border>
 
@@ -88,30 +82,20 @@
                                                 Margin="{DynamicResource {x:Static app:UiScaleKeys.SettingsOverlayDividerMargin}}"
                                                 Background="{DynamicResource DividerStrokeColorDefaultBrush}"
                                                 SnapsToDevicePixels="True"/>
-
                                     </Grid>
 
-                                    <ControlTemplate.Triggers>
-
-                                        <Trigger Property="IsSelected" Value="True">
-                                            <Setter TargetName="SelectionBorder"
-                                                    Property="BorderBrush"
-                                                    Value="#C0FFFFFF"/>
-
-                                            <Setter TargetName="SelectionBackground"
-                                                    Property="Background"
-                                                    Value="#10FFFFFF"/>
-                                        </Trigger>
-
-                                        <!-- Trigger TreeHeader -->
-                                        <Trigger Property="Tag" Value="TreeHeader">
-                                            <!-- <Setter TargetName="ItemDivider" Property="Background" Value="{DynamicResource LayerFillColorDefaultBrush}"/> -->
-                                        </Trigger>
-
-                                        <!-- Trigger TreeItem -->
-                                        <Trigger Property="Tag" Value="TreeItem">
-                                            <Setter TargetName="ItemBorder" Property="Background" Value="#15000000"/>
-                                            <!-- <Setter Property="Padding" Value="{DynamicResource {x:Static app:UiScaleKeys.SettingsOverlayItemPadding}}"/> -->
+                                    <ControlTemplate.Triggers>                                        
+                                        
+                                        <!-- Gradient BG -->
+                                        <Trigger Property="Tag" Value="TreeContainer">
+                                            <Setter TargetName="ItemBorder" Property="Background">
+                                                <Setter.Value>
+                                                    <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                                                        <GradientStop Color="#00000000" Offset="0"/>
+                                                        <GradientStop Color="#20000000" Offset="1"/>
+                                                    </LinearGradientBrush>
+                                                </Setter.Value>
+                                            </Setter>
                                         </Trigger>
 
                                     </ControlTemplate.Triggers>
@@ -119,7 +103,6 @@
                                 </ControlTemplate>
                             </Setter.Value>
                         </Setter>
-
                     </Style>
                 </ListBox.ItemContainerStyle>
 
@@ -134,7 +117,8 @@
                         </Grid.ColumnDefinitions>
 
                         <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="{DynamicResource {x:Static app:UiScaleKeys.SettingsOverlayLabelMargin}}">
-                            <TextBlock x:Name="SettingsAutorunAppLabel"/>
+                            <TextBlock x:Name="SettingsAutorunAppLabel" 
+                            Margin="{DynamicResource {x:Static app:UiScaleKeys.SettingsOverlayLabelMargin}}"/>
                             <TextBlock x:Name="SettingsAutorunAppDesc"
                                         Foreground="{DynamicResource TextFillColorTertiaryBrush}"
                                         FontSize="{DynamicResource {x:Static app:UiScaleKeys.SettingsOverlayDescFontSize}}"/>
@@ -146,82 +130,152 @@
                                 Stretch="Uniform" HorizontalAlignment="Right">
                             <ui:ToggleSwitch x:Name="AutorunToggle"/>
                         </Viewbox>
-
                     </Grid>
                 </ListBoxItem>
 
-                <!-- NoSplash -->
-                <ListBoxItem x:Name="NoSplash" Tag="TreeItem" Visibility="Collapsed">
+                <!-- Контейнер для горизонтальных субопций -->
+                <ListBoxItem x:Name="TreeItemsContainer" 
+                            Background="Transparent"
+                            Tag="TreeContainer" 
+                            Margin="{DynamicResource {x:Static app:UiScaleKeys.SettingsOverlayTreeItemsContainerMargin}}" 
+                            Padding="{DynamicResource {x:Static app:UiScaleKeys.SettingsOverlayTreeItemsContainerPadding}}">
                     <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="0.10*"/>
-                            <ColumnDefinition Width="0.75*"/>
-                            <ColumnDefinition Width="0.10*"/>
-                            <ColumnDefinition Width="0.05*"/>
-                        </Grid.ColumnDefinitions>
+                        <!-- <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions> -->
 
-                        <TextBlock Grid.Column="1"
-                        x:Name="SettingsTreeNoSplash" 
-                        FontSize="{DynamicResource {x:Static app:UiScaleKeys.SettingsOverlayLabelTreeFontSize}}"
-                        Margin="{DynamicResource {x:Static app:UiScaleKeys.SettingsOverlayLabelTreeMargin}}"/>
+                        <ListBox x:Name="SubOptionsListBox"
+                                 Background="Transparent"
+                                 BorderThickness="0"
+                                 Padding="0"
+                                 ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                                 ScrollViewer.VerticalScrollBarVisibility="Disabled"
+                                 Focusable="False">
+                            
+                            <ListBox.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <UniformGrid Columns="3" Rows="1"/>
+                                </ItemsPanelTemplate>
+                            </ListBox.ItemsPanel>
 
-                        <Viewbox Grid.Column="2" 
-                                Width="{DynamicResource {x:Static app:UiScaleKeys.ToggleSwitchWidth}}" 
-                                Height="{DynamicResource {x:Static app:UiScaleKeys.ToggleSwitchHeight}}" 
-                                Stretch="Uniform" HorizontalAlignment="Right">
-                            <ui:ToggleSwitch x:Name="NoSplashToggle"/>
-                        </Viewbox>
+                            <!-- Стиль для дочерних элементов (1/3 ширины) -->
+                            <ListBox.ItemContainerStyle>
+                                <Style TargetType="ListBoxItem">
+                                    <Setter Property="Padding" Value="0"/>
+                                    <Setter Property="Margin" Value="0"/>
+                                    <Setter Property="Background" Value="Transparent"/>
+                                    <Setter Property="BorderBrush" Value="Transparent"/>
+                                    <Setter Property="VerticalContentAlignment" Value="Center"/>
 
-                    </Grid>
-                </ListBoxItem>
+                                    <Setter Property="Template">
+                                        <Setter.Value>
+                                            <ControlTemplate TargetType="ListBoxItem">
+                                                <Grid>
+                                                    <Border x:Name="SelectionBorder"
+                                                            Margin="{DynamicResource {x:Static app:UiScaleKeys.SettingsOverlaySelectionBorderMargin}}"
+                                                            BorderThickness="{DynamicResource {x:Static app:UiScaleKeys.SettingsOverlaySelectionBorderThickness}}"
+                                                            BorderBrush="Transparent"
+                                                            CornerRadius="{DynamicResource {x:Static app:UiScaleKeys.SettingsOverlaySelectionCornerRadius}}">
+                                                        <Border x:Name="SelectionBackground"
+                                                                Margin="{DynamicResource {x:Static app:UiScaleKeys.SettingsOverlaySelectionBackgroundMargin}}"
+                                                                Background="Transparent"
+                                                                CornerRadius="{DynamicResource {x:Static app:UiScaleKeys.SettingsOverlaySelectionBgCornerRadius}}"/>
+                                                    </Border>
 
-                <!-- NoMusic -->
-                <ListBoxItem x:Name="NoMusic" Tag="TreeItem" Visibility="Collapsed">
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="0.10*"/>
-                            <ColumnDefinition Width="0.75*"/>
-                            <ColumnDefinition Width="0.10*"/>
-                            <ColumnDefinition Width="0.05*"/>
-                        </Grid.ColumnDefinitions>
+                                                    <!-- TreeItemStyle -->
+                                                    <Border x:Name="ItemBorder"
+                                                            Padding="{DynamicResource {x:Static app:UiScaleKeys.SettingsOverlayTreeItemsItemMargin}}"
+                                                            Margin="{DynamicResource {x:Static app:UiScaleKeys.SettingsOverlayTreeItemsItemPadding}}"
+                                                            CornerRadius="{DynamicResource {x:Static app:UiScaleKeys.SettingsOverlaySelectionBgCornerRadius}}"
+                                                            BorderThickness="{DynamicResource {x:Static app:UiScaleKeys.SettingsOverlayThickness}}"
+                                                            BorderBrush="{DynamicResource ControlElevationBorderBrush}"
+                                                            Background="{DynamicResource CardBackgroundFillColorDefaultBrush}">
+                                                        <ContentPresenter/>
+                                                    </Border>
+                                                </Grid>
+                                            </ControlTemplate>
+                                        </Setter.Value>
+                                    </Setter>
+                                </Style>
+                            </ListBox.ItemContainerStyle>
 
-                        <TextBlock Grid.Column="1"
-                        x:Name="SettingsTreeNoMusic" 
-                        FontSize="{DynamicResource {x:Static app:UiScaleKeys.SettingsOverlayLabelTreeFontSize}}"
-                        Margin="{DynamicResource {x:Static app:UiScaleKeys.SettingsOverlayLabelTreeMargin}}"/>
+                            <!-- NoSplash -->
+                            <ListBoxItem x:Name="NoSplash" Tag="TreeItem">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="0.10*"/>
+                                        <ColumnDefinition Width="0.80*"/>
+                                        <ColumnDefinition Width="0.05*"/>
+                                        <ColumnDefinition Width="0.05*"/>
+                                    </Grid.ColumnDefinitions>
 
-                        <Viewbox Grid.Column="2" 
-                                Width="{DynamicResource {x:Static app:UiScaleKeys.ToggleSwitchWidth}}" 
-                                Height="{DynamicResource {x:Static app:UiScaleKeys.ToggleSwitchHeight}}" 
-                                Stretch="Uniform" HorizontalAlignment="Right">
-                            <ui:ToggleSwitch x:Name="NoMusicToggle"/>
-                        </Viewbox>
+                                    <TextBlock Grid.Column="1"
+                                    x:Name="SettingsTreeNoSplash"
+                                    Margin="{DynamicResource {x:Static app:UiScaleKeys.SettingsOverlayLabelTreeMargin}}"
+                                    FontSize="{DynamicResource {x:Static app:UiScaleKeys.SettingsOverlayLabelTreeFontSize}}"
+                                    VerticalAlignment="Center"/>
 
-                    </Grid>
-                </ListBoxItem>
+                                    <Viewbox Grid.Column="2" 
+                                    Width="{DynamicResource {x:Static app:UiScaleKeys.ToggleSwitchWidth}}" 
+                                    Height="{DynamicResource {x:Static app:UiScaleKeys.ToggleSwitchWidth}}" 
+                                    VerticalAlignment="Center">
+                                        <CheckBox x:Name="NoSplashToggle"/>
+                                    </Viewbox>
+                                </Grid>
+                            </ListBoxItem>
 
-                <!-- HotSwap -->
-                <ListBoxItem x:Name="HotSwap" Tag="TreeItem" Visibility="Collapsed">
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="0.10*"/>
-                            <ColumnDefinition Width="0.75*"/>
-                            <ColumnDefinition Width="0.10*"/>
-                            <ColumnDefinition Width="0.05*"/>
-                        </Grid.ColumnDefinitions>
+                            <!-- NoMusic -->
+                            <ListBoxItem x:Name="NoMusic" Tag="TreeItem">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="0.10*"/>
+                                        <ColumnDefinition Width="0.80*"/>
+                                        <ColumnDefinition Width="0.05*"/>
+                                        <ColumnDefinition Width="0.05*"/>
+                                    </Grid.ColumnDefinitions>
 
-                        <TextBlock Grid.Column="1"
-                        x:Name="SettingsTreeHotSwap"  
-                        FontSize="{DynamicResource {x:Static app:UiScaleKeys.SettingsOverlayLabelTreeFontSize}}"
-                        Margin="{DynamicResource {x:Static app:UiScaleKeys.SettingsOverlayLabelTreeMargin}}"/>
+                                    <TextBlock Grid.Column="1"
+                                    x:Name="SettingsTreeNoMusic"
+                                    Margin="{DynamicResource {x:Static app:UiScaleKeys.SettingsOverlayLabelTreeMargin}}"
+                                    FontSize="{DynamicResource {x:Static app:UiScaleKeys.SettingsOverlayLabelTreeFontSize}}"
+                                    VerticalAlignment="Center"/>
 
-                        <Viewbox Grid.Column="2" 
-                                Width="{DynamicResource {x:Static app:UiScaleKeys.ToggleSwitchWidth}}" 
-                                Height="{DynamicResource {x:Static app:UiScaleKeys.ToggleSwitchHeight}}" 
-                                Stretch="Uniform" HorizontalAlignment="Right">
-                            <ui:ToggleSwitch x:Name="HotSwapToggle"/>
-                        </Viewbox>
+                                    <Viewbox Grid.Column="2" 
+                                    Width="{DynamicResource {x:Static app:UiScaleKeys.ToggleSwitchWidth}}" 
+                                    Height="{DynamicResource {x:Static app:UiScaleKeys.ToggleSwitchWidth}}" 
+                                    VerticalAlignment="Center">
+                                        <CheckBox x:Name="NoMusicToggle"/>
+                                    </Viewbox>
+                                </Grid>
+                            </ListBoxItem>
 
+                            <!-- HotSwap -->
+                            <ListBoxItem x:Name="HotSwap" Tag="TreeItem">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="0.10*"/>
+                                        <ColumnDefinition Width="0.80*"/>
+                                        <ColumnDefinition Width="0.05*"/>
+                                        <ColumnDefinition Width="0.05*"/>
+                                    </Grid.ColumnDefinitions>
+
+                                    <TextBlock Grid.Column="1"
+                                    x:Name="SettingsTreeHotSwap"
+                                    Margin="{DynamicResource {x:Static app:UiScaleKeys.SettingsOverlayLabelTreeMargin}}"
+                                    FontSize="{DynamicResource {x:Static app:UiScaleKeys.SettingsOverlayLabelTreeFontSize}}"
+                                    VerticalAlignment="Center"/>
+
+                                    <Viewbox Grid.Column="2" 
+                                    Width="{DynamicResource {x:Static app:UiScaleKeys.ToggleSwitchWidth}}" 
+                                    Height="{DynamicResource {x:Static app:UiScaleKeys.ToggleSwitchWidth}}" 
+                                    VerticalAlignment="Center">
+                                        <CheckBox x:Name="HotSwapToggle"/>
+                                    </Viewbox>
+                                </Grid>
+                            </ListBoxItem>
+                        </ListBox>
+                        
                     </Grid>
                 </ListBoxItem>
 
@@ -236,7 +290,8 @@
                         </Grid.ColumnDefinitions>
 
                         <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="{DynamicResource {x:Static app:UiScaleKeys.SettingsOverlayLabelMargin}}">
-                            <TextBlock x:Name="SettingsSourceDisplayLabel"/>
+                            <TextBlock x:Name="SettingsSourceDisplayLabel" 
+                            Margin="{DynamicResource {x:Static app:UiScaleKeys.SettingsOverlayLabelMargin}}"/>
                             <TextBlock x:Name="SettingsSourceDisplayDesc"
                                         Foreground="{DynamicResource TextFillColorTertiaryBrush}"
                                         FontSize="{DynamicResource {x:Static app:UiScaleKeys.SettingsOverlayDescFontSize}}"/>
@@ -263,8 +318,7 @@
                         <TextBlock Grid.Column="1" 
                         x:Name="SettingsExitAppLabel" 
                         VerticalAlignment="Center"
-                        Margin="{DynamicResource {x:Static app:UiScaleKeys.SettingsOverlayLabelMargin}}"/>
-
+                        Margin="{DynamicResource {x:Static app:UiScaleKeys.SettingsOverlayLabelTreeMargin}}"/>
                     </Grid>
                 </ListBoxItem>
 

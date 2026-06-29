@@ -32,6 +32,7 @@ namespace EZ2Play
         private AppConfig _config;
 
         private DispatcherTimer _activityTimer;
+        private bool _isMainScreenActive = false;
         private bool _wasActive;
         private bool _hotSwapLaunch;
         private bool _isExiting;
@@ -246,6 +247,7 @@ namespace EZ2Play
 
             _inputHandler.OnOpenSettings += async () =>
             {
+                if (_isExiting || !_isMainScreenActive) return; 
                 _settingsOverlay.Open();
             };
 
@@ -378,6 +380,8 @@ namespace EZ2Play
             }
 
             StartApplication();
+
+            _isMainScreenActive = true;
         }
 
         private void ShowMainScreenWithAnimation()
@@ -439,6 +443,8 @@ namespace EZ2Play
         public void ExitApplication()
         {
             _isExiting = true;
+            _isMainScreenActive = false;
+            
             _display?.HandleHotswapOnExit();
             
             _sound.PlayBackSound();

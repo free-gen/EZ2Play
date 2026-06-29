@@ -80,19 +80,6 @@
             <!-- Overlay -->
             <ContentControl x:Name="OverlayHost" Panel.ZIndex="100"/>
 
-            <!-- <Border Panel.ZIndex="100"
-                    HorizontalAlignment="Center"
-                    VerticalAlignment="Center">
-
-                <Border.Effect>
-                    <DropShadowEffect BlurRadius="40"
-                                    ShadowDepth="0"
-                                    Opacity="0.35"/>
-                </Border.Effect>
-
-                <ContentControl x:Name="OverlayHost"/>
-            </Border> -->
-
             <!-- MainScreenGrid -->
             <Grid x:Name="MainScreenGrid" Visibility="Collapsed" Panel.ZIndex="5">
                 <Grid.RowDefinitions>
