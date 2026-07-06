@@ -101,7 +101,7 @@ namespace EZ2Play.App
                 viewbox.Child = new TextBlock
                 {
                     Text = icon.glyph,
-                    FontFamily = new FontFamily("Xbox Fluent"),
+                    FontFamily = (FontFamily)Application.Current.Resources["XboxFont"],
                     // FontWeight = FontWeights.SemiBold,
                     Foreground = icon.color
                 };

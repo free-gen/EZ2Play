@@ -14,9 +14,11 @@
 
             <!-- TextBlock -->
             <Style TargetType="TextBlock">
-                <Setter Property="FontFamily" Value="Manrope"/>
+                <Setter Property="FontFamily" Value="/Assets/#Manrope"/>
                 <Setter Property="VerticalAlignment" Value="Center"/>
             </Style>
+
+            <FontFamily x:Key="XboxFont">/Assets/#Xbox Fluent</FontFamily>
 
             <!-- Icons -->
             <Style TargetType="Path">

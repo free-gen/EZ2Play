@@ -73,10 +73,10 @@ namespace EZ2Play.App
                 ["SettingsSourceDisplayDesc"] = new[]
                 {
                     "Switch image output to an external monitor or TV.",
-                    "Переключить вывод изображения на внешний монитор или телевизор.",
-                    "Bildausgabe auf einen externen Monitor oder Fernseher umschalten.",
-                    "Basculer l’affichage vers un moniteur externe ou un téléviseur.",
-                    "将图像输出切换到外部显示器或电视。"
+                    "Переключение изображения между основным и внешним дисплеем.",
+                    "Bildausgabe zwischen Haupt- und externem Monitor umschalten.",
+                    "Basculer l’affichage entre l’écran principal et un moniteur externe ou un téléviseur.",
+                    "将图像输出在主显示器与外部显示器或电视之间切换。"
                 },
 
                 ["SettingsAutorunAppLabel"] = new[]

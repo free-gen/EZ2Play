@@ -50,8 +50,9 @@
     <EmbeddedResource Include="Assets/Invoke.mp3" />
     <EmbeddedResource Include="Assets/Back.mp3" />
     <EmbeddedResource Include="Assets/Ambient.mp3" />
-    <EmbeddedResource Include="Assets/Manrope-VariableFont_wght.ttf" />
-    <EmbeddedResource Include="Assets/XboxFluent.ttf" />
+
+    <Resource Include="Assets/Manrope-VariableFont_wght.ttf" />
+    <Resource Include="Assets/XboxFluent.ttf" />
     <Resource Include="Assets/Logo.png" />
   </ItemGroup>
 

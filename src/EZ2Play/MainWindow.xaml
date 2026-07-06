@@ -132,7 +132,7 @@
                             <TextBlock  FontSize="{DynamicResource {x:Static app:UiScaleKeys.NotificationPanelIconSize}}"
                                         VerticalAlignment="Center" 
                                         Margin="{DynamicResource {x:Static app:UiScaleKeys.NotificationPanelMargin}}"
-                                        FontFamily="Xbox Fluent">&#xE686;</TextBlock>
+                                        FontFamily="/Assets/#Xbox Fluent">&#xE686;</TextBlock>
                             <TextBlock  x:Name="NotificationText"
                                         Style="{StaticResource BasicCardTextStyle}"
                                         MaxWidth="{DynamicResource {x:Static app:UiScaleKeys.NotificationPanelMaxWidth}}"
@@ -237,7 +237,7 @@
                                     <TextBlock  FontSize="{DynamicResource {x:Static app:UiScaleKeys.CounterCardIconSize}}"
                                                 VerticalAlignment="Center" 
                                                 Margin="{DynamicResource {x:Static app:UiScaleKeys.CounterCardIconMargin}}"
-                                                FontFamily="Xbox Fluent">&#xE35F;</TextBlock><!-- E7FB -->
+                                                FontFamily="/Assets/#Xbox Fluent">&#xE35F;</TextBlock><!-- E7FB -->
                                     
                                     <TextBlock  x:Name="GameCounterText"
                                                 FontSize="{DynamicResource {x:Static app:UiScaleKeys.CounterCardFontSize}}"
