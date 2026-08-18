@@ -279,6 +279,38 @@
                     </Grid>
                 </ListBoxItem>
 
+                <!-- SettingsFpsMonitor -->
+                <ListBoxItem x:Name="SettingsFpsMonitor">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="0.05*"/>
+                            <ColumnDefinition Width="0.80*"/>
+                            <ColumnDefinition Width="0.10*"/>
+                            <ColumnDefinition Width="0.05*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <StackPanel Grid.Column="1"
+                                    VerticalAlignment="Center"
+                                    Margin="{DynamicResource {x:Static app:UiScaleKeys.SettingsOverlayLabelMargin}}">
+
+                            <TextBlock x:Name="SettingsFpsMonitorLabel"
+                                    Margin="{DynamicResource {x:Static app:UiScaleKeys.SettingsOverlayLabelMargin}}"/>
+
+                            <TextBlock x:Name="SettingsFpsMonitorDesc"
+                                    Foreground="{DynamicResource TextFillColorTertiaryBrush}"
+                                    FontSize="{DynamicResource {x:Static app:UiScaleKeys.SettingsOverlayDescFontSize}}"/>
+                        </StackPanel>
+
+                        <Viewbox Grid.Column="2"
+                                Width="{DynamicResource {x:Static app:UiScaleKeys.ToggleSwitchWidth}}"
+                                Height="{DynamicResource {x:Static app:UiScaleKeys.ToggleSwitchHeight}}"
+                                Stretch="Uniform"
+                                HorizontalAlignment="Right">
+                            <ui:ToggleSwitch x:Name="FpsMonitorToggle"/>
+                        </Viewbox>
+                    </Grid>
+                </ListBoxItem>
+
                 <!-- SettingsSourceDisplay -->
                 <ListBoxItem x:Name="SettingsSourceDisplay">
                     <Grid>

@@ -1,7 +1,6 @@
 using System;
 using System.Windows;
 using System.Windows.Media;
-using System.Windows.Threading;
 
 namespace EZ2Play.App
 {
@@ -9,17 +8,36 @@ namespace EZ2Play.App
     {
         // ----------------- НАСТРОЙКИ -----------------
 
-        public int ParticleCount { get; set; } = 160;
+        public int ParticleCount { get; set; } = 300;
 
-        private readonly double[] _sizes = { 2, 4, 6, 8 };
-        private readonly int[] _alphaValues = { 16, 64, 128, 224 };
-        private readonly double[] _alphaWeights = { 0.58, 0.30, 0.1, 0.02 };
+        private const int BrushLevels = 64;
+        private const double MaxDelta = 0.05;
 
-        private const double BaseMaxSpeed = 16;
-        private const double BaseFadeMarginMax = 50;
-        private double _fadeStep = 0.05;
+        private const double MinSpeed = 4.0;
+        private const double MaxSpeed = 16.0;
 
-        // ----------------- СТРУКТУРЫ -----------------
+        private const double ParticleFadeInDuration = 0.45;
+        private const double ParticleFadeOutDuration = 0.45;
+
+        private const double TwoPi = Math.PI * 2.0;
+
+        private const byte ParticleDust = 0;
+        private const byte ParticleGlow = 1;
+        private const byte ParticleSpark = 2;
+
+        private const double RespawnTimeMin = 8.0;
+        private const double RespawnTimeMax = 24.0;
+
+        private const double DustSizeMin = 0.50;
+        private const double DustSizeMax = 1.50;
+
+        private const double GlowSizeMin = 1.75;
+        private const double GlowSizeMax = 3.25;
+
+        private const double SparkSizeMin = 2.75;
+        private const double SparkSizeMax = 5.75;
+
+        // ----------------- ЧАСТИЦА -----------------
 
         private struct Particle
         {
@@ -28,72 +46,145 @@ namespace EZ2Play.App
             public double SpeedX;
             public double SpeedY;
             public double Radius;
-            public Brush Brush;
+            public double Aspect;
+            public double Depth;
+            public double BaseOpacity;
             public double Opacity;
+            public double Phase;
+            public double DriftAmplitude;
+            public double DriftFrequency;
+            public double PulsePhase;
+            public double PulseSpeed;
+            public double FadeDelay;
+            public double RespawnTimer;
             public bool FadingOut;
-            public double FadeMargin;
+            public byte Type;
         }
 
-        // ----------------- ВНУТРЕННИЕ ДАННЫЕ -----------------
+        // ----------------- ДАННЫЕ -----------------
 
         private Particle[] _particles;
-        private Brush[] _brushes;
         private readonly Random _random = new Random();
-        private readonly DispatcherTimer _timer;
-        private bool _needsRedraw = true;
-        private bool _isInitialized = false;
+        private SolidColorBrush[] _accentBrushes;
+        private SolidColorBrush[] _brightBrushes;
+        private bool _isInitialized;
+        private bool _isRunning;
+        private bool _renderHooked;
+        private TimeSpan _lastRenderingTime;
+        private double _time;
         private double _lastWidth;
         private double _lastHeight;
+        private double _scale = 1.0;
 
-        // Вершины треугольника (кэшируются при изменении размеров)
-        private Point _triP1, _triP2, _triP3;
+        // ----------------- ОБЛАСТЬ ЧАСТИЦ -----------------
 
-        private DispatcherTimer _fadeTimer;
-        private double _targetOpacity = 1.0;
-        private double _currentOpacity = 0.0;
+        // Координаты области в долях экрана: 0.0 = начало, 1.0 = конец.
+        private readonly Point[] _drawAreaNormalized =
+        {
+            // new Point(0.00, 0.48),
+            new Point(0.00, 0.45),
+            new Point(0.80, 1.00),
+            new Point(1.20, 0.20)
+        };
+
+        private Point[] _drawArea;
+
+        // ----------------- ОБЩИЙ FADE -----------------
+
+        private double _targetOpacity;
+        private double _currentOpacity;
+        private double _globalFadeDuration = 0.5;
 
         // ----------------- КОНСТРУКТОР -----------------
 
         public ParticlesCanvas()
         {
-            Loaded += (s, e) =>
-            {
-                InitializeBrushes();
-                // Start();
-            };
-            Unloaded += (s, e) => Stop();
-            _timer = new DispatcherTimer
-            {
-                Interval = TimeSpan.FromMilliseconds(16)
-            };
-            _timer.Tick += OnTimerTick;
+            IsHitTestVisible = false;
 
-            _fadeTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(16) };
-            _fadeTimer.Tick += OnFadeTick;
+            // Частицы должны двигаться по субпиксельным координатам.
+            SnapsToDevicePixels = false;
+
+            Loaded += (s, e) => InitializeBrushes();
+            Unloaded += (s, e) => Stop();
         }
 
         // ----------------- PUBLIC API -----------------
 
         public void Start()
         {
-            if (!_isInitialized || _brushes == null || _brushes.Length == 0)
+            if (!_isInitialized)
+                InitializeBrushes();
+
+            if (!_isInitialized)
                 return;
-            if (_particles == null || _particles.Length == 0)
+
+            if (_particles == null || _particles.Length != ParticleCount)
                 InitializeParticles();
-            if (_particles != null && _particles.Length > 0)
-                _timer.Start();
+
+            if (_particles == null || _particles.Length == 0)
+                return;
+
+            if (_isRunning)
+                return;
+
+            _isRunning = true;
+            _lastRenderingTime = TimeSpan.Zero;
+
+            if (!_renderHooked)
+            {
+                CompositionTarget.Rendering += OnRendering;
+                _renderHooked = true;
+            }
         }
 
         public void Stop()
         {
-            _timer.Stop();
+            _isRunning = false;
+            _lastRenderingTime = TimeSpan.Zero;
+
+            if (_renderHooked)
+            {
+                CompositionTarget.Rendering -= OnRendering;
+                _renderHooked = false;
+            }
         }
 
-        // ----------------- ИНИЦИАЛИЗАЦИЯ -----------------
+        public void SetParticlesVisible(bool visible, bool fade = true, double duration = 0.5)
+        {
+            _targetOpacity = visible ? 1.0 : 0.0;
+
+            if (duration > 0)
+                _globalFadeDuration = duration;
+
+            if (!fade || duration <= 0)
+            {
+                _currentOpacity = _targetOpacity;
+
+                if (visible)
+                {
+                    Start();
+                }
+                else
+                {
+                    Stop();
+                    _particles = null;
+                }
+
+                InvalidateVisual();
+                return;
+            }
+
+            if (visible)
+                Start();
+            else if (!_isRunning && _currentOpacity > 0)
+                Start();
+        }
+
+        // ----------------- КИСТИ -----------------
 
         private void InitializeBrushes()
         {
-            if (_brushes != null)
+            if (_isInitialized)
                 return;
 
             var accentBrush = Application.Current?.Resources["AccentFillColorSecondaryBrush"] as SolidColorBrush;
@@ -101,85 +192,224 @@ namespace EZ2Play.App
             if (accentBrush == null)
                 return;
 
-            var color = accentBrush.Color;
-            var brushesList = new System.Collections.Generic.List<Brush>();
-            foreach (int alpha in _alphaValues)
-            {
-                var c = Color.FromArgb((byte)alpha, color.R, color.G, color.B);
-                var brush = new SolidColorBrush(c);
-                brush.Freeze();
-                brushesList.Add(brush);
-            }
+            Color accent = accentBrush.Color;
+            Color bright = MixWithWhite(accent, 0.58);
 
-            _brushes = brushesList.ToArray();
+            _accentBrushes = CreateBrushRamp(accent);
+            _brightBrushes = CreateBrushRamp(bright);
+
             _isInitialized = true;
         }
 
-        private void InitializeParticles()
+        private static SolidColorBrush[] CreateBrushRamp(Color color)
         {
-            if (_brushes == null || _brushes.Length == 0)
+            var brushes = new SolidColorBrush[BrushLevels];
+
+            for (int i = 0; i < BrushLevels; i++)
             {
-                _particles = new Particle[0];
-                return;
+                byte alpha = (byte)Math.Round(255.0 * i / (BrushLevels - 1));
+
+                var brush = new SolidColorBrush(
+                    Color.FromArgb(alpha, color.R, color.G, color.B));
+
+                brush.Freeze();
+                brushes[i] = brush;
             }
 
+            return brushes;
+        }
+
+        private SolidColorBrush GetAccentBrush(double opacity)
+        {
+            return GetBrush(_accentBrushes, opacity);
+        }
+
+        private SolidColorBrush GetBrightBrush(double opacity)
+        {
+            return GetBrush(_brightBrushes, opacity);
+        }
+
+        private static SolidColorBrush GetBrush(SolidColorBrush[] brushes, double opacity)
+        {
+            opacity = Clamp01(opacity);
+
+            int index = (int)Math.Round(opacity * (BrushLevels - 1));
+
+            if (index <= 0)
+                return null;
+
+            return brushes[index];
+        }
+
+        // ----------------- ИНИЦИАЛИЗАЦИЯ ЧАСТИЦ -----------------
+
+        private void InitializeParticles()
+        {
             double width = ActualWidth;
             double height = ActualHeight;
 
             if (width <= 0 || height <= 0)
-            {
-                width = 640;
-                height = 360;
-            }
+                return;
 
             _lastWidth = width;
             _lastHeight = height;
+            _scale = GetScaleFactor();
 
-            // Обновляем треугольник для новых размеров
-            UpdateTriangle(width, height);
+            UpdateDrawArea(width, height);
 
-            double scale = GetScaleFactor();
-            double maxSpeed = BaseMaxSpeed * scale;
-            _particles = new Particle[ParticleCount];
+            int count = Math.Max(0, ParticleCount);
+            _particles = new Particle[count];
 
-            for (int i = 0; i < ParticleCount; i++)
-            {
-                double radius = _sizes[_random.Next(_sizes.Length)] * scale;
-                int alphaIndex = SelectWithWeights(_alphaWeights);
-                var pos = GetRandomPointInTriangle(); // используем кэшированные вершины
-                _particles[i] = new Particle
-                {
-                    X = pos.X,
-                    Y = pos.Y,
-                    SpeedX = (_random.NextDouble() - 0.5) * 2 * maxSpeed,
-                    SpeedY = (_random.NextDouble() - 0.5) * 2 * maxSpeed,
-                    Radius = radius,
-                    Brush = _brushes[alphaIndex],
-                    Opacity = 1.0,
-                    FadingOut = false
-                };
-            }
-            _needsRedraw = true;
+            for (int i = 0; i < count; i++)
+                SpawnParticle(ref _particles[i], true);
         }
 
-        // ----------------- ТАЙМЕР -----------------
-
-        private void OnTimerTick(object sender, EventArgs e)
+        private void SpawnParticle(ref Particle p, bool initialSpawn)
         {
-            if (!_isInitialized || _particles == null || _particles.Length == 0)
+            Point position = GetRandomPointInDrawArea();
+
+            // Большая часть частиц остаётся на дальнем плане.
+            p.Depth = 0.10 + Math.Pow(_random.NextDouble(), 1.50) * 0.90;
+
+            double typeRoll = _random.NextDouble();
+
+            if (typeRoll < 0.68)
+                p.Type = ParticleDust;
+            else if (typeRoll < 0.96)
+                p.Type = ParticleGlow;
+            else
+                p.Type = ParticleSpark;
+
+            double baseRadius;
+
+            if (p.Type == ParticleDust)
+                baseRadius = RandomRange(DustSizeMin, DustSizeMax);
+            else if (p.Type == ParticleGlow)
+                baseRadius = RandomRange(GlowSizeMin, GlowSizeMax);
+            else
+                baseRadius = RandomRange(SparkSizeMin, SparkSizeMax);
+
+            double depthScale = 0.65 + p.Depth * 0.70;
+
+            p.Radius = baseRadius * depthScale * _scale;
+            p.Aspect = 1.0;
+
+            double speed = Lerp(MinSpeed, MaxSpeed, p.Depth);
+            speed *= 0.85 + _random.NextDouble() * 0.30;
+            speed *= _scale;
+
+            // Основное течение направлено вправо.
+            p.SpeedX = speed * (0.92 + _random.NextDouble() * 0.16);
+
+            // Незначительный вертикальный разброс.
+            p.SpeedY = speed * (-0.08 + (_random.NextDouble() - 0.5) * 0.50);
+
+            p.DriftAmplitude = Lerp(2.0, 9.0, p.Depth) * _scale * (0.80 + _random.NextDouble() * 0.40);
+            p.DriftFrequency = 0.30 + _random.NextDouble() * 0.60;
+            p.Phase = _random.NextDouble() * TwoPi;
+
+            p.PulsePhase = _random.NextDouble() * TwoPi;
+            p.PulseSpeed = 0.35 + _random.NextDouble() * 0.85;
+
+            if (p.Type == ParticleDust)
+                p.BaseOpacity = 0.10 + p.Depth * 0.17 + _random.NextDouble() * 0.05;
+            else if (p.Type == ParticleGlow)
+                p.BaseOpacity = 0.22 + p.Depth * 0.28 + _random.NextDouble() * 0.07;
+            else
+                p.BaseOpacity = 0.45 + p.Depth * 0.32 + _random.NextDouble() * 0.08;
+
+            p.BaseOpacity = Clamp01(p.BaseOpacity);
+
+            p.X = position.X;
+            p.Y = position.Y;
+
+            p.Opacity = initialSpawn ? 0.35 + _random.NextDouble() * 0.65 : 0;
+            p.FadingOut = false;
+            p.FadeDelay = 0;
+            p.RespawnTimer = RandomRange(RespawnTimeMin, RespawnTimeMax);
+        }
+
+        // ----------------- RENDER LOOP -----------------
+
+        private void OnRendering(object sender, EventArgs e)
+        {
+            if (!_isRunning)
                 return;
 
-            double delta = _timer.Interval.TotalSeconds;
-            UpdateParticles(delta);
+            var renderingArgs = e as RenderingEventArgs;
 
-            if (_needsRedraw)
+            if (renderingArgs == null)
+                return;
+
+            TimeSpan renderingTime = renderingArgs.RenderingTime;
+
+            if (_lastRenderingTime == TimeSpan.Zero)
+            {
+                _lastRenderingTime = renderingTime;
+                InvalidateVisual();
+                return;
+            }
+
+            double delta = (renderingTime - _lastRenderingTime).TotalSeconds;
+            _lastRenderingTime = renderingTime;
+
+            if (delta <= 0)
+                return;
+
+            if (delta > MaxDelta)
+                delta = MaxDelta;
+
+            UpdateGlobalOpacity(delta);
+
+            if (!_isRunning)
             {
                 InvalidateVisual();
-                _needsRedraw = false;
+                return;
+            }
+
+            if (_particles != null && _particles.Length > 0)
+                UpdateParticles(delta);
+
+            InvalidateVisual();
+        }
+
+        // ----------------- ОБЩИЙ FADE -----------------
+
+        private void UpdateGlobalOpacity(double delta)
+        {
+            if (Math.Abs(_currentOpacity - _targetOpacity) < 0.0001)
+            {
+                _currentOpacity = _targetOpacity;
+                return;
+            }
+
+            double duration = Math.Max(0.01, _globalFadeDuration);
+            double step = delta / duration;
+
+            if (_targetOpacity > _currentOpacity)
+            {
+                _currentOpacity += step;
+
+                if (_currentOpacity >= _targetOpacity)
+                    _currentOpacity = _targetOpacity;
+            }
+            else
+            {
+                _currentOpacity -= step;
+
+                if (_currentOpacity <= _targetOpacity)
+                    _currentOpacity = _targetOpacity;
+            }
+
+            if (_targetOpacity <= 0 && _currentOpacity <= 0)
+            {
+                _currentOpacity = 0;
+                _particles = null;
+                Stop();
             }
         }
 
-        // ----------------- ОБНОВЛЕНИЕ ЧАСТИЦ -----------------
+        // ----------------- ДВИЖЕНИЕ -----------------
 
         private void UpdateParticles(double delta)
         {
@@ -189,141 +419,195 @@ namespace EZ2Play.App
             if (width <= 0 || height <= 0 || _particles == null)
                 return;
 
-            // Если размеры изменились, обновляем треугольник
             if (Math.Abs(width - _lastWidth) > 0.01 || Math.Abs(height - _lastHeight) > 0.01)
             {
                 _lastWidth = width;
                 _lastHeight = height;
-                UpdateTriangle(width, height);
+                UpdateDrawArea(width, height);
             }
 
-            bool anyVisible = false;
-            double fadeSpeed = delta / 0.2;
+            _time += delta;
+
+            double fadeInSpeed = delta / ParticleFadeInDuration;
+            double fadeOutSpeed = delta / ParticleFadeOutDuration;
 
             for (int i = 0; i < _particles.Length; i++)
             {
-                var p = _particles[i];
+                Particle p = _particles[i];
 
-                p.X += p.SpeedX * delta;
-                p.Y += p.SpeedY * delta;
+                double normalizedX = width > 0 ? p.X / width : 0;
 
-                if (!p.FadingOut && !IsPointInTriangle(new Point(p.X, p.Y))) // используем кэш
+                // Общая спокойная волна создаёт ощущение единого потока.
+                double fieldWave = Math.Sin(_time * 0.48 + normalizedX * 3.8 + p.Phase);
+
+                // Индивидуальный drift не даёт частицам выглядеть строем.
+                double localWave = Math.Sin(_time * p.DriftFrequency + p.Phase);
+                double secondWave = Math.Cos(_time * p.DriftFrequency * 0.71 + p.Phase * 1.31);
+
+                double velocityX = p.SpeedX + localWave * p.DriftAmplitude * 0.10;
+                double velocityY = p.SpeedY + fieldWave * p.DriftAmplitude + secondWave * p.DriftAmplitude * 0.25;
+
+                p.X += velocityX * delta;
+                p.Y += velocityY * delta;
+
+                if (!p.FadingOut)
+                {
+                    p.RespawnTimer -= delta;
+
+                    if (p.RespawnTimer <= 0)
+                    {
+                        p.FadingOut = true;
+                        p.FadeDelay = 0;
+                    }
+                }
+
+                if (!p.FadingOut && !IsPointInDrawArea(new Point(p.X, p.Y)))
                 {
                     p.FadingOut = true;
-                    double fadeMarginMax = BaseFadeMarginMax * GetScaleFactor();
-
-                    if (_random.NextDouble() < 0.5)
-                        p.FadeMargin = 0;
-                    else
-                        p.FadeMargin = _random.NextDouble() * fadeMarginMax;
+                    p.FadeDelay = _random.NextDouble() * 0.07;
                 }
 
                 if (p.FadingOut)
                 {
-                    double overDistance = GetDistanceOutsideTriangle(new Point(p.X, p.Y)); // используем кэш
-                    if (overDistance > p.FadeMargin)
+                    if (p.FadeDelay > 0)
                     {
-                        p.Opacity -= fadeSpeed;
+                        p.FadeDelay -= delta;
+                    }
+                    else
+                    {
+                        p.Opacity -= fadeOutSpeed;
 
                         if (p.Opacity <= 0)
-                        {
-                            RespawnParticle(ref p, width, height);
-                        }
+                            SpawnParticle(ref p, false);
                     }
                 }
                 else if (p.Opacity < 1.0)
                 {
-                    p.Opacity += fadeSpeed;
-                    if (p.Opacity > 1)
-                        p.Opacity = 1;
+                    p.Opacity += fadeInSpeed;
+
+                    if (p.Opacity > 1.0)
+                        p.Opacity = 1.0;
                 }
 
                 _particles[i] = p;
-
-                if (p.Opacity > 0)
-                    anyVisible = true;
             }
-
-            _needsRedraw = anyVisible;
-        }
-
-        private void RespawnParticle(ref Particle p, double width, double height)
-        {
-            double scale = GetScaleFactor();
-            double maxSpeed = BaseMaxSpeed * scale;
-            var pos = GetRandomPointInTriangle(); // используем кэш
-            int radiusIndex = _random.Next(_sizes.Length);
-            int alphaIndex = SelectWithWeights(_alphaWeights);
-
-            p.X = pos.X;
-            p.Y = pos.Y;
-            p.SpeedX = (_random.NextDouble() - 0.5) * 2 * maxSpeed;
-            p.SpeedY = (_random.NextDouble() - 0.5) * 2 * maxSpeed;
-            p.Radius = _sizes[radiusIndex] * scale;
-            p.Brush = _brushes[alphaIndex];
-            p.Opacity = 0;
-            p.FadingOut = false;
-            p.FadeMargin = 0;
         }
 
         // ----------------- ОТРИСОВКА -----------------
 
         protected override void OnRender(DrawingContext dc)
         {
-            if (_particles == null || _brushes == null || _currentOpacity <= 0) return;
+            base.OnRender(dc);
 
-            foreach (var p in _particles)
-            {
-                if (p.Brush == null || p.Opacity <= 0) continue;
+            if (_particles == null || !_isInitialized || _currentOpacity <= 0.001)
+                return;
 
-                var brush = p.Brush.Clone();
-                brush.Opacity = p.Opacity * _currentOpacity;
-                brush.Freeze();
-                dc.DrawEllipse(brush, null, new Point(p.X + p.Radius, p.Y + p.Radius), p.Radius, p.Radius);
-            }
+            for (int i = 0; i < _particles.Length; i++)
+                DrawParticle(dc, _particles[i]);
         }
 
-        private void OnFadeTick(object sender, EventArgs e)
+        private void DrawParticle(DrawingContext dc, Particle p)
         {
-            if (_currentOpacity == _targetOpacity)
+            if (p.Opacity <= 0)
+                return;
+
+            double pulseWave = 0.5 + 0.5 * Math.Sin(_time * p.PulseSpeed + p.PulsePhase);
+
+            double pulse;
+
+            if (p.Type == ParticleDust)
+                pulse = 0.90 + pulseWave * 0.10;
+            else if (p.Type == ParticleGlow)
+                pulse = 0.80 + pulseWave * 0.20;
+            else
+                pulse = 0.72 + pulseWave * 0.28;
+
+            double flash = p.Type == ParticleSpark ? pulseWave * pulseWave : 0;
+            double opacity = Clamp01(p.BaseOpacity * p.Opacity * pulse * _currentOpacity);
+
+            if (opacity <= 0.003)
+                return;
+
+            Point center = new Point(p.X, p.Y);
+            double radiusX = p.Radius * p.Aspect;
+            double radiusY = p.Radius;
+
+            // ----------------- ПЫЛЬ -----------------
+
+            if (p.Type == ParticleDust)
             {
-                _fadeTimer.Stop();
-                if (_targetOpacity == 0) { Stop(); _particles = new Particle[0]; }
+                var brush = GetAccentBrush(opacity);
+
+                if (brush != null)
+                    dc.DrawEllipse(brush, null, center, radiusX, radiusY);
+
                 return;
             }
 
-            _currentOpacity += (_targetOpacity > _currentOpacity ? _fadeStep : -_fadeStep);  // ← используем _fadeStep
-            
-            if (Math.Abs(_currentOpacity - _targetOpacity) < _fadeStep) 
-                _currentOpacity = _targetOpacity;
-            
-            _needsRedraw = true;
-            InvalidateVisual();
-        }
+            // ----------------- СВЕТЯЩАЯСЯ ЧАСТИЦА -----------------
 
-        public void SetParticlesVisible(bool visible, bool fade = true, double duration = 0.5)
-        {
-            _targetOpacity = visible ? 1.0 : 0.0;
-            
-            // Рассчитываем шаг исходя из длительности (при 60fps)
-            if (duration > 0)
-                _fadeStep = 1.0 / (duration * 60);  // 60 кадров в секунду
-            
-            if (!fade || duration <= 0)
+            if (p.Type == ParticleGlow)
             {
-                _currentOpacity = _targetOpacity;
-                _fadeTimer.Stop();
-                if (!visible) { Stop(); _particles = new Particle[0]; }
-                else Start();
+                var glow1 = GetAccentBrush(opacity * 0.035);
+                var glow2 = GetAccentBrush(opacity * 0.070);
+                var glow3 = GetAccentBrush(opacity * 0.130);
+                var glow4 = GetAccentBrush(opacity * 0.240);
+                var core = GetBrightBrush(opacity * 0.95);
+
+                if (glow1 != null)
+                    dc.DrawEllipse(glow1, null, center, radiusX * 2.50, radiusY * 2.50);
+
+                if (glow2 != null)
+                    dc.DrawEllipse(glow2, null, center, radiusX * 2.00, radiusY * 2.00);
+
+                if (glow3 != null)
+                    dc.DrawEllipse(glow3, null, center, radiusX * 1.50, radiusY * 1.50);
+
+                if (glow4 != null)
+                    dc.DrawEllipse(glow4, null, center, radiusX * 1.00, radiusY * 1.00);
+
+                if (core != null)
+                    dc.DrawEllipse(core, null, center, radiusX * 0.48, radiusY * 0.48);
+
+                return;
             }
-            else
-            {
-                if (visible) Start();
-                _fadeTimer.Start();
-            }
-            
-            _needsRedraw = true;
-            InvalidateVisual();
+
+            // ----------------- РЕДКАЯ ЯРКАЯ ЧАСТИЦА -----------------
+
+            double sparkScale = 1.0 + flash * 0.25;
+
+            var spark1 = GetAccentBrush(opacity * (0.018 + flash * 0.012));
+            var spark2 = GetAccentBrush(opacity * (0.032 + flash * 0.018));
+            var spark3 = GetAccentBrush(opacity * (0.055 + flash * 0.026));
+            var spark4 = GetAccentBrush(opacity * (0.085 + flash * 0.035));
+            var spark5 = GetAccentBrush(opacity * (0.130 + flash * 0.045));
+            var spark6 = GetAccentBrush(opacity * (0.190 + flash * 0.060));
+            var spark7 = GetAccentBrush(opacity * (0.280 + flash * 0.080));
+            var sparkCore = GetBrightBrush(Clamp01(opacity * (1.0 + flash * 0.35)));
+
+            if (spark1 != null)
+                dc.DrawEllipse(spark1, null, center, radiusX * 3.10 * sparkScale, radiusY * 3.10 * sparkScale);
+
+            if (spark2 != null)
+                dc.DrawEllipse(spark2, null, center, radiusX * 2.75 * sparkScale, radiusY * 2.75 * sparkScale);
+
+            if (spark3 != null)
+                dc.DrawEllipse(spark3, null, center, radiusX * 2.40 * sparkScale, radiusY * 2.40 * sparkScale);
+
+            if (spark4 != null)
+                dc.DrawEllipse(spark4, null, center, radiusX * 2.05 * sparkScale, radiusY * 2.05 * sparkScale);
+
+            if (spark5 != null)
+                dc.DrawEllipse(spark5, null, center, radiusX * 1.70 * sparkScale, radiusY * 1.70 * sparkScale);
+
+            if (spark6 != null)
+                dc.DrawEllipse(spark6, null, center, radiusX * 1.35 * sparkScale, radiusY * 1.35 * sparkScale);
+
+            if (spark7 != null)
+                dc.DrawEllipse(spark7, null, center, radiusX * 1.00 * sparkScale, radiusY * 1.00 * sparkScale);
+
+            if (sparkCore != null)
+                dc.DrawEllipse(sparkCore, null, center, radiusX * 0.48, radiusY * 0.48);
         }
 
         // ----------------- RESIZE -----------------
@@ -335,101 +619,139 @@ namespace EZ2Play.App
             if (sizeInfo.NewSize.Width <= 0 || sizeInfo.NewSize.Height <= 0)
                 return;
 
-            _lastWidth = 0;
-            _lastHeight = 0;
+            _lastWidth = sizeInfo.NewSize.Width;
+            _lastHeight = sizeInfo.NewSize.Height;
+            _scale = GetScaleFactor();
+
+            UpdateDrawArea(_lastWidth, _lastHeight);
 
             if (_particles != null && _particles.Length > 0 && _isInitialized)
                 InitializeParticles();
+
+            InvalidateVisual();
         }
 
-        // ----------------- МАТЕМАТИКА / ГЕОМЕТРИЯ -----------------
+        // ----------------- МАСШТАБ -----------------
 
         private double GetScaleFactor()
         {
-            var w = Window.GetWindow(this);
-            double h = w != null ? w.ActualHeight : 0;
+            Window window = Window.GetWindow(this);
+            double height = window != null ? window.ActualHeight : 0;
 
-            if (h <= 0)
-                h = LayoutScaler.ReferenceHeight;
+            if (height <= 0)
+                height = LayoutScaler.ReferenceHeight;
 
-            return LayoutScaler.GetScaleFactor(h);
+            return LayoutScaler.GetScaleFactor(height);
         }
 
-        private int SelectWithWeights(double[] weights)
-        {
-            double randomValue = _random.NextDouble();
-            double cumulative = 0;
+        // ----------------- ОБЛАСТЬ ЧАСТИЦ -----------------
 
-            for (int i = 0; i < weights.Length; i++)
+        // ----------------- ОБЛАСТЬ ЧАСТИЦ -----------------
+
+        private void UpdateDrawArea(double width, double height)
+        {
+            _drawArea = new Point[_drawAreaNormalized.Length];
+
+            for (int i = 0; i < _drawAreaNormalized.Length; i++)
             {
-                cumulative += weights[i];
-                if (randomValue < cumulative)
-                    return i;
+                _drawArea[i] = new Point(
+                    _drawAreaNormalized[i].X * width,
+                    _drawAreaNormalized[i].Y * height);
+            }
+        }
+
+        private Point GetRandomPointInDrawArea()
+        {
+            if (_drawArea == null || _drawArea.Length < 3)
+                return new Point(0, 0);
+
+            double minX = _drawArea[0].X;
+            double maxX = _drawArea[0].X;
+            double minY = _drawArea[0].Y;
+            double maxY = _drawArea[0].Y;
+
+            for (int i = 1; i < _drawArea.Length; i++)
+            {
+                minX = Math.Min(minX, _drawArea[i].X);
+                maxX = Math.Max(maxX, _drawArea[i].X);
+                minY = Math.Min(minY, _drawArea[i].Y);
+                maxY = Math.Max(maxY, _drawArea[i].Y);
             }
 
-            return weights.Length - 1;
-        }
-
-        // Обновляет вершины треугольника на основе текущих размеров canvas
-        private void UpdateTriangle(double width, double height)
-        {
-            _triP1 = new Point(0, height * 0.5);
-            _triP2 = new Point(width * 0.9, height);
-            _triP3 = new Point(width, height * 0.3);
-        }
-
-        // Генерирует случайную точку внутри треугольника (использует кэшированные вершины)
-        private Point GetRandomPointInTriangle()
-        {
-            double r1 = _random.NextDouble();
-            double r2 = _random.NextDouble();
-
-            if (r1 + r2 > 1)
+            for (int attempt = 0; attempt < 100; attempt++)
             {
-                r1 = 1 - r1;
-                r2 = 1 - r2;
+                Point point = new Point(
+                    RandomRange(minX, maxX),
+                    RandomRange(minY, maxY));
+
+                if (IsPointInDrawArea(point))
+                    return point;
             }
 
-            double x = _triP1.X + r1 * (_triP2.X - _triP1.X) + r2 * (_triP3.X - _triP1.X);
-            double y = _triP1.Y + r1 * (_triP2.Y - _triP1.Y) + r2 * (_triP3.Y - _triP1.Y);
+            // На случай очень узкой области возвращаем её центр.
+            double centerX = 0;
+            double centerY = 0;
 
-            return new Point(x, y);
+            for (int i = 0; i < _drawArea.Length; i++)
+            {
+                centerX += _drawArea[i].X;
+                centerY += _drawArea[i].Y;
+            }
+
+            return new Point(centerX / _drawArea.Length, centerY / _drawArea.Length);
         }
 
-        // Проверяет, находится ли точка внутри треугольника (использует кэшированные вершины)
-        private bool IsPointInTriangle(Point pt)
+        private bool IsPointInDrawArea(Point point)
         {
-            double dX = pt.X - _triP3.X;
-            double dY = pt.Y - _triP3.Y;
-            double dX21 = _triP3.X - _triP2.X;
-            double dY12 = _triP2.Y - _triP3.Y;
-            double D = dY12 * (_triP1.X - _triP3.X) + dX21 * (_triP1.Y - _triP3.Y);
-            double s = dY12 * dX + dX21 * dY;
-            double t = (_triP3.Y - _triP1.Y) * dX + (_triP1.X - _triP3.X) * dY;
+            if (_drawArea == null || _drawArea.Length < 3)
+                return false;
 
-            if (D < 0)
-                return s <= 0 && t <= 0 && s + t >= D;
+            bool inside = false;
 
-            return s >= 0 && t >= 0 && s + t <= D;
+            for (int i = 0, j = _drawArea.Length - 1; i < _drawArea.Length; j = i++)
+            {
+                Point pi = _drawArea[i];
+                Point pj = _drawArea[j];
+
+                bool intersects =
+                    ((pi.Y > point.Y) != (pj.Y > point.Y)) &&
+                    (point.X < (pj.X - pi.X) * (point.Y - pi.Y) / (pj.Y - pi.Y) + pi.X);
+
+                if (intersects)
+                    inside = !inside;
+            }
+
+            return inside;
         }
 
-        // Вычисляет расстояние от точки до границ треугольника (использует кэшированные вершины)
-        private double GetDistanceOutsideTriangle(Point pt)
-        {
-            double d1 = DistancePointToLine(pt, _triP1, _triP2);
-            double d2 = DistancePointToLine(pt, _triP2, _triP3);
-            double d3 = DistancePointToLine(pt, _triP3, _triP1);
+        // ----------------- HELPERS -----------------
 
-            return Math.Min(d1, Math.Min(d2, d3));
+        private static double Lerp(double a, double b, double t)
+        {
+            return a + (b - a) * t;
         }
 
-        private double DistancePointToLine(Point pt, Point a, Point b)
+        private double RandomRange(double min, double max)
         {
-            double dx = b.X - a.X;
-            double dy = b.Y - a.Y;
+            return min + _random.NextDouble() * (max - min);
+        }
 
-            return Math.Abs(dy * pt.X - dx * pt.Y + b.X * a.Y - b.Y * a.X)
-                   / Math.Sqrt(dx * dx + dy * dy);
+        private static double Clamp01(double value)
+        {
+            if (value < 0) return 0;
+            if (value > 1) return 1;
+            return value;
+        }
+
+        private static Color MixWithWhite(Color color, double amount)
+        {
+            amount = Clamp01(amount);
+
+            byte r = (byte)(color.R + (255 - color.R) * amount);
+            byte g = (byte)(color.G + (255 - color.G) * amount);
+            byte b = (byte)(color.B + (255 - color.B) * amount);
+
+            return Color.FromArgb(255, r, g, b);
         }
     }
 }

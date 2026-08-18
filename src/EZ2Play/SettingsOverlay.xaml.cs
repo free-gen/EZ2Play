@@ -43,6 +43,8 @@ namespace EZ2Play.App
                 SetDescriptionWithIcon(SettingsAutorunAppDesc, "SettingsAutorunAppDesc", "\uE3E3");
                 RefreshDisplayList();
                 RefreshAutorunState();
+                RefreshFpsMonitorVisibility();
+                RefreshFpsMonitorState();
                 LoadSubOptionsStates();
 
                 if (_mainWindow.IsHotSwapLaunch())
@@ -174,6 +176,8 @@ namespace EZ2Play.App
                 SettingsListBox.SelectedIndex = 0;
 
             RefreshAutorunState();
+            RefreshFpsMonitorVisibility();
+            RefreshFpsMonitorState();
             ScheduleUpdateTreeHeaderDivider();
 
             var fadeIn = new DoubleAnimation
@@ -216,6 +220,31 @@ namespace EZ2Play.App
         {
             var display = _mainWindow.GetDisplay();
             display.RefreshDisplayList();
+        }
+
+        private void RefreshFpsMonitorVisibility()
+        {
+            SettingsFpsMonitor.Visibility =
+                SystemProvider.IsFpsMonitorInstalled()
+                    ? Visibility.Visible
+                    : Visibility.Collapsed;
+        }
+
+        private void RefreshFpsMonitorState()
+        {
+            FpsMonitorToggle.IsChecked = SystemProvider.IsFpsMonitorRunning();
+        }
+
+        private void SetFpsMonitorState(bool enabled)
+        {
+            bool success = enabled
+                ? SystemProvider.StartFpsMonitor()
+                : SystemProvider.StopFpsMonitor();
+
+            if (success)
+                FpsMonitorToggle.IsChecked = enabled;
+            else
+                RefreshFpsMonitorState();
         }
 
         private void RefreshAutorunState()
@@ -359,6 +388,11 @@ namespace EZ2Play.App
             {
                 bool newState = !AutorunToggle.IsChecked.GetValueOrDefault(false);
                 SetAutorunState(newState);
+            }
+            else if (SettingsListBox.SelectedItem == SettingsFpsMonitor)
+            {
+                bool newState = !FpsMonitorToggle.IsChecked.GetValueOrDefault(false);
+                SetFpsMonitorState(newState);
             }
             else if (SettingsListBox.SelectedItem == SettingsExitApp)
             {

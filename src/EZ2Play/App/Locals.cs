@@ -94,6 +94,24 @@ namespace EZ2Play.App
                     "按住 {ICON} 启动启动器。\n此选项会启动后台进程并将其添加到开机启动。"
                 },
 
+                ["SettingsFpsMonitorLabel"] = new[]
+                {
+                    "Performance Monitoring",
+                    "Мониторинг производительности",
+                    "Leistungsüberwachung",
+                    "Surveillance des performances",
+                    "性能监控"
+                },
+
+                ["SettingsFpsMonitorDesc"] = new[]
+                {
+                    "FPS Monitor is used for monitoring.\nIt is recommended to enable launch in minimized state in its settings.",
+                    "Для мониторинга используется FPS Monitor.\nРекомендуется включить в его настройках запуск в свернутом состоянии.",
+                    "Für die Überwachung wird FPS Monitor verwendet.\nEs wird empfohlen, in seinen Einstellungen den Start im minimierten Zustand zu aktivieren.",
+                    "FPS Monitor est utilisé pour la surveillance.\nIl est recommandé d'activer le lancement en état réduit dans ses paramètres.",
+                    "用于监控的是 FPS Monitor。\n建议在其设置中启用最小化状态启动。"
+                },
+
                 ["SettingsExitAppLabel"] = new[]
                 {
                     "Exit to Desktop", "Выход на рабочий стол",

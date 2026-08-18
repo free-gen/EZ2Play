@@ -332,6 +332,78 @@ namespace EZ2Play.App
             }
         }
 
+        // --------------- FPS Monitor ---------------
+
+        private const string FpsMonitorPath =
+            @"C:\Program Files (x86)\FPS Monitor\FPSMonitor.exe";
+
+        public static bool IsFpsMonitorInstalled()
+        {
+            return File.Exists(FpsMonitorPath);
+        }
+
+        public static bool IsFpsMonitorRunning()
+        {
+            try
+            {
+                return System.Diagnostics.Process.GetProcessesByName("FPSMonitor").Length > 0;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        public static bool StartFpsMonitor()
+        {
+            try
+            {
+                if (IsFpsMonitorRunning())
+                    return true;
+
+                if (!File.Exists(FpsMonitorPath))
+                    return false;
+
+                System.Diagnostics.Process.Start(
+                    new System.Diagnostics.ProcessStartInfo
+                    {
+                        FileName = FpsMonitorPath,
+                        UseShellExecute = true
+                    });
+
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        public static bool StopFpsMonitor()
+        {
+            try
+            {
+                if (!IsFpsMonitorRunning())
+                    return true;
+
+                System.Diagnostics.Process.Start(
+                    new System.Diagnostics.ProcessStartInfo
+                    {
+                        FileName = "taskkill.exe",
+                        Arguments = "/F /IM FPSMonitor.exe",
+                        UseShellExecute = true,
+                        Verb = "runas",
+                        WindowStyle = System.Diagnostics.ProcessWindowStyle.Hidden
+                    });
+
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
         // --------------- Native imports ---------------
 
         [DllImport("user32.dll")]

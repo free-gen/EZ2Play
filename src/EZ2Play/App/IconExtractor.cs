@@ -18,6 +18,9 @@ namespace EZ2Play.App
         // Папка с ярлыками относительно basePath
         private const string ShortcutsDirectory = "shortcuts";
 
+        // Папка с пользовательскими обложками внутри shortcuts
+        private const string CoversDirectory = "covers";
+
         // Размер иконки для извлечения (256px)
         private const int IconSize = 256;
 
@@ -181,6 +184,44 @@ namespace EZ2Play.App
             {
                 return null;
             }
+        }
+
+        // Получение пользовательской обложки для ярлыка
+        private static ImageSource GetCustomCover(string shortcutPath)
+        {
+            try
+            {
+                string shortcutsDir = Path.GetDirectoryName(shortcutPath);
+                string coversDir = Path.Combine(shortcutsDir, CoversDirectory);
+
+                if (!Directory.Exists(coversDir))
+                    return null;
+
+                string name = Path.GetFileNameWithoutExtension(shortcutPath);
+
+                string[] extensions = { ".png", ".jpg", ".jpeg" };
+
+                foreach (string extension in extensions)
+                {
+                    string coverPath = Path.Combine(coversDir, name + extension);
+
+                    if (!File.Exists(coverPath))
+                        continue;
+
+                    var bitmap = new BitmapImage();
+
+                    bitmap.BeginInit();
+                    bitmap.CacheOption = BitmapCacheOption.OnLoad;
+                    bitmap.DecodePixelWidth = 512;
+                    bitmap.UriSource = new Uri(coverPath, UriKind.Absolute);
+                    bitmap.EndInit();
+                    bitmap.Freeze();
+
+                    return bitmap;
+                }
+            }
+            catch{ }
+            return null;
         }
 
         // Получение иконки для ярлыка (основной публичный метод)
@@ -381,7 +422,7 @@ namespace EZ2Play.App
                     .Select(path => new ShortcutInfo
                     {
                         Name = Path.GetFileNameWithoutExtension(path),
-                        Icon = GetIconForShortcut(path),
+                        Icon = GetCustomCover(path) ?? GetIconForShortcut(path),
                         FullPath = path,
                         SourceType = GetSourceTypeFromShortcut(path)
                     })
