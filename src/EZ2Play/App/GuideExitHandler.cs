@@ -72,44 +72,68 @@ namespace EZ2Play.App
         // --------------- Опрос контроллера ---------------
 
         // Проверка нажатия кнопки GUIDE (XInput)
+        private bool IsGuidePressed()
+        {
+            for (int userIndex = 0; userIndex < 4; userIndex++)
+            {
+                var stateEx = new XInputStateEx();
+
+                int result =
+                    XInputGetState(userIndex, ref stateEx);
+
+                if (result == 0 &&
+                    (stateEx.Gamepad.wButtons & GUIDE_BUTTON_MASK) != 0)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
         private void Poll(object sender, EventArgs e)
         {
             try
             {
-                var stateEx = new XInputStateEx();
-                int result = XInputGetState(0, ref stateEx);
+                if (!IsGuidePressed())
+                    return;
 
-                // Кнопка GUIDE
-                if (result == 0 && (stateEx.Gamepad.wButtons & GUIDE_BUTTON_MASK) != 0)
+                // Если установлен Xbox Game Bar,
+                // полностью игнорируем нажатие Guide.
+                if (_isXboxGameBarInstalled)
+                    return;
+
+                // Если лаунчер в фокусе — Guide не закрывает его.
+                if (SystemProvider.IsForeground())
+                    return;
+
+                long now =
+                    DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+
+                // Защита от повторных нажатий.
+                if (now - _lastPressMs <= DEBOUNCE_MS)
+                    return;
+
+                _lastPressMs = now;
+
+                _audio?.PlayBackSound();
+
+                // Существующую семантику до 1.0 не меняем:
+                // закрываем текущее foreground window.
+                IntPtr hwnd = GetForegroundWindow();
+
+                if (hwnd != IntPtr.Zero)
                 {
-                    // Если установлен Xbox Game Bar, полностью игнорируем нажатие Guide
-                    if (_isXboxGameBarInstalled)
-                    {
-                        return;
-                    }
-
-                    // Если лаунчер в фокусе — игнорируем Guide (не нужно закрывать лаунчер)
-                    if (SystemProvider.IsForeground())
-                    {
-                        return;
-                    }
-
-                    long now = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
-
-                    // Защита от повторных нажатий (debounce)
-                    if (now - _lastPressMs > DEBOUNCE_MS)
-                    {
-                        _lastPressMs = now;
-                        _audio?.PlayBackSound();
-
-                        // Закрываем окно, которое сейчас в фокусе (игра)
-                        IntPtr hwnd = GetForegroundWindow();
-                        if (hwnd != IntPtr.Zero)
-                            PostMessage(hwnd, WM_CLOSE, IntPtr.Zero, IntPtr.Zero);
-                    }
+                    PostMessage(
+                        hwnd,
+                        WM_CLOSE,
+                        IntPtr.Zero,
+                        IntPtr.Zero);
                 }
             }
-            catch { }
+            catch
+            {
+            }
         }
 
         // --------------- Очистка ресурсов ---------------

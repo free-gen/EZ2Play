@@ -106,7 +106,6 @@ class Program
             Console.WriteLine($"Launcher args: [{launcherArgs}]");
         }
 
-        var state = new XInputStateEx();
         bool pressed = false;
         DateTime startTime = DateTime.Now;
         bool longPressHandled = false;
@@ -136,9 +135,7 @@ class Program
                 continue;
             }
 
-            int result = XInputGetStateEx(0, ref state);
-            bool connected = result == ERROR_SUCCESS;
-            bool guide = connected && ((state.wButtons & XINPUT_GAMEPAD_GUIDE) != 0);
+            bool guide = IsGuidePressed();
 
             if (guide && !pressed)
             {
@@ -174,6 +171,25 @@ class Program
     }
 
     // EZ2Play Focus
+    static bool IsGuidePressed()
+    {
+        for (int userIndex = 0; userIndex < 4; userIndex++)
+        {
+            var state = new XInputStateEx();
+
+            int result =
+                XInputGetStateEx(userIndex, ref state);
+
+            if (result == ERROR_SUCCESS &&
+                (state.wButtons & XINPUT_GAMEPAD_GUIDE) != 0)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     static void FocusWindowWithRetry(bool debugMode)
     {
         Thread.Sleep(1500);
@@ -184,27 +200,89 @@ class Program
             
             if (hWnd != IntPtr.Zero)
             {
-                keybd_event(VK_MENU, 0, 0, UIntPtr.Zero);
-                
-                uint foreThread = GetWindowThreadProcessId(GetForegroundWindow(), out _);
-                uint appThread = GetWindowThreadProcessId(hWnd, out _);
+                uint foreThread = 0;
+                uint appThread = 0;
                 uint curThread = GetCurrentThreadId();
 
-                if (foreThread != curThread)
-                    AttachThreadInput(foreThread, curThread, true);
-                if (appThread != curThread && appThread != foreThread)
-                    AttachThreadInput(appThread, curThread, true);
+                bool foreAttached = false;
+                bool appAttached = false;
+                bool altPressed = false;
 
-                SetForegroundWindow(hWnd);
+                try
+                {
+                    keybd_event(
+                        VK_MENU,
+                        0,
+                        0,
+                        UIntPtr.Zero);
 
-                if (foreThread != curThread)
-                    AttachThreadInput(foreThread, curThread, false);
-                if (appThread != curThread && appThread != foreThread)
-                    AttachThreadInput(appThread, curThread, false);
-                
-                keybd_event(VK_MENU, 0, KEYEVENTF_KEYUP, UIntPtr.Zero);
+                    altPressed = true;
 
-                if (debugMode) Console.WriteLine($" [FOCUS] Focus set");
+                    foreThread =
+                        GetWindowThreadProcessId(
+                            GetForegroundWindow(),
+                            out _);
+
+                    appThread =
+                        GetWindowThreadProcessId(
+                            hWnd,
+                            out _);
+
+                    if (foreThread != 0 &&
+                        foreThread != curThread)
+                    {
+                        foreAttached =
+                            AttachThreadInput(
+                                foreThread,
+                                curThread,
+                                true);
+                    }
+
+                    if (appThread != 0 &&
+                        appThread != curThread &&
+                        appThread != foreThread)
+                    {
+                        appAttached =
+                            AttachThreadInput(
+                                appThread,
+                                curThread,
+                                true);
+                    }
+
+                    SetForegroundWindow(hWnd);
+                }
+                finally
+                {
+                    // Отсоединяем в обратном порядке.
+                    if (appAttached)
+                    {
+                        AttachThreadInput(
+                            appThread,
+                            curThread,
+                            false);
+                    }
+
+                    if (foreAttached)
+                    {
+                        AttachThreadInput(
+                            foreThread,
+                            curThread,
+                            false);
+                    }
+
+                    if (altPressed)
+                    {
+                        keybd_event(
+                            VK_MENU,
+                            0,
+                            KEYEVENTF_KEYUP,
+                            UIntPtr.Zero);
+                    }
+                }
+
+                if (debugMode)
+                    Console.WriteLine(" [FOCUS] Focus set");
+
                 return;
             }
             

@@ -58,7 +58,6 @@ namespace EZ2Play.App
         public event Action<bool, string> OnGamepadConnectionChanged;
 
         public event Action OnStartReleased;
-        public event Action OnBackReleased;
 
         public bool IsGamepadConnected { get; private set; }
 
@@ -359,6 +358,18 @@ namespace EZ2Play.App
         {
             bool aPressed = (gamepad.Buttons & GamepadButtonFlags.A) != 0;
             bool bPressed = (gamepad.Buttons & GamepadButtonFlags.B) != 0;
+            bool backPressed = (gamepad.Buttons & GamepadButtonFlags.Back) != 0;
+
+            // Back срабатывает только один раз за физическое нажатие.
+            if (backPressed && !_lastBackState)
+            {
+                _lastBackState = true;
+                OnBack?.Invoke();
+                return;
+            }
+
+            if (!backPressed)
+                _lastBackState = false;
 
             // A срабатывает только один раз за физическое нажатие.
             if (aPressed && !_lastAState)
@@ -413,17 +424,13 @@ namespace EZ2Play.App
                 OnStart?.Invoke();
             }
 
-            bool currentStart = (gamepad.Buttons & GamepadButtonFlags.Start) != 0;
-            bool currentBack = (gamepad.Buttons & GamepadButtonFlags.Back) != 0;
+            bool currentStart =
+                (gamepad.Buttons & GamepadButtonFlags.Start) != 0;
 
             if (_lastStartState && !currentStart)
                 OnStartReleased?.Invoke();
 
-            if (_lastBackState && !currentBack)
-                OnBackReleased?.Invoke();
-
             _lastStartState = currentStart;
-            _lastBackState = currentBack;
         }
 
         public void Dispose()
