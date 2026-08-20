@@ -144,41 +144,143 @@ namespace EZ2Play.App
             }
         }
 
-        public static void EnableAutorun()
+        private static bool RunAutorunPowerShell(string script, string operation)
+        {
+            try
+            {
+                var startInfo =
+                    new System.Diagnostics.ProcessStartInfo
+                    {
+                        FileName = "powershell.exe",
+                        Arguments =
+                            "-NoProfile -ExecutionPolicy Bypass -Command " +
+                            "\"$ErrorActionPreference='Stop'; " +
+                            script +
+                            "\"",
+                        CreateNoWindow = true,
+                        UseShellExecute = false,
+                        RedirectStandardError = true
+                    };
+
+                using (var process =
+                    System.Diagnostics.Process.Start(startInfo))
+                {
+                    if (process == null)
+                    {
+                        DebugLog.Write(
+                            "Autorun",
+                            $"{operation}: PowerShell could not be started.");
+
+                        return false;
+                    }
+
+                    string error =
+                        process.StandardError.ReadToEnd().Trim();
+
+                    process.WaitForExit();
+
+                    if (process.ExitCode != 0)
+                    {
+                        DebugLog.Write(
+                            "Autorun",
+                            $"{operation} failed. " +
+                            $"ExitCode={process.ExitCode}. " +
+                            $"Error={error}");
+
+                        return false;
+                    }
+
+                    return true;
+                }
+            }
+            catch (Exception ex)
+            {
+                DebugLog.Error(
+                    "Autorun",
+                    ex,
+                    $"{operation} failed.");
+
+                return false;
+            }
+        }
+
+        public static bool EnableAutorun()
         {
             try
             {
                 string helperPath = GetHelperExecutablePath();
-                if (!File.Exists(helperPath))
-                    return;
 
-                string startupFolder = Environment.GetFolderPath(Environment.SpecialFolder.Startup);
-                string shortcutPath = Path.Combine(startupFolder, AutorunShortcutName);
-                string workDir = Path.GetDirectoryName(helperPath);
+                if (!File.Exists(helperPath))
+                {
+                    DebugLog.Write(
+                        "Autorun",
+                        "Helper executable not found.");
+
+                    return false;
+                }
+
+                string startupFolder =
+                    Environment.GetFolderPath(
+                        Environment.SpecialFolder.Startup);
+
+                string shortcutPath =
+                    Path.Combine(
+                        startupFolder,
+                        AutorunShortcutName);
+
+                string workDir =
+                    Path.GetDirectoryName(helperPath);
 
                 string ps =
                     "$WshShell = New-Object -ComObject WScript.Shell; " +
-                    "$Shortcut = $WshShell.CreateShortcut('" + shortcutPath.Replace("'", "''") + "'); " +
-                    "$Shortcut.TargetPath = '" + helperPath.Replace("'", "''") + "'; " +
-                    "$Shortcut.WorkingDirectory = '" + workDir.Replace("'", "''") + "'; " +
+                    "$Shortcut = $WshShell.CreateShortcut('" +
+                    shortcutPath.Replace("'", "''") +
+                    "'); " +
+                    "$Shortcut.TargetPath = '" +
+                    helperPath.Replace("'", "''") +
+                    "'; " +
+                    "$Shortcut.WorkingDirectory = '" +
+                    workDir.Replace("'", "''") +
+                    "'; " +
                     "$Shortcut.Arguments = ''; " +
                     "$Shortcut.Save();";
 
-                System.Diagnostics.Process.Start(
-                    new System.Diagnostics.ProcessStartInfo
-                    {
-                        FileName = "powershell.exe",
-                        Arguments = "-NoProfile -ExecutionPolicy Bypass -Command \"" + ps + "\"",
-                        CreateNoWindow = true,
-                        UseShellExecute = false
-                    });
+                if (!RunAutorunPowerShell(
+                        ps,
+                        "Enable autorun"))
+                {
+                    return false;
+                }
+
+                if (!File.Exists(shortcutPath))
+                {
+                    DebugLog.Write(
+                        "Autorun",
+                        "Startup shortcut was not created.");
+
+                    return false;
+                }
 
                 StartHelperProcess("");
+
+                DebugLog.Write(
+                    "Autorun",
+                    "Autorun enabled.");
+
+                return true;
             }
-            catch { }
+            catch (Exception ex)
+            {
+                DebugLog.Error(
+                    "Autorun",
+                    ex,
+                    "Failed to enable autorun.");
+
+                return false;
+            }
         }
 
-        public static void DisableAutorun()
+        public static bool DisableAutorun()
         {
             try
             {
@@ -194,47 +296,124 @@ namespace EZ2Play.App
                 if (File.Exists(shortcutPath))
                     File.Delete(shortcutPath);
 
+                if (File.Exists(shortcutPath))
+                {
+                    DebugLog.Write(
+                        "Autorun",
+                        "Startup shortcut still exists after deletion.");
+
+                    return false;
+                }
+
                 StopHelperProcess();
+
+                DebugLog.Write(
+                    "Autorun",
+                    "Autorun disabled.");
+
+                return true;
             }
-            catch { }
+            catch (Exception ex)
+            {
+                DebugLog.Error(
+                    "Autorun",
+                    ex,
+                    "Failed to disable autorun.");
+
+                return false;
+            }
         }
 
         // --------------- Аргументы автозапуска ---------------                
 
-        public static void SetAutorunArguments(string args)
+        public static bool SetAutorunArguments(string args)
         {
             try
             {
                 string helperPath = GetHelperExecutablePath();
-                if (!File.Exists(helperPath))
-                    return;
 
-                string startupFolder = Environment.GetFolderPath(Environment.SpecialFolder.Startup);
-                string shortcutPath = Path.Combine(startupFolder, AutorunShortcutName);
-                string workDir = Path.GetDirectoryName(helperPath);
+                if (!File.Exists(helperPath))
+                {
+                    DebugLog.Write(
+                        "Autorun",
+                        "Cannot update arguments: Helper executable not found.");
+
+                    return false;
+                }
+
+                string startupFolder =
+                    Environment.GetFolderPath(
+                        Environment.SpecialFolder.Startup);
+
+                string shortcutPath =
+                    Path.Combine(
+                        startupFolder,
+                        AutorunShortcutName);
+
+                if (!File.Exists(shortcutPath))
+                {
+                    DebugLog.Write(
+                        "Autorun",
+                        "Cannot update arguments: startup shortcut does not exist.");
+
+                    return false;
+                }
+
+                string workDir =
+                    Path.GetDirectoryName(helperPath);
+
+                args = (args ?? string.Empty).Trim();
 
                 string ps =
                     "$WshShell = New-Object -ComObject WScript.Shell; " +
-                    "$Shortcut = $WshShell.CreateShortcut('" + shortcutPath.Replace("'", "''") + "'); " +
-                    "$Shortcut.TargetPath = '" + helperPath.Replace("'", "''") + "'; " +
-                    "$Shortcut.WorkingDirectory = '" + workDir.Replace("'", "''") + "'; " +
-                    "$Shortcut.Arguments = '" + args.Replace("'", "''") + "'; " +
+                    "$Shortcut = $WshShell.CreateShortcut('" +
+                    shortcutPath.Replace("'", "''") +
+                    "'); " +
+                    "$Shortcut.TargetPath = '" +
+                    helperPath.Replace("'", "''") +
+                    "'; " +
+                    "$Shortcut.WorkingDirectory = '" +
+                    workDir.Replace("'", "''") +
+                    "'; " +
+                    "$Shortcut.Arguments = '" +
+                    args.Replace("'", "''") +
+                    "'; " +
                     "$Shortcut.Save();";
 
-                System.Diagnostics.Process.Start(
-                    new System.Diagnostics.ProcessStartInfo
-                    {
-                        FileName = "powershell.exe",
-                        Arguments = "-NoProfile -ExecutionPolicy Bypass -Command \"" + ps + "\"",
-                        CreateNoWindow = true,
-                        UseShellExecute = false
-                    });
+                if (!RunAutorunPowerShell(
+                        ps,
+                        "Update autorun arguments"))
+                {
+                    return false;
+                }
 
-                // Перезапускаем хелпер
+                if (!File.Exists(shortcutPath))
+                {
+                    DebugLog.Write(
+                        "Autorun",
+                        "Startup shortcut disappeared after arguments update.");
+
+                    return false;
+                }
+
                 StopHelperProcess();
                 StartHelperProcess(args);
+
+                DebugLog.Write(
+                    "Autorun",
+                    $"Arguments updated: [{args}]");
+
+                return true;
             }
-            catch { }
+            catch (Exception ex)
+            {
+                DebugLog.Error(
+                    "Autorun",
+                    ex,
+                    "Failed to update autorun arguments.");
+
+                return false;
+            }
         }
 
         public static string GetAutorunArguments()

@@ -47,11 +47,6 @@ namespace EZ2Play.App
                 RefreshFpsMonitorState();
                 LoadSubOptionsStates();
 
-                if (_mainWindow.IsHotSwapLaunch())
-                {
-                    SettingsListBox.Items.Remove(SettingsSourceDisplay);
-                }
-
                 if (SettingsListBox.Items.Count > 0)
                     SettingsListBox.SelectedIndex = 0;
 
@@ -237,6 +232,8 @@ namespace EZ2Play.App
             _inputHandler.SetSettingsOpen(true);
             Visibility = Visibility.Visible;
 
+            RefreshDisplayList();
+
             if (SettingsListBox.Items.Count > 0)
                 SettingsListBox.SelectedIndex = 0;
 
@@ -297,7 +294,14 @@ namespace EZ2Play.App
         private void RefreshDisplayList()
         {
             var display = _mainWindow.GetDisplay();
+
             display.RefreshDisplayList();
+
+            SettingsSourceDisplay.Visibility =
+                !_mainWindow.IsHotSwapLaunch() &&
+                display.HasMultipleDisplays
+                    ? Visibility.Visible
+                    : Visibility.Collapsed;
         }
 
         private void RefreshFpsMonitorVisibility()
@@ -515,24 +519,33 @@ namespace EZ2Play.App
         {
             try
             {
-                if (enabled)
+                bool success = enabled
+                    ? SystemProvider.EnableAutorun()
+                    : SystemProvider.DisableAutorun();
+
+                if (!success ||
+                    SystemProvider.IsAutorunEnabled() != enabled)
                 {
-                    SystemProvider.EnableAutorun();
-                }
-                else
-                {
-                    SystemProvider.DisableAutorun();
+                    RefreshAutorunState();
+                    return;
                 }
 
                 UpdateSubOptionsVisibility(enabled);
+
                 _config.AutorunEnabled = enabled;
                 _config.Save();
+
                 AutorunToggle.IsChecked = enabled;
 
                 LoadSubOptionsStates();
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                DebugLog.Error(
+                    "Autorun",
+                    ex,
+                    "Failed to change autorun state.");
+
                 RefreshAutorunState();
             }
         }
@@ -549,7 +562,15 @@ namespace EZ2Play.App
 
             args = args.TrimEnd();
 
-            SystemProvider.SetAutorunArguments(args);
+            bool success =
+                SystemProvider.SetAutorunArguments(args);
+
+            if (!success)
+            {
+                // Возвращаем UI к реально сохранённым аргументам.
+                LoadSubOptionsStates();
+                return;
+            }
 
             if (AutorunToggle.IsChecked.GetValueOrDefault(false))
             {

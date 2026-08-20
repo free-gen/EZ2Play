@@ -27,6 +27,7 @@ namespace EZ2Play.App
         public event Action<string> OnDisplayChanged;
 
         public bool IsExternalDisplay => _isExternalDisplay;
+        public bool HasMultipleDisplays => _hasMultipleDisplays;
 
         [StructLayout(LayoutKind.Sequential)]
         private struct RECT
@@ -118,6 +119,8 @@ namespace EZ2Play.App
 
         public void RefreshDisplayList()
         {
+            CheckMultipleDisplays();
+
             _displayNames.Clear();
             _currentDisplayIndex = 0;
             _displayNames.Add("Default");
@@ -133,7 +136,8 @@ namespace EZ2Play.App
 
         public void SwitchDisplay(int direction)
         {
-            if (_displayNames.Count <= 1) return;
+            if (!_hasMultipleDisplays || _displayNames.Count <= 1)
+                return;
             
             _currentDisplayIndex += direction;
             if (_currentDisplayIndex < 0) _currentDisplayIndex = _displayNames.Count - 1;
@@ -174,6 +178,20 @@ namespace EZ2Play.App
             catch { }
         }
 
+        private void ScheduleLayoutRefresh()
+        {
+            if (!(_window is Window window))
+                return;
+
+            window.Dispatcher.BeginInvoke(
+                new Action(async () =>
+                {
+                    await System.Threading.Tasks.Task.Delay(100);
+                    EnsureMaximizedAndRefreshLayout();
+                }),
+                DispatcherPriority.Background);
+        }
+
         public IntPtr WndProc(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
         {
             const int WM_DISPLAYCHANGE = 0x007E;
@@ -192,28 +210,14 @@ namespace EZ2Play.App
                     handled = true;
                 }
 
-                if (_window is Window window)
-                {
-                    window.Dispatcher.BeginInvoke(new Action(() =>
-                    {
-                        System.Threading.Thread.Sleep(100);
-                        EnsureMaximizedAndRefreshLayout();
-                    }), DispatcherPriority.Background);
-                }
+                ScheduleLayoutRefresh();
             }
             return IntPtr.Zero;
         }
 
         private void OnDisplaySettingsChanged(object sender, EventArgs e)
         {
-            if (_window is Window window)
-            {
-                window.Dispatcher.BeginInvoke(new Action(() =>
-                {
-                    System.Threading.Thread.Sleep(100);
-                    EnsureMaximizedAndRefreshLayout();
-                }), DispatcherPriority.Background);
-            }
+            ScheduleLayoutRefresh();
         }
 
         public void RunDisplaySwitch(string argument)
