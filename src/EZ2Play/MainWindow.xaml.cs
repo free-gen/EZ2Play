@@ -37,6 +37,7 @@ namespace EZ2Play
         private bool _isEmptyState;
         private bool _hotSwapLaunch;
         private bool _isExiting;
+        private bool _isTabSwitching;
 
         private enum TabType { Gamelist, LastPlayed }
         private TabType _currentTab = TabType.Gamelist;
@@ -290,34 +291,66 @@ namespace EZ2Play
 
         private async void SwitchToGamelist()
         {
-            if (_currentTab == TabType.Gamelist) return;
-            _currentTab = TabType.Gamelist;
+            if (_isTabSwitching || _currentTab == TabType.Gamelist)
+                return;
 
-            TabsAnimation.AnimateTabText(_uiRegistry.TabGamelistText, true);
-            TabsAnimation.AnimateTabText(_uiRegistry.TabLastPlayedText, false);
+            _isTabSwitching = true;
 
-            await TabsAnimation.AnimateCarouselSwitch(
-                _uiRegistry.CarouselWrapper,
-                Dispatcher,
-                ActualWidth,
-                () => _launcher.SortDefault(),
-                -1);
+            try
+            {
+                _currentTab = TabType.Gamelist;
+
+                TabsAnimation.AnimateTabText(
+                    _uiRegistry.TabGamelistText,
+                    true);
+
+                TabsAnimation.AnimateTabText(
+                    _uiRegistry.TabLastPlayedText,
+                    false);
+
+                await TabsAnimation.AnimateCarouselSwitch(
+                    _uiRegistry.CarouselWrapper,
+                    Dispatcher,
+                    ActualWidth,
+                    () => _launcher.SortDefault(),
+                    -1);
+            }
+            finally
+            {
+                _isTabSwitching = false;
+            }
         }
 
         private async void SwitchToLastPlayed()
         {
-            if (_currentTab == TabType.LastPlayed) return;
-            _currentTab = TabType.LastPlayed;
+            if (_isTabSwitching || _currentTab == TabType.LastPlayed)
+                return;
 
-            TabsAnimation.AnimateTabText(_uiRegistry.TabLastPlayedText, true);
-            TabsAnimation.AnimateTabText(_uiRegistry.TabGamelistText, false);
+            _isTabSwitching = true;
 
-            await TabsAnimation.AnimateCarouselSwitch(
-                _uiRegistry.CarouselWrapper,
-                Dispatcher,
-                ActualWidth,
-                () => _launcher.SortByLastPlayed(),
-                1);
+            try
+            {
+                _currentTab = TabType.LastPlayed;
+
+                TabsAnimation.AnimateTabText(
+                    _uiRegistry.TabLastPlayedText,
+                    true);
+
+                TabsAnimation.AnimateTabText(
+                    _uiRegistry.TabGamelistText,
+                    false);
+
+                await TabsAnimation.AnimateCarouselSwitch(
+                    _uiRegistry.CarouselWrapper,
+                    Dispatcher,
+                    ActualWidth,
+                    () => _launcher.SortByLastPlayed(),
+                    1);
+            }
+            finally
+            {
+                _isTabSwitching = false;
+            }
         }
 
         // --------------- Обновление UI счетчика ---------------

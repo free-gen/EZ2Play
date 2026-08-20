@@ -11,8 +11,8 @@
     <Product>EZ2Play Game Launcher</Product>
     <AppName>EZ2Play</AppName>
     <AppDescription>EZ2Play Game Launcher</AppDescription>
-    <FileVersion>0.9.21</FileVersion>
-    <InformationalVersion>0.9.21</InformationalVersion>
+    <FileVersion>0.9.24</FileVersion>
+    <InformationalVersion>0.9.24</InformationalVersion>
   </PropertyGroup>
 
   <PropertyGroup>

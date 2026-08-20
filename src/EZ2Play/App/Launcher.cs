@@ -121,7 +121,9 @@ namespace EZ2Play.App
 
         public async void LaunchSelected()
         {
-            if (_launchCooldown || _navigation.IsEmpty) return;
+            if (_launchCooldown || _navigation.IsEmpty)
+                return;
+
             _launchCooldown = true;
 
             try
@@ -129,18 +131,28 @@ namespace EZ2Play.App
                 _sound?.PlayLaunchSound();
                 _mainWindow?.ShowLoadingUI(true);
 
-                var shortcutPath = _navigation.Shortcuts[_navigation.SelectedIndex].FullPath;
-                _metadata.Start(shortcutPath);
+                var shortcutPath =
+                    _navigation.Shortcuts[_navigation.SelectedIndex].FullPath;
 
                 Process.Start(new ProcessStartInfo
                 {
                     FileName = shortcutPath,
                     UseShellExecute = true
                 });
+
+                // Сессия начинается только после того,
+                // как Windows приняла команду запуска.
+                _metadata.Start(shortcutPath);
             }
-            catch
+            catch (Exception ex)
             {
-                Application.Current?.Dispatcher.Invoke(() => _mainWindow?.ShowLoadingUI(false));
+                DebugLog.Error(
+                    "Launcher",
+                    ex,
+                    "Failed to launch selected shortcut.");
+
+                Application.Current?.Dispatcher.Invoke(
+                    () => _mainWindow?.ShowLoadingUI(false));
             }
 
             await Task.Delay(2000);

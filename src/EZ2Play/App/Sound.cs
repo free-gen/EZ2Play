@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Reflection;
+using System.Threading;
 using System.Threading.Tasks;
 using NAudio.Wave;
 
@@ -127,6 +128,9 @@ namespace EZ2Play.App
 
         private bool _isBackgroundPlaying;
 
+        private readonly object _musicStopLock = new object();
+        private CancellationTokenSource _pendingMusicStopCts;
+
         // --------------- Публичные свойства ---------------
 
         public bool IsBackgroundPlaying => _isBackgroundPlaying;
@@ -224,29 +228,86 @@ namespace EZ2Play.App
 
         // --------------- Управление фоновой музыкой ---------------
 
+        private void CancelPendingMusicStop()
+        {
+            lock (_musicStopLock)
+            {
+                if (_pendingMusicStopCts == null)
+                    return;
+
+                _pendingMusicStopCts.Cancel();
+                _pendingMusicStopCts = null;
+            }
+        }
+
         public void PlayBackgroundMusic(int fadeMs = FadeDurationMs)
         {
-            if (DisableMusic || _backgroundPlayer == null || _backgroundReader == null)
+            CancelPendingMusicStop();
+
+            if (DisableMusic ||
+                _backgroundPlayer == null ||
+                _backgroundReader == null)
+            {
                 return;
+            }
 
             _isBackgroundPlaying = true;
             _backgroundReader.Position = 0;
             _backgroundPlayer.Play();
 
-            (_musicVolumeProvider.Source as FadeWaveProvider)?.FadeTo(1f, fadeMs);
+            (_musicVolumeProvider.Source as FadeWaveProvider)?
+                .FadeTo(1f, fadeMs);
         }
 
         public void StopBackgroundMusicSafe(int fadeMs = FadeDurationMs)
         {
-            if (_backgroundPlayer == null) return;
+            if (_backgroundPlayer == null)
+                return;
 
-            (_musicVolumeProvider.Source as FadeWaveProvider)?.FadeTo(0f, fadeMs);
+            CancellationTokenSource stopCts;
+
+            lock (_musicStopLock)
+            {
+                _pendingMusicStopCts?.Cancel();
+
+                stopCts = new CancellationTokenSource();
+                _pendingMusicStopCts = stopCts;
+            }
+
+            (_musicVolumeProvider.Source as FadeWaveProvider)?
+                .FadeTo(0f, fadeMs);
 
             Task.Run(async () =>
             {
-                await Task.Delay(fadeMs);
-                _isBackgroundPlaying = false;
-                _backgroundPlayer.Stop();
+                try
+                {
+                    await Task.Delay(fadeMs, stopCts.Token);
+
+                    lock (_musicStopLock)
+                    {
+                        // Пока мы ждали, мог уже начаться новый Play
+                        // или новый Stop.
+                        if (stopCts.IsCancellationRequested ||
+                            !ReferenceEquals(_pendingMusicStopCts, stopCts))
+                        {
+                            return;
+                        }
+
+                        _pendingMusicStopCts = null;
+
+                        _isBackgroundPlaying = false;
+                        _backgroundPlayer?.Stop();
+                    }
+                }
+                catch (TaskCanceledException)
+                {
+                    // Нормальный сценарий:
+                    // музыка снова понадобилась до завершения fade-out.
+                }
+                finally
+                {
+                    stopCts.Dispose();
+                }
             });
         }
 
@@ -358,6 +419,8 @@ namespace EZ2Play.App
 
         public void Dispose()
         {
+            CancelPendingMusicStop();
+            
             _isBackgroundPlaying = false;
 
             _sfxPlayer?.Stop();
