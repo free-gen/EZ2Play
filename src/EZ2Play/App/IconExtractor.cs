@@ -187,7 +187,7 @@ namespace EZ2Play.App
         }
 
         // Получение пользовательской обложки для ярлыка
-        private static ImageSource GetCustomCover(string shortcutPath)
+        public static ImageSource GetCustomCover(string shortcutPath)
         {
             try
             {
@@ -210,11 +210,19 @@ namespace EZ2Play.App
 
                     var bitmap = new BitmapImage();
 
-                    bitmap.BeginInit();
-                    bitmap.CacheOption = BitmapCacheOption.OnLoad;
-                    bitmap.DecodePixelWidth = 512;
-                    bitmap.UriSource = new Uri(coverPath, UriKind.Absolute);
-                    bitmap.EndInit();
+                    using (var stream = new FileStream(
+                        coverPath,
+                        FileMode.Open,
+                        FileAccess.Read,
+                        FileShare.ReadWrite))
+                    {
+                        bitmap.BeginInit();
+                        bitmap.CacheOption = BitmapCacheOption.OnLoad;
+                        bitmap.DecodePixelWidth = 320;
+                        bitmap.StreamSource = stream;
+                        bitmap.EndInit();
+                    }
+
                     bitmap.Freeze();
 
                     return bitmap;

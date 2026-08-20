@@ -7,7 +7,7 @@ namespace EZ2Play.App
 {
     public class HintPanel : Border
     {
-        public enum HintMode { Main, Settings }
+        public enum HintMode { Main, Settings, ParserGames }
         public enum InputDevice { Keyboard, Gamepad }
 
         private StackPanel _container;
@@ -41,8 +41,8 @@ namespace EZ2Play.App
             {
                 ["BtnA"]     = ("\uE3CE", "KeyEnter", new SolidColorBrush(Color.FromRgb(0x30, 0xC8, 0x30))),
                 ["BtnB"]     = ("\uE3CD", "KeyEscape", new SolidColorBrush(Color.FromRgb(0xEB, 0x1E, 0x00))),
-                ["BtnX"]     = ("\uE3CB", null, new SolidColorBrush(Color.FromRgb(0x00, 0xA0, 0xE0))),
-                ["BtnY"]     = ("\uE3CC", null, new SolidColorBrush(Color.FromRgb(0xFF, 0xB9, 0x00))),
+                ["BtnX"]     = ("\uE3CB", "KeyX", new SolidColorBrush(Color.FromRgb(0x00, 0xA0, 0xE0))),
+                ["BtnY"]     = ("\uE3CC", "KeyY", new SolidColorBrush(Color.FromRgb(0xFF, 0xB9, 0x00))),
                 ["BtnLb"] = ("\uE3ED", null, new SolidColorBrush(Color.FromRgb(0xD3, 0xD3, 0xD3))),
                 ["BtnRb"] = ("\uE3EB", null, new SolidColorBrush(Color.FromRgb(0xD3, 0xD3, 0xD3))),
                 ["BtnStart"] = ("\uE3EC", "KeyEscape", new SolidColorBrush(Color.FromRgb(0xD3, 0xD3, 0xD3))),
@@ -69,10 +69,15 @@ namespace EZ2Play.App
             if (Mode == HintMode.Main)
             {
                 _container.Children.Add(CreateHintBlock("BtnA", Locals.GetString("Launch")));
+                _container.Children.Add(CreateHintBlock("BtnX", Locals.GetString("ParserOverlay")));
                 _container.Children.Add(CreateHintBlock("BtnStart", Locals.GetString("SettingsOverlay")));
-                // _container.Children.Add(CreateHintBlock("BtnLb", Locals.GetString("SwitchTabs")));
             }
-            // Разметка в настройках
+            else if (Mode == HintMode.ParserGames)
+            {
+                _container.Children.Add(CreateHintBlock("BtnA", Locals.GetString("Select")));
+                _container.Children.Add(CreateHintBlock("BtnY", Locals.GetString("Search")));
+                _container.Children.Add(CreateHintBlock("BtnB", Locals.GetString("Back")));
+            }
             else
             {
                 _container.Children.Add(CreateHintBlock("BtnA", Locals.GetString("Select")));

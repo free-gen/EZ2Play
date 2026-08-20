@@ -53,6 +53,13 @@ namespace EZ2Play.App
 
             fadeIn.Completed += (s, e) =>
             {
+                carouselWrapper.BeginAnimation(UIElement.OpacityProperty, null);
+                transform.BeginAnimation(TranslateTransform.XProperty, null);
+
+                carouselWrapper.Opacity = 1;
+                transform.X = 0;
+
+                carouselWrapper.CacheMode = null;
                 carouselWrapper.IsHitTestVisible = true;
             };
 

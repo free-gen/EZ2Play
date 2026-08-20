@@ -147,6 +147,25 @@ namespace EZ2Play.App
             _launchCooldown = false;
         }
 
+        public void RefreshSelectedCover()
+        {
+            if (_navigation == null || _navigation.IsEmpty || _navigation.SelectedIndex < 0)
+                return;
+
+            var shortcut = _navigation.Shortcuts[_navigation.SelectedIndex];
+            var cover = IconExtractor.GetCustomCover(shortcut.FullPath);
+
+            if (cover == null)
+                return;
+
+            shortcut.Icon = cover;
+
+            CarouselItem.ClearBrushCache();
+
+            ApplyVisibleWindow();
+            UpdateSelectedName();
+        }
+
         // --------------- UI синхронизация ---------------
 
         private void ApplyVisibleWindow(bool updateItemsSource = true)

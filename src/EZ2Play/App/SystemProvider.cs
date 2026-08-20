@@ -5,6 +5,9 @@ using System.Runtime.InteropServices;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
 using Microsoft.Win32;
+using System.Globalization;
+using System.Windows.Input;
+using Windows.UI.ViewManagement.Core;
 
 namespace EZ2Play.App
 {
@@ -401,6 +404,82 @@ namespace EZ2Play.App
             catch
             {
                 return false;
+            }
+        }
+
+        // --------------- Системный ввод ---------------
+
+        public static void ForceEnglishInputLanguage()
+        {
+            try
+            {
+                var manager = InputLanguageManager.Current;
+                var current = manager.CurrentInputLanguage;
+
+                if (current != null &&
+                    string.Equals(
+                        current.TwoLetterISOLanguageName,
+                        "en",
+                        StringComparison.OrdinalIgnoreCase))
+                {
+                    return;
+                }
+
+                foreach (CultureInfo language in manager.AvailableInputLanguages)
+                {
+                    if (string.Equals(
+                        language.TwoLetterISOLanguageName,
+                        "en",
+                        StringComparison.OrdinalIgnoreCase))
+                    {
+                        manager.CurrentInputLanguage = language;
+                        return;
+                    }
+                }
+            }
+            catch
+            {
+            }
+        }
+
+        public static void WarmUpSystemKeyboard()
+        {
+            try
+            {
+                CoreInputView.GetForCurrentView()?.TryHide();
+            }
+            catch
+            {
+            }
+        }
+
+        public static void ShowGamepadKeyboard()
+        {
+            try
+            {
+                var inputView = CoreInputView.GetForCurrentView();
+
+                if (inputView == null)
+                    return;
+
+                var gamepadKeyboard = CoreInputViewKind.Gamepad;
+
+                if (inputView.IsKindSupported(gamepadKeyboard))
+                    inputView.TryShow(gamepadKeyboard);
+            }
+            catch
+            {
+            }
+        }
+
+        public static void HideSystemKeyboard()
+        {
+            try
+            {
+                CoreInputView.GetForCurrentView()?.TryHide();
+            }
+            catch
+            {
             }
         }
 

@@ -6,7 +6,10 @@ namespace EZ2Play.App
     public class InputHandler
     {
         private readonly Input _input;
+
         private bool _settingsOpen;
+        private bool _parserOpen;
+
         private DateTime _lastStartBackTime;
         private SettingsOverlay _settingsOverlay;
 
@@ -21,6 +24,13 @@ namespace EZ2Play.App
         
         public event Action OnSettingsConfirm;
         public event Action OnSettingsBack;
+
+        public event Action OnOpenParser;
+        public event Action OnParserSearch;
+        public event Action OnParserConfirm;
+        public event Action OnParserBack;
+        public event Action<int> OnParserNavigateHorizontal;
+        public event Action<int> OnParserNavigateVertical;
         
 
         public InputHandler(Input input)
@@ -34,58 +44,106 @@ namespace EZ2Play.App
             _settingsOpen = open;
         }
 
-        public void RegisterSettingsOverlay(SettingsOverlay overlay) // <- ДОБАВИТЬ
+        public void SetParserOpen(bool open)
+        {
+            _parserOpen = open;
+        }
+
+        public void RegisterSettingsOverlay(SettingsOverlay overlay)
         {
             _settingsOverlay = overlay;
         }
 
         private void SubscribeEvents()
         {
-            _input.OnLeftRight += (dir) => 
-            { 
-                if (_settingsOverlay != null && _settingsOverlay.Visibility == Visibility.Visible)
-                OnSettingsNavigate?.Invoke(dir);
-                else 
+            _input.OnLeftRight += dir =>
+            {
+                if (_parserOpen)
+                    OnParserNavigateHorizontal?.Invoke(dir);
+                else if (_settingsOverlay != null && _settingsOverlay.Visibility == Visibility.Visible)
+                    OnSettingsNavigate?.Invoke(dir);
+                else
                     OnMoveSelection?.Invoke(dir);
             };
 
-            _input.OnUpDown += (dir) => 
-            { 
-                if (_settingsOverlay != null && _settingsOverlay.Visibility == Visibility.Visible)
+            _input.OnUpDown += dir =>
+            {
+                if (_parserOpen)
+                    OnParserNavigateVertical?.Invoke(dir);
+                else if (_settingsOverlay != null && _settingsOverlay.Visibility == Visibility.Visible)
                     OnSettingsNavigateVertical?.Invoke(dir);
             };
-            
+
             _input.OnA += () =>
             {
-                if (_settingsOverlay != null && _settingsOverlay.Visibility == Visibility.Visible)
+                if (_parserOpen)
+                    OnParserConfirm?.Invoke();
+                else if (_settingsOverlay != null && _settingsOverlay.Visibility == Visibility.Visible)
                     OnSettingsConfirm?.Invoke();
-                else OnLaunchSelected?.Invoke();
+                else
+                    OnLaunchSelected?.Invoke();
             };
-            
-            _input.OnB += () => 
-            { 
-                if (_settingsOverlay != null && _settingsOverlay.Visibility == Visibility.Visible)
-                    OnSettingsBack?.Invoke(); 
+
+            _input.OnB += () =>
+            {
+                if (_parserOpen)
+                    OnParserBack?.Invoke();
+                else if (_settingsOverlay != null && _settingsOverlay.Visibility == Visibility.Visible)
+                    OnSettingsBack?.Invoke();
             };
-            _input.OnLB += () => { if (!_settingsOpen) OnSwitchToGamelist?.Invoke(); };
-            _input.OnRB += () => { if (!_settingsOpen) OnSwitchToLastPlayed?.Invoke(); };
-            
+
+            _input.OnX += () =>
+            {
+                if (!_settingsOpen && !_parserOpen)
+                    OnOpenParser?.Invoke();
+            };
+
+            _input.OnY += () =>
+            {
+                if (_parserOpen)
+                    OnParserSearch?.Invoke();
+            };
+
+            _input.OnLB += () =>
+            {
+                if (!_settingsOpen && !_parserOpen)
+                    OnSwitchToGamelist?.Invoke();
+            };
+
+            _input.OnRB += () =>
+            {
+                if (!_settingsOpen && !_parserOpen)
+                    OnSwitchToLastPlayed?.Invoke();
+            };
+
             _input.OnStart += () =>
             {
-                if ((DateTime.Now - _lastStartBackTime).TotalMilliseconds < 300) return;
+                if ((DateTime.Now - _lastStartBackTime).TotalMilliseconds < 300)
+                    return;
+
                 _lastStartBackTime = DateTime.Now;
-                
-                if (_settingsOpen) OnSettingsBack?.Invoke();
-                else OnOpenSettings?.Invoke();
+
+                if (_parserOpen)
+                    OnParserBack?.Invoke();
+                else if (_settingsOpen)
+                    OnSettingsBack?.Invoke();
+                else
+                    OnOpenSettings?.Invoke();
             };
-            
+
             _input.OnBack += () =>
             {
-                if ((DateTime.Now - _lastStartBackTime).TotalMilliseconds < 300) return;
+                if ((DateTime.Now - _lastStartBackTime).TotalMilliseconds < 300)
+                    return;
+
                 _lastStartBackTime = DateTime.Now;
-                
-                if (_settingsOpen) OnSettingsBack?.Invoke();
-                else OnOpenSettings?.Invoke();
+
+                if (_parserOpen)
+                    OnParserBack?.Invoke();
+                else if (_settingsOpen)
+                    OnSettingsBack?.Invoke();
+                else
+                    OnOpenSettings?.Invoke();
             };
         }
     }

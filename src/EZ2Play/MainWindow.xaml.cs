@@ -34,6 +34,7 @@ namespace EZ2Play
         private DispatcherTimer _activityTimer;
         private bool _isMainScreenActive = false;
         private bool _wasActive;
+        private bool _isEmptyState;
         private bool _hotSwapLaunch;
         private bool _isExiting;
 
@@ -41,6 +42,7 @@ namespace EZ2Play
         private TabType _currentTab = TabType.Gamelist;
 
         private SettingsOverlay _settingsOverlay;
+        private ParserOverlay _parserOverlay;
 
         // --------------- Публичные свойства ---------------
 
@@ -50,6 +52,7 @@ namespace EZ2Play
 
         public Display GetDisplay() => _display;
         public AppConfig GetConfig() => _config;
+        public Launcher GetLauncher() => _launcher;
 
         public void ShowLoadingUI(bool show)
         {
@@ -110,8 +113,17 @@ namespace EZ2Play
 
             _settingsOverlay = new SettingsOverlay(_inputHandler, this);
             _inputHandler.RegisterSettingsOverlay(_settingsOverlay);
-            OverlayHost.Content = _settingsOverlay;
+
+            _parserOverlay = new ParserOverlay(_inputHandler, this);
+
+            var overlayLayer = new Grid();
+            overlayLayer.Children.Add(_settingsOverlay);
+            overlayLayer.Children.Add(_parserOverlay);
+
+            OverlayHost.Content = overlayLayer;
+
             _settingsOverlay.Visibility = Visibility.Collapsed;
+            _parserOverlay.Visibility = Visibility.Collapsed;
         }
 
         private void InitializeUIRegistry()
@@ -247,7 +259,9 @@ namespace EZ2Play
 
             _inputHandler.OnOpenSettings += async () =>
             {
-                if (_isExiting || !_isMainScreenActive) return; 
+                if (_isExiting || !_isMainScreenActive || _isEmptyState)
+                    return;
+
                 _settingsOverlay.Open();
             };
 
@@ -256,6 +270,20 @@ namespace EZ2Play
 
             _inputHandler.OnSettingsNavigate += (dir) => _settingsOverlay.Navigate(dir, true);
             _inputHandler.OnSettingsNavigateVertical += (dir) => _settingsOverlay.Navigate(dir, false);
+
+            _inputHandler.OnOpenParser += () =>
+            {
+                if (_isExiting || !_isMainScreenActive)
+                    return;
+
+                _parserOverlay.Open();
+            };
+
+            _inputHandler.OnParserBack += () => _parserOverlay.Back();
+            _inputHandler.OnParserConfirm += () => _parserOverlay.Confirm();
+            _inputHandler.OnParserSearch += () => _parserOverlay.Search();
+            _inputHandler.OnParserNavigateHorizontal += dir => _parserOverlay.NavigateHorizontal(dir);
+            _inputHandler.OnParserNavigateVertical += dir => _parserOverlay.NavigateVertical(dir);
         }
 
         // --------------- Вкладки ---------------
@@ -369,11 +397,11 @@ namespace EZ2Play
         private void StartPostSplash()
         {
             _launcher.LoadShortcuts();
-            
-            bool isEmpty = _launcher.Shortcuts.Length == 0;
-            _uiRegistry.SetEmptyState(isEmpty);
 
-            if (!isEmpty)
+            _isEmptyState = _launcher.Shortcuts.Length == 0;
+            _uiRegistry.SetEmptyState(_isEmptyState);
+
+            if (!_isEmptyState)
             {
                 ShowMainScreenWithAnimation();
                 ShowStartupNotifications();
@@ -465,6 +493,13 @@ namespace EZ2Play
             {
                 StartPostSplash();
                 Activate();
+
+                Dispatcher.BeginInvoke(
+                    new Action(() =>
+                    {
+                        SystemProvider.WarmUpSystemKeyboard();
+                    }),
+                    DispatcherPriority.ApplicationIdle);
             });
         }
 
@@ -537,6 +572,13 @@ namespace EZ2Play
 
         private void MainWindow_PreviewKeyDown(object sender, KeyEventArgs e)
         {
+            if (_isEmptyState && e.Key == Key.Escape)
+            {
+                e.Handled = true;
+                ExitApplication();
+                return;
+            }
+
             if (e.Key == Key.Tab)
             {
                 e.Handled = true;

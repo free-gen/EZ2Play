@@ -37,6 +37,10 @@ namespace EZ2Play.App
         private long _lastVerticalInput;
         private readonly Stopwatch _stopwatch = Stopwatch.StartNew();
         private bool _isReconnecting;
+        private bool _lastAState;
+        private bool _lastBState;
+        private bool _enterKeyPressed;
+        private bool _escapeKeyPressed;
         private bool _lastStartState;
         private bool _lastBackState;
 
@@ -46,6 +50,7 @@ namespace EZ2Play.App
         public event Action OnA;
         public event Action OnB;
         public event Action OnX;
+        public event Action OnY;
         public event Action OnLB;
         public event Action OnRB;
         public event Action OnStart;
@@ -202,6 +207,7 @@ namespace EZ2Play.App
                         OnLeftRight?.Invoke(-1);
                     }
                     break;
+
                 case Key.Right:
                     if (!_rightKeyPressed)
                     {
@@ -211,21 +217,43 @@ namespace EZ2Play.App
                         OnLeftRight?.Invoke(1);
                     }
                     break;
+
                 case Key.Up:
                     OnUpDown?.Invoke(-1);
                     break;
+
                 case Key.Down:
                     OnUpDown?.Invoke(1);
                     break;
+
                 case Key.Enter:
-                    OnA?.Invoke();
+                    if (!_enterKeyPressed)
+                    {
+                        _enterKeyPressed = true;
+                        OnA?.Invoke();
+                    }
                     break;
+
                 case Key.Escape:
-                    OnBack?.Invoke();
+                    if (!_escapeKeyPressed)
+                    {
+                        _escapeKeyPressed = true;
+                        OnBack?.Invoke();
+                    }
                     break;
+
+                case Key.X:
+                    OnX?.Invoke();
+                    break;
+
+                case Key.Y:
+                    OnY?.Invoke();
+                    break;
+
                 case Key.Q:
                     OnLB?.Invoke();
                     break;
+
                 case Key.E:
                     OnRB?.Invoke();
                     break;
@@ -235,15 +263,25 @@ namespace EZ2Play.App
         public void HandleKeyUp(Key key)
         {
             if (!SystemProvider.IsForeground()) return;
+
             switch (key)
             {
                 case Key.Left:
                     _leftKeyPressed = false;
                     _keyHoldStart = -1;
                     break;
+
                 case Key.Right:
                     _rightKeyPressed = false;
                     _keyHoldStart = -1;
+                    break;
+
+                case Key.Enter:
+                    _enterKeyPressed = false;
+                    break;
+
+                case Key.Escape:
+                    _escapeKeyPressed = false;
                     break;
             }
         }
@@ -319,22 +357,45 @@ namespace EZ2Play.App
 
         private void HandleGamepadButtons(Gamepad gamepad, long now)
         {
-            if (now - _lastGamepadButtonInput < GamepadButtonCooldown) return;
+            bool aPressed = (gamepad.Buttons & GamepadButtonFlags.A) != 0;
+            bool bPressed = (gamepad.Buttons & GamepadButtonFlags.B) != 0;
 
-            if ((gamepad.Buttons & GamepadButtonFlags.A) != 0)
+            // A срабатывает только один раз за физическое нажатие.
+            if (aPressed && !_lastAState)
             {
+                _lastAState = true;
                 _lastGamepadButtonInput = now;
                 OnA?.Invoke();
+                return;
             }
-            else if ((gamepad.Buttons & GamepadButtonFlags.B) != 0)
+
+            if (!aPressed)
+                _lastAState = false;
+
+            // B срабатывает только один раз за физическое нажатие.
+            if (bPressed && !_lastBState)
             {
+                _lastBState = true;
                 _lastGamepadButtonInput = now;
                 OnB?.Invoke();
+                return;
             }
-            else if ((gamepad.Buttons & GamepadButtonFlags.X) != 0)
+
+            if (!bPressed)
+                _lastBState = false;
+
+            if (now - _lastGamepadButtonInput < GamepadButtonCooldown)
+                return;
+
+            if ((gamepad.Buttons & GamepadButtonFlags.X) != 0)
             {
                 _lastGamepadButtonInput = now;
                 OnX?.Invoke();
+            }
+            else if ((gamepad.Buttons & GamepadButtonFlags.Y) != 0)
+            {
+                _lastGamepadButtonInput = now;
+                OnY?.Invoke();
             }
             else if ((gamepad.Buttons & GamepadButtonFlags.LeftShoulder) != 0)
             {
@@ -351,18 +412,13 @@ namespace EZ2Play.App
                 _lastGamepadButtonInput = now;
                 OnStart?.Invoke();
             }
-            // else if ((gamepad.Buttons & GamepadButtonFlags.Back) != 0)
-            // {
-            //     _lastGamepadButtonInput = now;
-            //     OnBack?.Invoke();
-            // }
 
-            // Отслеживание отпускания кнопок
             bool currentStart = (gamepad.Buttons & GamepadButtonFlags.Start) != 0;
             bool currentBack = (gamepad.Buttons & GamepadButtonFlags.Back) != 0;
 
             if (_lastStartState && !currentStart)
                 OnStartReleased?.Invoke();
+
             if (_lastBackState && !currentBack)
                 OnBackReleased?.Invoke();
 

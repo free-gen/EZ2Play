@@ -273,9 +273,9 @@ namespace EZ2Play.App
 
             double typeRoll = _random.NextDouble();
 
-            if (typeRoll < 0.68)
+            if (typeRoll < 0.55)
                 p.Type = ParticleDust;
-            else if (typeRoll < 0.96)
+            else if (typeRoll < 0.92)
                 p.Type = ParticleGlow;
             else
                 p.Type = ParticleSpark;
@@ -576,13 +576,13 @@ namespace EZ2Play.App
 
             double sparkScale = 1.0 + flash * 0.25;
 
-            var spark1 = GetAccentBrush(opacity * (0.018 + flash * 0.012));
-            var spark2 = GetAccentBrush(opacity * (0.032 + flash * 0.018));
-            var spark3 = GetAccentBrush(opacity * (0.055 + flash * 0.026));
-            var spark4 = GetAccentBrush(opacity * (0.085 + flash * 0.035));
-            var spark5 = GetAccentBrush(opacity * (0.130 + flash * 0.045));
-            var spark6 = GetAccentBrush(opacity * (0.190 + flash * 0.060));
-            var spark7 = GetAccentBrush(opacity * (0.280 + flash * 0.080));
+            var spark1 = GetAccentBrush(opacity * (0.008 + flash * 0.012));
+            var spark2 = GetAccentBrush(opacity * (0.016 + flash * 0.018));
+            var spark3 = GetAccentBrush(opacity * (0.032 + flash * 0.026));
+            var spark4 = GetAccentBrush(opacity * (0.064 + flash * 0.035));
+            var spark5 = GetAccentBrush(opacity * (0.128 + flash * 0.045));
+            var spark6 = GetAccentBrush(opacity * (0.256 + flash * 0.060));
+            var spark7 = GetBrightBrush(opacity * (0.512 + flash * 0.080));
             var sparkCore = GetBrightBrush(Clamp01(opacity * (1.0 + flash * 0.35)));
 
             if (spark1 != null)
@@ -607,7 +607,7 @@ namespace EZ2Play.App
                 dc.DrawEllipse(spark7, null, center, radiusX * 1.00 * sparkScale, radiusY * 1.00 * sparkScale);
 
             if (sparkCore != null)
-                dc.DrawEllipse(sparkCore, null, center, radiusX * 0.48, radiusY * 0.48);
+                dc.DrawEllipse(sparkCore, null, center, radiusX * 0.75, radiusY * 0.75);
         }
 
         // ----------------- RESIZE -----------------
