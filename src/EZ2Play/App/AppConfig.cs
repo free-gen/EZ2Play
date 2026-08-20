@@ -7,22 +7,32 @@ namespace EZ2Play.App
     public class AppConfig
     {
         private readonly string _filePath;
-        
+
         // Настройки уведомлений
         public bool GamebarNotificationShown { get; set; }
         public bool LastGamebarState { get; set; }
         public bool HotSwapNotificationShown { get; set; }
         public bool LastHotSwapState { get; set; }
-        
+
         // Настройка автозапуска
         public bool AutorunEnabled { get; set; }
 
         public AppConfig()
         {
-            string appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-            string folder = Path.Combine(appData, AppInfo.Name);
-            _filePath = Path.Combine(folder, "config.json");
-            
+            string appData =
+                Environment.GetFolderPath(
+                    Environment.SpecialFolder.ApplicationData);
+
+            string folder =
+                Path.Combine(
+                    appData,
+                    AppInfo.Name);
+
+            _filePath =
+                Path.Combine(
+                    folder,
+                    "config.json");
+
             Load();
         }
 
@@ -31,7 +41,7 @@ namespace EZ2Play.App
         {
             if (!GamebarNotificationShown)
                 return true;
-            
+
             return LastGamebarState != currentState;
         }
 
@@ -47,7 +57,7 @@ namespace EZ2Play.App
         {
             if (!HotSwapNotificationShown)
                 return true;
-            
+
             return LastHotSwapState != currentState;
         }
 
@@ -58,65 +68,157 @@ namespace EZ2Play.App
             Save();
         }
 
+        private void ResetToDefaults()
+        {
+            GamebarNotificationShown = false;
+            LastGamebarState = false;
+            HotSwapNotificationShown = false;
+            LastHotSwapState = false;
+            AutorunEnabled = false;
+        }
+
         private void Load()
         {
             if (!File.Exists(_filePath))
             {
-                GamebarNotificationShown = false;
-                LastGamebarState = false;
-                HotSwapNotificationShown = false;
-                LastHotSwapState = false;
-                AutorunEnabled = false;
+                ResetToDefaults();
                 return;
             }
 
             try
             {
-                string json = File.ReadAllText(_filePath);
-                var data = JsonConvert.DeserializeObject<AppConfigData>(json);
-                
-                if (data?.Notifications != null)
+                string json =
+                    File.ReadAllText(_filePath);
+
+                var data =
+                    JsonConvert.DeserializeObject<AppConfigData>(json);
+
+                if (data == null)
                 {
-                    GamebarNotificationShown = data.Notifications.GamebarShown;
-                    LastGamebarState = data.Notifications.LastGamebarState;
-                    HotSwapNotificationShown = data.Notifications.HotSwapShown;
-                    LastHotSwapState = data.Notifications.LastHotSwapState;
+                    ResetToDefaults();
+
+                    DebugLog.Write(
+                        "Config",
+                        "config.json contained no usable data.");
+
+                    return;
                 }
-                
-                AutorunEnabled = data?.AutorunEnabled ?? false;
+
+                if (data.Notifications != null)
+                {
+                    GamebarNotificationShown =
+                        data.Notifications.GamebarShown;
+
+                    LastGamebarState =
+                        data.Notifications.LastGamebarState;
+
+                    HotSwapNotificationShown =
+                        data.Notifications.HotSwapShown;
+
+                    LastHotSwapState =
+                        data.Notifications.LastHotSwapState;
+                }
+                else
+                {
+                    GamebarNotificationShown = false;
+                    LastGamebarState = false;
+                    HotSwapNotificationShown = false;
+                    LastHotSwapState = false;
+                }
+
+                AutorunEnabled =
+                    data.AutorunEnabled;
             }
-            catch
+            catch (Exception ex)
             {
-                GamebarNotificationShown = false;
-                LastGamebarState = false;
-                AutorunEnabled = false;
+                ResetToDefaults();
+
+                DebugLog.Error(
+                    "Config",
+                    ex,
+                    "Failed to load config.json. Defaults were used.");
             }
         }
 
         public void Save()
         {
+            string tempPath =
+                _filePath + ".tmp";
+
             try
             {
-                string folder = Path.GetDirectoryName(_filePath);
+                string folder =
+                    Path.GetDirectoryName(_filePath);
+
                 if (!Directory.Exists(folder))
                     Directory.CreateDirectory(folder);
 
-                var data = new AppConfigData
-                {
-                    Notifications = new NotificationSettings
+                var data =
+                    new AppConfigData
                     {
-                        GamebarShown = GamebarNotificationShown,
-                        LastGamebarState = LastGamebarState,
-                        HotSwapShown = HotSwapNotificationShown,
-                        LastHotSwapState = LastHotSwapState
-                    },
-                    AutorunEnabled = AutorunEnabled
-                };
+                        Notifications =
+                            new NotificationSettings
+                            {
+                                GamebarShown =
+                                    GamebarNotificationShown,
 
-                string json = JsonConvert.SerializeObject(data, Formatting.Indented);
-                File.WriteAllText(_filePath, json);
+                                LastGamebarState =
+                                    LastGamebarState,
+
+                                HotSwapShown =
+                                    HotSwapNotificationShown,
+
+                                LastHotSwapState =
+                                    LastHotSwapState
+                            },
+
+                        AutorunEnabled =
+                            AutorunEnabled
+                    };
+
+                string json =
+                    JsonConvert.SerializeObject(
+                        data,
+                        Formatting.Indented);
+
+                // Сначала полностью пишем временный файл.
+                File.WriteAllText(
+                    tempPath,
+                    json);
+
+                // Затем атомарно подменяем основной.
+                if (File.Exists(_filePath))
+                {
+                    File.Replace(
+                        tempPath,
+                        _filePath,
+                        null);
+                }
+                else
+                {
+                    File.Move(
+                        tempPath,
+                        _filePath);
+                }
             }
-            catch { }
+            catch (Exception ex)
+            {
+                DebugLog.Error(
+                    "Config",
+                    ex,
+                    "Failed to save config.json.");
+            }
+            finally
+            {
+                try
+                {
+                    if (File.Exists(tempPath))
+                        File.Delete(tempPath);
+                }
+                catch
+                {
+                }
+            }
         }
 
         private class AppConfigData

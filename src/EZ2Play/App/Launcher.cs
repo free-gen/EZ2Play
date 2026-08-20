@@ -62,11 +62,8 @@ namespace EZ2Play.App
             if (_navigation.IsEmpty) return;
 
             var sorted = _navigation.Shortcuts
-                .OrderByDescending(s =>
-                {
-                    int seconds = _metadata.GetSeconds(s.FullPath);
-                    return seconds > 0 ? _metadata.GetLastPlayed(s.FullPath) : DateTime.MinValue;
-                })
+                .OrderByDescending(
+                    s => _metadata.GetLastPlayed(s.FullPath))
                 .ToArray();
 
             _navigation = new CarouselNavigation(sorted);
