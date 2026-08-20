@@ -7,6 +7,8 @@ using System.Media;
 
 class Program
 {
+    private static Mutex _singleInstanceMutex;
+
     [StructLayout(LayoutKind.Sequential)]
     private struct XInputStateEx
     {
@@ -62,7 +64,21 @@ class Program
     private const uint KEYEVENTF_KEYUP = 0x0002;
 
     static void Main(string[] args)
-    {        
+    {
+        bool createdNew;
+
+        _singleInstanceMutex = new Mutex(
+            true,
+            @"Local\EZ2Play.Helper.SingleInstance",
+            out createdNew);
+
+        if (!createdNew)
+        {
+            _singleInstanceMutex.Dispose();
+            _singleInstanceMutex = null;
+            return;
+        }
+
         string launcherArgs = "";
         bool debugMode = false;
         

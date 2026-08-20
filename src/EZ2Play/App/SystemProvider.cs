@@ -362,22 +362,52 @@ namespace EZ2Play.App
             try
             {
                 if (IsFpsMonitorRunning())
+                {
+                    DebugLog.Write(
+                        "FPS Monitor",
+                        "FPS Monitor is already running.");
+
                     return true;
+                }
 
                 if (!File.Exists(FpsMonitorPath))
-                    return false;
+                {
+                    DebugLog.Write(
+                        "FPS Monitor",
+                        "FPS Monitor executable not found.");
 
-                System.Diagnostics.Process.Start(
+                    return false;
+                }
+
+                var process = System.Diagnostics.Process.Start(
                     new System.Diagnostics.ProcessStartInfo
                     {
                         FileName = FpsMonitorPath,
                         UseShellExecute = true
                     });
 
+                if (process == null)
+                {
+                    DebugLog.Write(
+                        "FPS Monitor",
+                        "FPS Monitor process could not be started.");
+
+                    return false;
+                }
+
+                DebugLog.Write(
+                    "FPS Monitor",
+                    "FPS Monitor started.");
+
                 return true;
             }
-            catch
+            catch (Exception ex)
             {
+                DebugLog.Error(
+                    "FPS Monitor",
+                    ex,
+                    "Failed to start FPS Monitor.");
+
                 return false;
             }
         }
@@ -389,20 +419,62 @@ namespace EZ2Play.App
                 if (!IsFpsMonitorRunning())
                     return true;
 
-                System.Diagnostics.Process.Start(
-                    new System.Diagnostics.ProcessStartInfo
+                using (var process =
+                    System.Diagnostics.Process.Start(
+                        new System.Diagnostics.ProcessStartInfo
+                        {
+                            FileName = "taskkill.exe",
+                            Arguments = "/F /IM FPSMonitor.exe",
+                            UseShellExecute = true,
+                            Verb = "runas",
+                            WindowStyle =
+                                System.Diagnostics.ProcessWindowStyle.Hidden
+                        }))
+                {
+                    if (process == null)
                     {
-                        FileName = "taskkill.exe",
-                        Arguments = "/F /IM FPSMonitor.exe",
-                        UseShellExecute = true,
-                        Verb = "runas",
-                        WindowStyle = System.Diagnostics.ProcessWindowStyle.Hidden
-                    });
+                        DebugLog.Write(
+                            "FPS Monitor",
+                            "taskkill process could not be started.");
 
-                return true;
+                        return false;
+                    }
+
+                    process.WaitForExit();
+
+                    // taskkill может завершиться чуть раньше,
+                    // чем FPSMonitor окончательно исчезнет из списка процессов.
+                    const int maxAttempts = 20;
+                    const int delayMs = 100;
+
+                    for (int attempt = 0; attempt < maxAttempts; attempt++)
+                    {
+                        if (!IsFpsMonitorRunning())
+                        {
+                            DebugLog.Write(
+                                "FPS Monitor",
+                                $"FPS Monitor stopped after {attempt * delayMs} ms.");
+
+                            return true;
+                        }
+
+                        System.Threading.Thread.Sleep(delayMs);
+                    }
+
+                    DebugLog.Write(
+                        "FPS Monitor",
+                        $"FPS Monitor is still running after taskkill. ExitCode={process.ExitCode}");
+
+                    return false;
+                }
             }
-            catch
+            catch (Exception ex)
             {
+                DebugLog.Error(
+                    "FPS Monitor",
+                    ex,
+                    "Failed to stop FPS Monitor.");
+
                 return false;
             }
         }

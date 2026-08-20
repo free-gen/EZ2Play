@@ -217,8 +217,8 @@
                                     VerticalAlignment="Center"/>
 
                                     <Viewbox Grid.Column="2" 
-                                    Width="{DynamicResource {x:Static app:UiScaleKeys.ToggleSwitchWidth}}" 
-                                    Height="{DynamicResource {x:Static app:UiScaleKeys.ToggleSwitchWidth}}" 
+                                    Width="{DynamicResource {x:Static app:UiScaleKeys.CheckBox}}" 
+                                    Height="{DynamicResource {x:Static app:UiScaleKeys.CheckBox}}" 
                                     VerticalAlignment="Center">
                                         <CheckBox x:Name="NoSplashToggle"/>
                                     </Viewbox>
@@ -242,8 +242,8 @@
                                     VerticalAlignment="Center"/>
 
                                     <Viewbox Grid.Column="2" 
-                                    Width="{DynamicResource {x:Static app:UiScaleKeys.ToggleSwitchWidth}}" 
-                                    Height="{DynamicResource {x:Static app:UiScaleKeys.ToggleSwitchWidth}}" 
+                                    Width="{DynamicResource {x:Static app:UiScaleKeys.CheckBox}}" 
+                                    Height="{DynamicResource {x:Static app:UiScaleKeys.CheckBox}}" 
                                     VerticalAlignment="Center">
                                         <CheckBox x:Name="NoMusicToggle"/>
                                     </Viewbox>
@@ -267,8 +267,8 @@
                                     VerticalAlignment="Center"/>
 
                                     <Viewbox Grid.Column="2" 
-                                    Width="{DynamicResource {x:Static app:UiScaleKeys.ToggleSwitchWidth}}" 
-                                    Height="{DynamicResource {x:Static app:UiScaleKeys.ToggleSwitchWidth}}" 
+                                    Width="{DynamicResource {x:Static app:UiScaleKeys.CheckBox}}" 
+                                    Height="{DynamicResource {x:Static app:UiScaleKeys.CheckBox}}" 
                                     VerticalAlignment="Center">
                                         <CheckBox x:Name="HotSwapToggle"/>
                                     </Viewbox>
@@ -352,6 +352,64 @@
                         VerticalAlignment="Center"
                         Margin="{DynamicResource {x:Static app:UiScaleKeys.SettingsOverlayLabelTreeMargin}}"/>
                     </Grid>
+                </ListBoxItem>
+
+            </ListBox>
+
+            <!-- Exit Confirmation -->
+            <ListBox x:Name="ExitConfirmationListBox"
+                    Grid.Row="1"
+                    Visibility="Collapsed"
+                    FontSize="{DynamicResource {x:Static app:UiScaleKeys.SettingsOverlayLabelFontSize}}"
+                    FontWeight="400"
+                    HorizontalContentAlignment="Stretch"
+                    VerticalAlignment="Center"
+                    Background="Transparent"
+                    BorderThickness="0">
+
+                <ListBox.ItemContainerStyle>
+                    <Style TargetType="ListBoxItem">
+                        <Setter Property="Padding"
+                                Value="{DynamicResource {x:Static app:UiScaleKeys.SettingsOverlayItemPadding}}"/>
+                        <Setter Property="Background" Value="Transparent"/>
+                        <Setter Property="BorderBrush" Value="Transparent"/>
+
+                        <Setter Property="Template">
+                            <Setter.Value>
+                                <ControlTemplate TargetType="ListBoxItem">
+                                    <Grid>
+                                        <Border x:Name="SelectionBorder"
+                                                Margin="{DynamicResource {x:Static app:UiScaleKeys.SettingsOverlaySelectionBorderMargin}}"
+                                                BorderThickness="{DynamicResource {x:Static app:UiScaleKeys.SettingsOverlaySelectionBorderThickness}}"
+                                                BorderBrush="Transparent"
+                                                CornerRadius="{DynamicResource {x:Static app:UiScaleKeys.SettingsOverlaySelectionCornerRadius}}">
+                                            <Border x:Name="SelectionBackground"
+                                                    Margin="{DynamicResource {x:Static app:UiScaleKeys.SettingsOverlaySelectionBackgroundMargin}}"
+                                                    Background="Transparent"
+                                                    CornerRadius="{DynamicResource {x:Static app:UiScaleKeys.SettingsOverlaySelectionBgCornerRadius}}"/>
+                                        </Border>
+
+                                        <Border Padding="{TemplateBinding Padding}"
+                                                Background="Transparent">
+                                            <ContentPresenter VerticalAlignment="Center"/>
+                                        </Border>
+                                    </Grid>
+                                </ControlTemplate>
+                            </Setter.Value>
+                        </Setter>
+                    </Style>
+                </ListBox.ItemContainerStyle>
+
+                <ListBoxItem x:Name="ConfirmYesItem">
+                    <TextBlock x:Name="ConfirmYes"
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center"/>
+                </ListBoxItem>
+
+                <ListBoxItem x:Name="ConfirmNoItem">
+                    <TextBlock x:Name="ConfirmNo"
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center"/>
                 </ListBoxItem>
 
             </ListBox>

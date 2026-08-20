@@ -58,9 +58,13 @@ namespace EZ2Play.App
                 if (SubOptionsListBox.Items.Count > 0)
                     SubOptionsListBox.SelectedIndex = 0;
 
-                // Подписываемся на изменение выбора в обоих ListBox
+                if (ExitConfirmationListBox.Items.Count > 0)
+                    ExitConfirmationListBox.SelectedIndex = 0;
+
+                // Подписываемся на изменение выбора
                 SettingsListBox.SelectionChanged += OnSelectionChanged;
                 SubOptionsListBox.SelectionChanged += OnSelectionChanged;
+                ExitConfirmationListBox.SelectionChanged += OnSelectionChanged;
 
                 // Подписываемся на тумблер (ОДИН РАЗ)
                 AutorunToggle.Checked += (sender, args) => ScheduleUpdateTreeHeaderDivider();
@@ -123,29 +127,87 @@ namespace EZ2Play.App
         /// </summary>
         private void UpdateSelectionVisuals()
         {
-            // Активен SubOptionsListBox, только если выбран TreeItemsContainer
-            bool isSubOptionsActive = (SettingsListBox.SelectedItem == TreeItemsContainer);
+            if (_exitConfirmationMode)
+            {
+                // Основные настройки сейчас неактивны.
+                for (int i = 0; i < SettingsListBox.Items.Count; i++)
+                {
+                    var container =
+                        SettingsListBox.ItemContainerGenerator.ContainerFromIndex(i)
+                        as ListBoxItem;
 
-            // === Обрабатываем SettingsListBox ===
+                    if (container != null)
+                        ApplySelectionVisual(container, false);
+                }
+
+                for (int i = 0; i < SubOptionsListBox.Items.Count; i++)
+                {
+                    var container =
+                        SubOptionsListBox.ItemContainerGenerator.ContainerFromIndex(i)
+                        as ListBoxItem;
+
+                    if (container != null)
+                        ApplySelectionVisual(container, false);
+                }
+
+                // Активен confirmation list.
+                for (int i = 0; i < ExitConfirmationListBox.Items.Count; i++)
+                {
+                    var container =
+                        ExitConfirmationListBox.ItemContainerGenerator.ContainerFromIndex(i)
+                        as ListBoxItem;
+
+                    if (container == null)
+                        continue;
+
+                    ApplySelectionVisual(container, container.IsSelected);
+                }
+
+                return;
+            }
+
+            bool isSubOptionsActive =
+                SettingsListBox.SelectedItem == TreeItemsContainer;
+
             for (int i = 0; i < SettingsListBox.Items.Count; i++)
             {
-                var container = SettingsListBox.ItemContainerGenerator.ContainerFromIndex(i) as ListBoxItem;
-                if (container == null) continue;
+                var container =
+                    SettingsListBox.ItemContainerGenerator.ContainerFromIndex(i)
+                    as ListBoxItem;
 
-                // Рамка видна, только если SubOptions НЕ активен И этот контейнер выбран
-                bool shouldBeSelected = !isSubOptionsActive && container.IsSelected;
+                if (container == null)
+                    continue;
+
+                bool shouldBeSelected =
+                    !isSubOptionsActive && container.IsSelected;
+
                 ApplySelectionVisual(container, shouldBeSelected);
             }
 
-            // === Обрабатываем SubOptionsListBox ===
             for (int i = 0; i < SubOptionsListBox.Items.Count; i++)
             {
-                var container = SubOptionsListBox.ItemContainerGenerator.ContainerFromIndex(i) as ListBoxItem;
-                if (container == null) continue;
+                var container =
+                    SubOptionsListBox.ItemContainerGenerator.ContainerFromIndex(i)
+                    as ListBoxItem;
 
-                // Рамка видна, только если SubOptions АКТИВЕН И этот контейнер выбран
-                bool shouldBeSelected = isSubOptionsActive && container.IsSelected;
+                if (container == null)
+                    continue;
+
+                bool shouldBeSelected =
+                    isSubOptionsActive && container.IsSelected;
+
                 ApplySelectionVisual(container, shouldBeSelected);
+            }
+
+            // Confirmation list сейчас неактивен.
+            for (int i = 0; i < ExitConfirmationListBox.Items.Count; i++)
+            {
+                var container =
+                    ExitConfirmationListBox.ItemContainerGenerator.ContainerFromIndex(i)
+                    as ListBoxItem;
+
+                if (container != null)
+                    ApplySelectionVisual(container, false);
             }
         }
 
@@ -167,6 +229,9 @@ namespace EZ2Play.App
         public void Open()
         {
             if (Visibility == Visibility.Visible) return;
+
+            HideExitDisplayConfirmation(false);
+
             _mainWindow.SetHintsMode(HintPanel.HintMode.Settings);
 
             _inputHandler.SetSettingsOpen(true);
@@ -208,12 +273,25 @@ namespace EZ2Play.App
 
             fadeOut.Completed += (s, e) =>
             {
+                HideExitDisplayConfirmation(false);
+
                 Visibility = Visibility.Collapsed;
                 _inputHandler.SetSettingsOpen(false);
                 _mainWindow.SetHintsMode(HintPanel.HintMode.Main);
             };
 
             BeginAnimation(OpacityProperty, fadeOut);
+        }
+
+        public void Back()
+        {
+            if (_exitConfirmationMode)
+            {
+                HideExitDisplayConfirmation();
+                return;
+            }
+
+            Close();
         }
 
         private void RefreshDisplayList()
@@ -288,6 +366,24 @@ namespace EZ2Play.App
 
         public void Navigate(int direction, bool isHorizontal = true)
         {
+            if (_exitConfirmationMode)
+            {
+                if (isHorizontal)
+                    return;
+
+                int newIndex = ExitConfirmationListBox.SelectedIndex + direction;
+
+                if (newIndex >= 0 &&
+                    newIndex < ExitConfirmationListBox.Items.Count)
+                {
+                    ExitConfirmationListBox.SelectedIndex = newIndex;
+                    ExitConfirmationListBox.ScrollIntoView(
+                        ExitConfirmationListBox.SelectedItem);
+                }
+
+                return;
+            }
+
             if (isHorizontal)
             {
                 if (SettingsListBox.SelectedItem == TreeItemsContainer && TreeItemsContainer.Visibility == Visibility.Visible)
@@ -341,25 +437,26 @@ namespace EZ2Play.App
 
         public void Confirm()
         {
-            if (SettingsListBox.SelectedItem is ListBoxItem selectedItem && selectedItem.Visibility != Visibility.Visible)
+            if (_exitConfirmationMode)
             {
+                if (ExitConfirmationListBox.SelectedItem == ConfirmYesItem)
+                {
+                    _mainWindow.GetDisplay().RunDisplaySwitch("/internal");
+                    _mainWindow.ExitApplication();
+                    Close();
+                }
+                else if (ExitConfirmationListBox.SelectedItem == ConfirmNoItem)
+                {
+                    _mainWindow.ExitApplication();
+                    Close();
+                }
+
                 return;
             }
 
-            if (_exitConfirmationMode)
+            if (SettingsListBox.SelectedItem is ListBoxItem selectedItem &&
+                selectedItem.Visibility != Visibility.Visible)
             {
-                if (SettingsListBox.SelectedItem is ListBoxItem item)
-                {
-                    if ((string)item.Tag == "ConfirmYes")
-                    {
-                        _mainWindow.GetDisplay().RunDisplaySwitch("/internal");
-                    }
-
-                    _mainWindow.ExitApplication();
-                    Close();
-
-                    _exitConfirmationMode = false;
-                }
                 return;
             }
 
@@ -497,41 +594,34 @@ namespace EZ2Play.App
         private void ShowExitDisplayConfirmation()
         {
             _exitConfirmationMode = true;
+
+            SettingsListBox.Visibility = Visibility.Collapsed;
+
             ExitConfirmText.Visibility = Visibility.Visible;
-            SettingsListBox.Items.Clear();
+            ExitConfirmationListBox.Visibility = Visibility.Visible;
+            ExitConfirmationListBox.SelectedIndex = 0;
 
-            var yesItem = new ListBoxItem
-            {
-                Content = CreateConfirmItem(Locals.GetString("ConfirmYes")),
-                Tag = "ConfirmYes"
-            };
-
-            var noItem = new ListBoxItem
-            {
-                Content = CreateConfirmItem(Locals.GetString("ConfirmNo")),
-                Tag = "ConfirmNo"
-            };
-
-            SettingsListBox.Items.Add(yesItem);
-            SettingsListBox.Items.Add(noItem);
-
-            SettingsListBox.SelectedIndex = 0;
+            ExitConfirmationListBox.Focus();
 
             ScheduleUpdateSelectionVisuals();
         }
 
-        private Grid CreateConfirmItem(string text)
+        private void HideExitDisplayConfirmation(bool focusSettings = true)
         {
-            var grid = new Grid();
-            var tb = new TextBlock
-            {
-                Text = text,
-                HorizontalAlignment = HorizontalAlignment.Center,
-                VerticalAlignment = VerticalAlignment.Center
-            };
+            _exitConfirmationMode = false;
 
-            grid.Children.Add(tb);
-            return grid;
+            ExitConfirmText.Visibility = Visibility.Collapsed;
+            ExitConfirmationListBox.Visibility = Visibility.Collapsed;
+
+            SettingsListBox.Visibility = Visibility.Visible;
+
+            if (focusSettings &&
+                Visibility == Visibility.Visible)
+            {
+                SettingsListBox.Focus();
+            }
+
+            ScheduleUpdateSelectionVisuals();
         }
 
         /// <summary>

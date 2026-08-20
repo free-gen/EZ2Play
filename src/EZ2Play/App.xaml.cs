@@ -7,8 +7,7 @@ using EZ2Play.App;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Shapes;
-using System.Diagnostics;
-using System.Linq;
+using System.Threading;
 
 namespace EZ2Play.Main
 {
@@ -16,15 +15,34 @@ namespace EZ2Play.Main
     {
         private MainWindow _mainWindow;
 
+        private Mutex _singleInstanceMutex;
+        private bool _ownsSingleInstanceMutex;
+
         protected override void OnStartup(StartupEventArgs e)
         {
             // --------------- ЗАПРЕТ ВТОРОГО ЭКЗЕМПЛЯРА ---------------
-            
-            string processName = Process.GetCurrentProcess().ProcessName;
-            int count = Process.GetProcessesByName(processName).Length;
-            
-            if (count > 1)
-                Environment.Exit(0);
+
+            bool createdNew;
+
+            _singleInstanceMutex = new Mutex(
+                true,
+                @"Local\EZ2Play.SingleInstance",
+                out createdNew);
+
+            _ownsSingleInstanceMutex = createdNew;
+
+            if (!createdNew)
+            {
+                DebugLog.Write("App", "Second instance blocked.");
+
+                _singleInstanceMutex.Dispose();
+                _singleInstanceMutex = null;
+
+                Shutdown(0);
+                return;
+            }
+
+            DebugLog.Write("App", "Application startup.");
             
             // --------------- ОСНОВНОЙ ЗАПУСК ---------------
             
@@ -62,10 +80,33 @@ namespace EZ2Play.Main
 
                 base.OnStartup(e);
             }
-            catch
+            catch (Exception ex)
             {
+                DebugLog.Error("App", ex, "Application startup failed.");
                 throw;
             }
+        }
+
+        protected override void OnExit(ExitEventArgs e)
+        {
+            DebugLog.Write("App", "Application shutdown.");
+
+            if (_ownsSingleInstanceMutex && _singleInstanceMutex != null)
+            {
+                try
+                {
+                    _singleInstanceMutex.ReleaseMutex();
+                }
+                catch (ApplicationException)
+                {
+                }
+
+                _singleInstanceMutex.Dispose();
+                _singleInstanceMutex = null;
+                _ownsSingleInstanceMutex = false;
+            }
+
+            base.OnExit(e);
         }
 
         private void OnAnyElementGotFocus(object sender, RoutedEventArgs e)

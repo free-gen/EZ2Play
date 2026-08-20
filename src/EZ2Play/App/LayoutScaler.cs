@@ -77,6 +77,8 @@ namespace EZ2Play.App
             target[UiScaleKeys.SettingsOverlayAppInfoMargin] = new Thickness(0, s(24), 0, s(24));
             target[UiScaleKeys.ToggleSwitchWidth] = s(64);
             target[UiScaleKeys.ToggleSwitchHeight] = s(32);
+
+            target[UiScaleKeys.CheckBox] = s(64);
             
             // SplashScreen
             target[UiScaleKeys.SplashLogoMaxHeight] = s(256);
@@ -212,6 +214,8 @@ namespace EZ2Play.App
 
         public const string ToggleSwitchWidth = "ToggleSwitchWidth";
         public const string ToggleSwitchHeight = "ToggleSwitchHeight";
+
+        public const string CheckBox = "CheckBox";
 
         public const string SplashLogoMaxHeight = "SplashLogoMaxHeight";
 

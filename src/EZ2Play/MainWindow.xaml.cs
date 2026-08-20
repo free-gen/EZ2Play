@@ -265,7 +265,7 @@ namespace EZ2Play
                 _settingsOverlay.Open();
             };
 
-            _inputHandler.OnSettingsBack += () => _settingsOverlay.Close();
+            _inputHandler.OnSettingsBack += () => _settingsOverlay.Back();
             _inputHandler.OnSettingsConfirm += () => _settingsOverlay.Confirm();
 
             _inputHandler.OnSettingsNavigate += (dir) => _settingsOverlay.Navigate(dir, true);
