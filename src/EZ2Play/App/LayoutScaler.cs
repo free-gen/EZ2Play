@@ -40,11 +40,12 @@ namespace EZ2Play.App
             double fs(double baseVal) => GetScaledFontSize(baseVal, windowHeight);
 
             target[UiScaleKeys.BaseCornerRadius] = new CornerRadius(s(8));
-            target[UiScaleKeys.ViewportWidth] = s(2560);
+            target[UiScaleKeys.ParserProgressWidth] = s(2560);
 
             target[UiScaleKeys.OverlayWidth] = s(1280);
             target[UiScaleKeys.OverlayBorderThickness] = new Thickness(s(2));
             target[UiScaleKeys.OverlayCornerRadius] = new CornerRadius(s(16));
+            target[UiScaleKeys.OverlayPadding] = new Thickness(s(16));
 
             target[UiScaleKeys.OverlayPrimaryFontSize] = fs(32);
             target[UiScaleKeys.SettingsOverlayLabelMargin] = new Thickness(0, 0, 0, s(8));
@@ -122,7 +123,6 @@ namespace EZ2Play.App
 
             target[UiScaleKeys.ParserProgressHeight] = s(8);
 
-            target[UiScaleKeys.ParserInputWidth] = s(1244);
             target[UiScaleKeys.ParserInputHeight] = s(72);
             target[UiScaleKeys.ParserInputFontSize] = fs(40);
             target[UiScaleKeys.ParserManualSearchHintMargin] = new Thickness(0, s(8), 0, s(24));
@@ -161,10 +161,11 @@ namespace EZ2Play.App
     public static class UiScaleKeys
     {
         public const string BaseCornerRadius = "BaseCornerRadius";
-        public const string ViewportWidth = "ViewportWidth";
+        public const string ParserProgressWidth = "ParserProgressWidth";
 
         public const string OverlayWidth = "OverlayWidth";
         public const string OverlayBorderThickness = "OverlayBorderThickness";
+        public const string OverlayPadding = "OverlayPadding";
         public const string OverlayPrimaryFontSize = "OverlayPrimaryFontSize";
         public const string OverlaySecondaryFontSize = "OverlaySecondaryFontSize";
         public const string SettingsOverlayTreeItemsContainerMargin = "SettingsOverlayTreeItemsContainerMargin";
@@ -227,7 +228,6 @@ namespace EZ2Play.App
         public const string ParserCoverBorderRadius = "ParserCoverBorderRadius";
         public const string ParserCoverMargin = "ParserCoverMargin";
         public const string ParserProgressHeight = "ParserProgressHeight";
-        public const string ParserInputWidth = "ParserInputWidth";
         public const string ParserInputHeight = "ParserInputHeight";
         public const string ParserInputFontSize = "ParserInputFontSize";
         public const string ParserManualSearchHintMargin = "ParserManualSearchHintMargin";

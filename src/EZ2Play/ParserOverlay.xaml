@@ -90,7 +90,7 @@
     <Grid>
 
         <Border Style="{StaticResource OverlaySurfaceStyle}"
-                Padding="{DynamicResource {x:Static app:UiScaleKeys.SettingsOverlayTreeItemsItemPadding}}">
+                Padding="{DynamicResource {x:Static app:UiScaleKeys.OverlayPadding}}">
 
             <Grid>
 
@@ -109,7 +109,7 @@
 
                                 <TextBlock Text="{Binding DisplayText}"
                                         Style="{StaticResource OverlayPrimaryTextStyle}"
-                                        Padding="{DynamicResource {x:Static app:UiScaleKeys.SettingsOverlayTreeItemsItemPadding}}"/>
+                                        Padding="{DynamicResource {x:Static app:UiScaleKeys.OverlayPadding}}"/>
 
                             </DataTemplate>
                         </ListBox.ItemTemplate>
@@ -167,7 +167,7 @@
                     <!-- Manual Search Panel -->
                     <StackPanel x:Name="ManualSearchPanel"
                                 Visibility="Collapsed"
-                                HorizontalAlignment="Center"
+                                HorizontalAlignment="Stretch"
                                 VerticalAlignment="Center">
 
                         <TextBlock x:Name="ManualSearchHintText"
@@ -177,9 +177,8 @@
                                     TextAlignment="Center"/>
 
                         <TextBox x:Name="SearchInputBox"
-                                Width="{DynamicResource {x:Static app:UiScaleKeys.ParserInputWidth}}"
                                 Height="{DynamicResource {x:Static app:UiScaleKeys.ParserInputHeight}}"
-                                HorizontalAlignment="Center"
+                                HorizontalAlignment="Stretch"
                                 Foreground="{DynamicResource TextFillColorSecondaryBrush}"
                                 FontSize="{DynamicResource {x:Static app:UiScaleKeys.ParserInputFontSize}}"
                                 MaxLength="120"
@@ -195,7 +194,7 @@
                     Visibility="Collapsed"
                     Minimum="0"
                     Maximum="1"
-                    Width="{DynamicResource {x:Static app:UiScaleKeys.ViewportWidth}}"
+                    Width="{DynamicResource {x:Static app:UiScaleKeys.ParserProgressWidth}}"
                     Height="{DynamicResource {x:Static app:UiScaleKeys.ParserProgressHeight}}"
                     HorizontalAlignment="Center"
                     VerticalAlignment="Bottom"
