@@ -21,6 +21,7 @@ namespace EZ2Play.App
         private readonly Sound _sound;
 
         private CarouselNavigation _navigation;
+        private ShortcutInfo[] _defaultShortcuts = Array.Empty<ShortcutInfo>();
         private GameMetadata _metadata;
         private bool _launchCooldown;
 
@@ -51,29 +52,36 @@ namespace EZ2Play.App
 
         public void LoadShortcuts()
         {
-            var shortcuts = IconExtractor.LoadShortcuts();
-            _navigation = new CarouselNavigation(shortcuts);
+            _defaultShortcuts = IconExtractor.LoadShortcuts();
+            _navigation = new CarouselNavigation(_defaultShortcuts);
             ApplyVisibleWindow();
             UpdateSelectedName();
         }
 
         public void SortByLastPlayed()
         {
-            if (_navigation.IsEmpty) return;
+            if (_defaultShortcuts.Length == 0)
+                return;
 
-            var sorted = _navigation.Shortcuts
-                .OrderByDescending(
-                    s => _metadata.GetLastPlayed(s.FullPath))
+            var sorted = _defaultShortcuts
+                .OrderByDescending(s => _metadata.GetLastPlayed(s.FullPath))
                 .ToArray();
 
             _navigation = new CarouselNavigation(sorted);
             _navigation.ResetView();
             ApplyVisibleWindow();
+            UpdateSelectedName();
         }
 
         public void SortDefault()
         {
-            LoadShortcuts();
+            if (_defaultShortcuts.Length == 0)
+                return;
+
+            _navigation = new CarouselNavigation(_defaultShortcuts);
+            _navigation.ResetView();
+            ApplyVisibleWindow();
+            UpdateSelectedName();
         }
 
         // --------------- Навигация ---------------
