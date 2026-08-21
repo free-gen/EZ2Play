@@ -19,7 +19,8 @@
                     <ControlTemplate TargetType="ListBoxItem">
 
                         <Border x:Name="SelectionBorder"
-                                Style="{StaticResource OverlaySelectionBorderStyle}">
+                                Style="{StaticResource OverlaySelectionBorderStyle}"
+                                Margin="{DynamicResource {x:Static app:UiScaleKeys.ParserSelectionMargin}}">
 
                             <Border x:Name="SelectionBackground"
                                     Style="{StaticResource OverlaySelectionBackgroundStyle}">
