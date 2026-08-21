@@ -19,15 +19,15 @@
                     <ControlTemplate TargetType="ListBoxItem">
 
                         <Border x:Name="SelectionBorder"
-                                Margin="{DynamicResource {x:Static app:UiScaleKeys.SettingsOverlaySelectionBorderMargin}}"
-                                BorderThickness="{DynamicResource {x:Static app:UiScaleKeys.SettingsOverlaySelectionBorderThickness}}"
+                                Margin="{DynamicResource {x:Static app:UiScaleKeys.OverlaySelectionBorderMargin}}"
+                                BorderThickness="{DynamicResource {x:Static app:UiScaleKeys.OverlaySelectionBorderThickness}}"
                                 BorderBrush="Transparent"
-                                CornerRadius="{DynamicResource {x:Static app:UiScaleKeys.SettingsOverlaySelectionCornerRadius}}">
+                                CornerRadius="{DynamicResource {x:Static app:UiScaleKeys.OverlaySelectionCornerRadius}}">
 
                             <Border x:Name="SelectionBackground"
-                                    Margin="{DynamicResource {x:Static app:UiScaleKeys.SettingsOverlaySelectionBackgroundMargin}}"
+                                    Margin="{DynamicResource {x:Static app:UiScaleKeys.OverlaySelectionBackgroundMargin}}"
                                     Background="Transparent"
-                                    CornerRadius="{DynamicResource {x:Static app:UiScaleKeys.SettingsOverlaySelectionBgCornerRadius}}">
+                                    CornerRadius="{DynamicResource {x:Static app:UiScaleKeys.OverlaySelectionBackgroundCornerRadius}}">
 
                                 <ContentPresenter/>
 
@@ -36,8 +36,8 @@
 
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsSelected" Value="True">
-                                <Setter TargetName="SelectionBorder" Property="BorderBrush" Value="#C0FFFFFF"/>
-                                <Setter TargetName="SelectionBackground" Property="Background" Value="#10FFFFFF"/>
+                                <Setter TargetName="SelectionBorder" Property="BorderBrush" Value="{DynamicResource OverlaySelectionBorderBrush}"/>
+                                <Setter TargetName="SelectionBackground" Property="Background" Value="{DynamicResource OverlaySelectionBackgroundBrush}"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
 
@@ -66,7 +66,7 @@
                                     HorizontalAlignment="Center"
                                     VerticalAlignment="Center"
                                     Padding="{DynamicResource {x:Static app:UiScaleKeys.ParserCoverMargin}}"
-                                    BorderThickness="{DynamicResource {x:Static app:UiScaleKeys.SettingsOverlaySelectionBorderThickness}}"
+                                    BorderThickness="{DynamicResource {x:Static app:UiScaleKeys.OverlaySelectionBorderThickness}}"
                                     BorderBrush="Transparent"
                                     CornerRadius="{DynamicResource {x:Static app:UiScaleKeys.ParserCoverBorderRadius}}">
 
@@ -81,7 +81,7 @@
                             <Trigger Property="IsSelected" Value="True">
                                 <Setter TargetName="SelectionBorder"
                                         Property="BorderBrush"
-                                        Value="#C0FFFFFF"/>
+                                        Value="{DynamicResource OverlaySelectionBorderBrush}"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
 
@@ -96,9 +96,9 @@
 
         <Border Background="{DynamicResource SolidBackgroundFillColorQuarternaryBrush}"
                 BorderBrush="{DynamicResource DividerStrokeColorDefaultBrush}"
-                BorderThickness="{DynamicResource {x:Static app:UiScaleKeys.SettingsOverlayThickness}}"
-                CornerRadius="{DynamicResource {x:Static app:UiScaleKeys.SettingsOverlayCornerRadius}}"
-                Width="{DynamicResource {x:Static app:UiScaleKeys.SettingsOverlayWidth}}"
+                BorderThickness="{DynamicResource {x:Static app:UiScaleKeys.OverlayBorderThickness}}"
+                CornerRadius="{DynamicResource {x:Static app:UiScaleKeys.OverlayCornerRadius}}"
+                Width="{DynamicResource {x:Static app:UiScaleKeys.OverlayWidth}}"
                 HorizontalAlignment="Center"
                 VerticalAlignment="Center"
                 Padding="{DynamicResource {x:Static app:UiScaleKeys.SettingsOverlayTreeItemsItemPadding}}">
@@ -119,7 +119,7 @@
                             <DataTemplate>
 
                                 <TextBlock Text="{Binding DisplayText}"
-                                        FontSize="{DynamicResource {x:Static app:UiScaleKeys.SettingsOverlayLabelFontSize}}"
+                                        FontSize="{DynamicResource {x:Static app:UiScaleKeys.OverlayPrimaryFontSize}}"
                                         Padding="{DynamicResource {x:Static app:UiScaleKeys.SettingsOverlayTreeItemsItemPadding}}"/>
 
                             </DataTemplate>
@@ -174,7 +174,7 @@
                                 HorizontalAlignment="Center"
                                 VerticalAlignment="Center"
                                 Foreground="{DynamicResource TextFillColorTertiaryBrush}"
-                                FontSize="{DynamicResource {x:Static app:UiScaleKeys.SettingsOverlayLabelTreeFontSize}}"/>
+                                FontSize="{DynamicResource {x:Static app:UiScaleKeys.OverlaySecondaryFontSize}}"/>
 
                     <!-- Manual Search Panel -->
                     <StackPanel x:Name="ManualSearchPanel"
@@ -187,7 +187,7 @@
                                 HorizontalAlignment="Center"
                                 TextAlignment="Center"
                                 Foreground="{DynamicResource TextFillColorTertiaryBrush}"
-                                FontSize="{DynamicResource {x:Static app:UiScaleKeys.SettingsOverlayLabelTreeFontSize}}"/>
+                                FontSize="{DynamicResource {x:Static app:UiScaleKeys.OverlaySecondaryFontSize}}"/>
 
                         <TextBox x:Name="SearchInputBox"
                                 Width="{DynamicResource {x:Static app:UiScaleKeys.ParserInputWidth}}"

@@ -20,6 +20,10 @@
 
             <FontFamily x:Key="XboxFont">/Assets/#Xbox Fluent</FontFamily>
 
+            <!-- Overlay selection -->
+            <SolidColorBrush x:Key="OverlaySelectionBorderBrush" Color="#C0FFFFFF"/>
+            <SolidColorBrush x:Key="OverlaySelectionBackgroundBrush" Color="#10FFFFFF"/>
+
             <!-- Icons -->
             <Style TargetType="Path">
                 <Setter Property="Fill" Value="#E8E8E8"/>

@@ -17,9 +17,9 @@
 
     <Border Background="{DynamicResource SolidBackgroundFillColorQuarternaryBrush}"
             BorderBrush="{DynamicResource DividerStrokeColorDefaultBrush}"
-            BorderThickness="{DynamicResource {x:Static app:UiScaleKeys.SettingsOverlayThickness}}"
-            CornerRadius="{DynamicResource {x:Static app:UiScaleKeys.SettingsOverlayCornerRadius}}"
-            Width="{DynamicResource {x:Static app:UiScaleKeys.SettingsOverlayWidth}}" 
+            BorderThickness="{DynamicResource {x:Static app:UiScaleKeys.OverlayBorderThickness}}"
+            CornerRadius="{DynamicResource {x:Static app:UiScaleKeys.OverlayCornerRadius}}"
+            Width="{DynamicResource {x:Static app:UiScaleKeys.OverlayWidth}}" 
             Height="Auto"
             HorizontalAlignment="Center"
             VerticalAlignment="Center">
@@ -34,13 +34,13 @@
             <TextBlock x:Name="ExitConfirmText"
                         Grid.Row="0"
                         Visibility="Collapsed"
-                        FontSize="{DynamicResource {x:Static app:UiScaleKeys.SettingsOverlayLabelFontSize}}"
+                        FontSize="{DynamicResource {x:Static app:UiScaleKeys.OverlayPrimaryFontSize}}"
                         HorizontalAlignment="Center"
                         Margin="{DynamicResource {x:Static app:UiScaleKeys.SettingsOverlayItemPadding}}"/>
 
             <ListBox x:Name="SettingsListBox"
                      Grid.Row="1"
-                     FontSize="{DynamicResource {x:Static app:UiScaleKeys.SettingsOverlayLabelFontSize}}"
+                     FontSize="{DynamicResource {x:Static app:UiScaleKeys.OverlayPrimaryFontSize}}"
                      FontWeight="400"
                      HorizontalContentAlignment="Stretch"
                      VerticalAlignment="Center"
@@ -58,14 +58,14 @@
                                     <Grid>
                                         <!-- SelectionBorder -->
                                         <Border x:Name="SelectionBorder"
-                                                Margin="{DynamicResource {x:Static app:UiScaleKeys.SettingsOverlaySelectionBorderMargin}}"
-                                                BorderThickness="{DynamicResource {x:Static app:UiScaleKeys.SettingsOverlaySelectionBorderThickness}}"
+                                                Margin="{DynamicResource {x:Static app:UiScaleKeys.OverlaySelectionBorderMargin}}"
+                                                BorderThickness="{DynamicResource {x:Static app:UiScaleKeys.OverlaySelectionBorderThickness}}"
                                                 BorderBrush="Transparent"
-                                                CornerRadius="{DynamicResource {x:Static app:UiScaleKeys.SettingsOverlaySelectionCornerRadius}}">
+                                                CornerRadius="{DynamicResource {x:Static app:UiScaleKeys.OverlaySelectionCornerRadius}}">
                                             <Border x:Name="SelectionBackground"
-                                                    Margin="{DynamicResource {x:Static app:UiScaleKeys.SettingsOverlaySelectionBackgroundMargin}}"
+                                                    Margin="{DynamicResource {x:Static app:UiScaleKeys.OverlaySelectionBackgroundMargin}}"
                                                     Background="Transparent"
-                                                    CornerRadius="{DynamicResource {x:Static app:UiScaleKeys.SettingsOverlaySelectionBgCornerRadius}}"/>
+                                                    CornerRadius="{DynamicResource {x:Static app:UiScaleKeys.OverlaySelectionBackgroundCornerRadius}}"/>
                                         </Border>
 
                                         <!-- ItemBorder -->
@@ -173,22 +173,22 @@
                                             <ControlTemplate TargetType="ListBoxItem">
                                                 <Grid>
                                                     <Border x:Name="SelectionBorder"
-                                                            Margin="{DynamicResource {x:Static app:UiScaleKeys.SettingsOverlaySelectionBorderMargin}}"
-                                                            BorderThickness="{DynamicResource {x:Static app:UiScaleKeys.SettingsOverlaySelectionBorderThickness}}"
+                                                            Margin="{DynamicResource {x:Static app:UiScaleKeys.OverlaySelectionBorderMargin}}"
+                                                            BorderThickness="{DynamicResource {x:Static app:UiScaleKeys.OverlaySelectionBorderThickness}}"
                                                             BorderBrush="Transparent"
-                                                            CornerRadius="{DynamicResource {x:Static app:UiScaleKeys.SettingsOverlaySelectionCornerRadius}}">
+                                                            CornerRadius="{DynamicResource {x:Static app:UiScaleKeys.OverlaySelectionCornerRadius}}">
                                                         <Border x:Name="SelectionBackground"
-                                                                Margin="{DynamicResource {x:Static app:UiScaleKeys.SettingsOverlaySelectionBackgroundMargin}}"
+                                                                Margin="{DynamicResource {x:Static app:UiScaleKeys.OverlaySelectionBackgroundMargin}}"
                                                                 Background="Transparent"
-                                                                CornerRadius="{DynamicResource {x:Static app:UiScaleKeys.SettingsOverlaySelectionBgCornerRadius}}"/>
+                                                                CornerRadius="{DynamicResource {x:Static app:UiScaleKeys.OverlaySelectionBackgroundCornerRadius}}"/>
                                                     </Border>
 
                                                     <!-- TreeItemStyle -->
                                                     <Border x:Name="ItemBorder"
                                                             Padding="{DynamicResource {x:Static app:UiScaleKeys.SettingsOverlayTreeItemsItemMargin}}"
                                                             Margin="{DynamicResource {x:Static app:UiScaleKeys.SettingsOverlayTreeItemsItemPadding}}"
-                                                            CornerRadius="{DynamicResource {x:Static app:UiScaleKeys.SettingsOverlaySelectionBgCornerRadius}}"
-                                                            BorderThickness="{DynamicResource {x:Static app:UiScaleKeys.SettingsOverlayThickness}}"
+                                                            CornerRadius="{DynamicResource {x:Static app:UiScaleKeys.OverlaySelectionBackgroundCornerRadius}}"
+                                                            BorderThickness="{DynamicResource {x:Static app:UiScaleKeys.OverlayBorderThickness}}"
                                                             BorderBrush="{DynamicResource ControlElevationBorderBrush}"
                                                             Background="{DynamicResource CardBackgroundFillColorDefaultBrush}">
                                                         <ContentPresenter/>
@@ -213,7 +213,7 @@
                                     <TextBlock Grid.Column="1"
                                     x:Name="SettingsTreeNoSplash"
                                     Margin="{DynamicResource {x:Static app:UiScaleKeys.SettingsOverlayLabelTreeMargin}}"
-                                    FontSize="{DynamicResource {x:Static app:UiScaleKeys.SettingsOverlayLabelTreeFontSize}}"
+                                    FontSize="{DynamicResource {x:Static app:UiScaleKeys.OverlaySecondaryFontSize}}"
                                     VerticalAlignment="Center"/>
 
                                     <Viewbox Grid.Column="2" 
@@ -238,7 +238,7 @@
                                     <TextBlock Grid.Column="1"
                                     x:Name="SettingsTreeNoMusic"
                                     Margin="{DynamicResource {x:Static app:UiScaleKeys.SettingsOverlayLabelTreeMargin}}"
-                                    FontSize="{DynamicResource {x:Static app:UiScaleKeys.SettingsOverlayLabelTreeFontSize}}"
+                                    FontSize="{DynamicResource {x:Static app:UiScaleKeys.OverlaySecondaryFontSize}}"
                                     VerticalAlignment="Center"/>
 
                                     <Viewbox Grid.Column="2" 
@@ -263,7 +263,7 @@
                                     <TextBlock Grid.Column="1"
                                     x:Name="SettingsTreeHotSwap"
                                     Margin="{DynamicResource {x:Static app:UiScaleKeys.SettingsOverlayLabelTreeMargin}}"
-                                    FontSize="{DynamicResource {x:Static app:UiScaleKeys.SettingsOverlayLabelTreeFontSize}}"
+                                    FontSize="{DynamicResource {x:Static app:UiScaleKeys.OverlaySecondaryFontSize}}"
                                     VerticalAlignment="Center"/>
 
                                     <Viewbox Grid.Column="2" 
@@ -333,7 +333,7 @@
                         VerticalAlignment="Center"
                         HorizontalAlignment="Right"
                         Foreground="{DynamicResource ControlStrongStrokeColorDefaultBrush}" 
-                        FontSize="{DynamicResource {x:Static app:UiScaleKeys.SettingsOverlayLabelTreeFontSize}}"
+                        FontSize="{DynamicResource {x:Static app:UiScaleKeys.OverlaySecondaryFontSize}}"
                         FontFamily="Xbox Fluent">&#xE3B2;</TextBlock>
                     </Grid>
                 </ListBoxItem>
@@ -360,7 +360,7 @@
             <ListBox x:Name="ExitConfirmationListBox"
                     Grid.Row="1"
                     Visibility="Collapsed"
-                    FontSize="{DynamicResource {x:Static app:UiScaleKeys.SettingsOverlayLabelFontSize}}"
+                    FontSize="{DynamicResource {x:Static app:UiScaleKeys.OverlayPrimaryFontSize}}"
                     FontWeight="400"
                     HorizontalContentAlignment="Stretch"
                     VerticalAlignment="Center"
@@ -379,14 +379,14 @@
                                 <ControlTemplate TargetType="ListBoxItem">
                                     <Grid>
                                         <Border x:Name="SelectionBorder"
-                                                Margin="{DynamicResource {x:Static app:UiScaleKeys.SettingsOverlaySelectionBorderMargin}}"
-                                                BorderThickness="{DynamicResource {x:Static app:UiScaleKeys.SettingsOverlaySelectionBorderThickness}}"
+                                                Margin="{DynamicResource {x:Static app:UiScaleKeys.OverlaySelectionBorderMargin}}"
+                                                BorderThickness="{DynamicResource {x:Static app:UiScaleKeys.OverlaySelectionBorderThickness}}"
                                                 BorderBrush="Transparent"
-                                                CornerRadius="{DynamicResource {x:Static app:UiScaleKeys.SettingsOverlaySelectionCornerRadius}}">
+                                                CornerRadius="{DynamicResource {x:Static app:UiScaleKeys.OverlaySelectionCornerRadius}}">
                                             <Border x:Name="SelectionBackground"
-                                                    Margin="{DynamicResource {x:Static app:UiScaleKeys.SettingsOverlaySelectionBackgroundMargin}}"
+                                                    Margin="{DynamicResource {x:Static app:UiScaleKeys.OverlaySelectionBackgroundMargin}}"
                                                     Background="Transparent"
-                                                    CornerRadius="{DynamicResource {x:Static app:UiScaleKeys.SettingsOverlaySelectionBgCornerRadius}}"/>
+                                                    CornerRadius="{DynamicResource {x:Static app:UiScaleKeys.OverlaySelectionBackgroundCornerRadius}}"/>
                                         </Border>
 
                                         <Border Padding="{TemplateBinding Padding}"

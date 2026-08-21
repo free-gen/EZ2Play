@@ -42,27 +42,27 @@ namespace EZ2Play.App
             target[UiScaleKeys.BaseCornerRadius] = new CornerRadius(s(8));
             target[UiScaleKeys.ViewportWidth] = s(2560);
 
-            target[UiScaleKeys.SettingsOverlayWidth] = s(1280);
-            target[UiScaleKeys.SettingsOverlayThickness] = new Thickness(s(2));
-            target[UiScaleKeys.SettingsOverlayCornerRadius] = new CornerRadius(s(16));
+            target[UiScaleKeys.OverlayWidth] = s(1280);
+            target[UiScaleKeys.OverlayBorderThickness] = new Thickness(s(2));
+            target[UiScaleKeys.OverlayCornerRadius] = new CornerRadius(s(16));
 
-            target[UiScaleKeys.SettingsOverlayLabelFontSize] = fs(32);
+            target[UiScaleKeys.OverlayPrimaryFontSize] = fs(32);
             target[UiScaleKeys.SettingsOverlayLabelMargin] = new Thickness(0, 0, 0, s(8));
             target[UiScaleKeys.SettingsOverlayDescFontSize] = fs(22);
             target[UiScaleKeys.SettingsOverlayItemPadding] = new Thickness(0, s(32), 0, s(32));
 
-            target[UiScaleKeys.SettingsOverlayLabelTreeFontSize] = fs(24);
+            target[UiScaleKeys.OverlaySecondaryFontSize] = fs(24);
             target[UiScaleKeys.SettingsOverlayLabelTreeMargin] = new Thickness(0, 0, 0, s(4));
             target[UiScaleKeys.SettingsOverlayTreeItemsContainerMargin] = new Thickness(0, s(-8), 0, 0);
             target[UiScaleKeys.SettingsOverlayTreeItemsContainerPadding] = new Thickness(s(16), 0, s(16), s(8));
             target[UiScaleKeys.SettingsOverlayTreeItemsItemMargin] = new Thickness(0, s(8), 0, s(8));
             target[UiScaleKeys.SettingsOverlayTreeItemsItemPadding] = new Thickness(s(16));
 
-            target[UiScaleKeys.SettingsOverlaySelectionBorderMargin] = new Thickness(s(8));
-            target[UiScaleKeys.SettingsOverlaySelectionBorderThickness] = new Thickness(s(4));
-            target[UiScaleKeys.SettingsOverlaySelectionBackgroundMargin] = new Thickness(s(6));
-            target[UiScaleKeys.SettingsOverlaySelectionCornerRadius] = new CornerRadius(s(10));
-            target[UiScaleKeys.SettingsOverlaySelectionBgCornerRadius] = new CornerRadius(s(6));
+            target[UiScaleKeys.OverlaySelectionBorderMargin] = new Thickness(s(8));
+            target[UiScaleKeys.OverlaySelectionBorderThickness] = new Thickness(s(4));
+            target[UiScaleKeys.OverlaySelectionBackgroundMargin] = new Thickness(s(6));
+            target[UiScaleKeys.OverlaySelectionCornerRadius] = new CornerRadius(s(10));
+            target[UiScaleKeys.OverlaySelectionBackgroundCornerRadius] = new CornerRadius(s(6));
 
             target[UiScaleKeys.SettingsOverlayDividerMargin] = new Thickness(0);
             target[UiScaleKeys.SettingsOverlayDividerHeight] = s(2);
@@ -163,10 +163,10 @@ namespace EZ2Play.App
         public const string BaseCornerRadius = "BaseCornerRadius";
         public const string ViewportWidth = "ViewportWidth";
 
-        public const string SettingsOverlayWidth = "SettingsOverlayWidth";
-        public const string SettingsOverlayThickness = "SettingsOverlayThickness";
-        public const string SettingsOverlayLabelFontSize = "SettingsOverlayLabelFontSize";
-        public const string SettingsOverlayLabelTreeFontSize = "SettingsOverlayLabelTreeFontSize";
+        public const string OverlayWidth = "OverlayWidth";
+        public const string OverlayBorderThickness = "OverlayBorderThickness";
+        public const string OverlayPrimaryFontSize = "OverlayPrimaryFontSize";
+        public const string OverlaySecondaryFontSize = "OverlaySecondaryFontSize";
         public const string SettingsOverlayTreeItemsContainerMargin = "SettingsOverlayTreeItemsContainerMargin";
         public const string SettingsOverlayTreeItemsContainerPadding = "SettingsOverlayTreeItemsContainerPadding";
         public const string SettingsOverlayTreeItemsItemMargin = "SettingsOverlayTreeItemsItemMargin";
@@ -175,12 +175,12 @@ namespace EZ2Play.App
         public const string SettingsOverlayLabelTreeMargin = "SettingsOverlayLabelTreeMargin";
         public const string SettingsOverlayDescFontSize = "SettingsOverlayDescFontSize";
         public const string SettingsOverlayItemPadding = "SettingsOverlayItemPadding";
-        public const string SettingsOverlaySelectionBorderMargin = "SettingsOverlaySelectionBorderMargin";
-        public const string SettingsOverlaySelectionBorderThickness = "SettingsOverlaySelectionBorderThickness";
-        public const string SettingsOverlaySelectionBackgroundMargin = "SettingsOverlaySelectionBackgroundMargin";
-        public const string SettingsOverlayCornerRadius = "SettingsOverlayCornerRadius";
-        public const string SettingsOverlaySelectionCornerRadius = "SettingsOverlaySelectionCornerRadius";
-        public const string SettingsOverlaySelectionBgCornerRadius = "SettingsOverlaySelectionBgCornerRadius";
+        public const string OverlaySelectionBorderMargin = "OverlaySelectionBorderMargin";
+        public const string OverlaySelectionBorderThickness = "OverlaySelectionBorderThickness";
+        public const string OverlaySelectionBackgroundMargin = "OverlaySelectionBackgroundMargin";
+        public const string OverlayCornerRadius = "OverlayCornerRadius";
+        public const string OverlaySelectionCornerRadius = "OverlaySelectionCornerRadius";
+        public const string OverlaySelectionBackgroundCornerRadius = "OverlaySelectionBackgroundCornerRadius";
         public const string SettingsOverlayDividerMargin = "SettingsOverlayDividerMargin";
         public const string SettingsOverlayDividerHeight = "SettingsOverlayDividerHeight";
         public const string SettingsOverlayAppInfoMargin = "SettingsOverlayAppInfoMargin";
