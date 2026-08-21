@@ -19,15 +19,10 @@
                     <ControlTemplate TargetType="ListBoxItem">
 
                         <Border x:Name="SelectionBorder"
-                                Margin="{DynamicResource {x:Static app:UiScaleKeys.OverlaySelectionBorderMargin}}"
-                                BorderThickness="{DynamicResource {x:Static app:UiScaleKeys.OverlaySelectionBorderThickness}}"
-                                BorderBrush="Transparent"
-                                CornerRadius="{DynamicResource {x:Static app:UiScaleKeys.OverlaySelectionCornerRadius}}">
+                                Style="{StaticResource OverlaySelectionBorderStyle}">
 
                             <Border x:Name="SelectionBackground"
-                                    Margin="{DynamicResource {x:Static app:UiScaleKeys.OverlaySelectionBackgroundMargin}}"
-                                    Background="Transparent"
-                                    CornerRadius="{DynamicResource {x:Static app:UiScaleKeys.OverlaySelectionBackgroundCornerRadius}}">
+                                    Style="{StaticResource OverlaySelectionBackgroundStyle}">
 
                                 <ContentPresenter/>
 
@@ -94,13 +89,7 @@
 
     <Grid>
 
-        <Border Background="{DynamicResource SolidBackgroundFillColorQuarternaryBrush}"
-                BorderBrush="{DynamicResource DividerStrokeColorDefaultBrush}"
-                BorderThickness="{DynamicResource {x:Static app:UiScaleKeys.OverlayBorderThickness}}"
-                CornerRadius="{DynamicResource {x:Static app:UiScaleKeys.OverlayCornerRadius}}"
-                Width="{DynamicResource {x:Static app:UiScaleKeys.OverlayWidth}}"
-                HorizontalAlignment="Center"
-                VerticalAlignment="Center"
+        <Border Style="{StaticResource OverlaySurfaceStyle}"
                 Padding="{DynamicResource {x:Static app:UiScaleKeys.SettingsOverlayTreeItemsItemPadding}}">
 
             <Grid>
@@ -119,7 +108,7 @@
                             <DataTemplate>
 
                                 <TextBlock Text="{Binding DisplayText}"
-                                        FontSize="{DynamicResource {x:Static app:UiScaleKeys.OverlayPrimaryFontSize}}"
+                                        Style="{StaticResource OverlayPrimaryTextStyle}"
                                         Padding="{DynamicResource {x:Static app:UiScaleKeys.SettingsOverlayTreeItemsItemPadding}}"/>
 
                             </DataTemplate>
@@ -171,10 +160,9 @@
                     <!-- Status Text -->
                     <TextBlock x:Name="StatusText"
                                 Visibility="Collapsed"
+                                Style="{StaticResource OverlaySecondaryTextStyle}"
                                 HorizontalAlignment="Center"
-                                VerticalAlignment="Center"
-                                Foreground="{DynamicResource TextFillColorTertiaryBrush}"
-                                FontSize="{DynamicResource {x:Static app:UiScaleKeys.OverlaySecondaryFontSize}}"/>
+                                VerticalAlignment="Center"/>
 
                     <!-- Manual Search Panel -->
                     <StackPanel x:Name="ManualSearchPanel"
@@ -183,11 +171,10 @@
                                 VerticalAlignment="Center">
 
                         <TextBlock x:Name="ManualSearchHintText"
-                                Margin="{DynamicResource {x:Static app:UiScaleKeys.ParserManualSearchHintMargin}}"
-                                HorizontalAlignment="Center"
-                                TextAlignment="Center"
-                                Foreground="{DynamicResource TextFillColorTertiaryBrush}"
-                                FontSize="{DynamicResource {x:Static app:UiScaleKeys.OverlaySecondaryFontSize}}"/>
+                                    Style="{StaticResource OverlaySecondaryTextStyle}"
+                                    Margin="{DynamicResource {x:Static app:UiScaleKeys.ParserManualSearchHintMargin}}"
+                                    HorizontalAlignment="Center"
+                                    TextAlignment="Center"/>
 
                         <TextBox x:Name="SearchInputBox"
                                 Width="{DynamicResource {x:Static app:UiScaleKeys.ParserInputWidth}}"

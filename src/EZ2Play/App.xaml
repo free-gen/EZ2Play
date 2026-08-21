@@ -20,9 +20,41 @@
 
             <FontFamily x:Key="XboxFont">/Assets/#Xbox Fluent</FontFamily>
 
-            <!-- Overlay selection -->
+            <!-- Overlay -->
             <SolidColorBrush x:Key="OverlaySelectionBorderBrush" Color="#C0FFFFFF"/>
             <SolidColorBrush x:Key="OverlaySelectionBackgroundBrush" Color="#10FFFFFF"/>
+
+            <Style x:Key="OverlaySurfaceStyle" TargetType="Border">
+                <Setter Property="Background" Value="{DynamicResource SolidBackgroundFillColorQuarternaryBrush}"/>
+                <Setter Property="BorderBrush" Value="{DynamicResource DividerStrokeColorDefaultBrush}"/>
+                <Setter Property="BorderThickness" Value="{DynamicResource {x:Static app:UiScaleKeys.OverlayBorderThickness}}"/>
+                <Setter Property="CornerRadius" Value="{DynamicResource {x:Static app:UiScaleKeys.OverlayCornerRadius}}"/>
+                <Setter Property="Width" Value="{DynamicResource {x:Static app:UiScaleKeys.OverlayWidth}}"/>
+                <Setter Property="HorizontalAlignment" Value="Center"/>
+                <Setter Property="VerticalAlignment" Value="Center"/>
+            </Style>
+
+            <Style x:Key="OverlayPrimaryTextStyle" TargetType="TextBlock" BasedOn="{StaticResource {x:Type TextBlock}}">
+                <Setter Property="FontSize" Value="{DynamicResource {x:Static app:UiScaleKeys.OverlayPrimaryFontSize}}"/>
+            </Style>
+
+            <Style x:Key="OverlaySecondaryTextStyle" TargetType="TextBlock" BasedOn="{StaticResource {x:Type TextBlock}}">
+                <Setter Property="FontSize" Value="{DynamicResource {x:Static app:UiScaleKeys.OverlaySecondaryFontSize}}"/>
+                <Setter Property="Foreground" Value="{DynamicResource TextFillColorTertiaryBrush}"/>
+            </Style>
+
+            <Style x:Key="OverlaySelectionBorderStyle" TargetType="Border">
+                <Setter Property="Margin" Value="{DynamicResource {x:Static app:UiScaleKeys.OverlaySelectionBorderMargin}}"/>
+                <Setter Property="BorderThickness" Value="{DynamicResource {x:Static app:UiScaleKeys.OverlaySelectionBorderThickness}}"/>
+                <Setter Property="BorderBrush" Value="Transparent"/>
+                <Setter Property="CornerRadius" Value="{DynamicResource {x:Static app:UiScaleKeys.OverlaySelectionCornerRadius}}"/>
+            </Style>
+
+            <Style x:Key="OverlaySelectionBackgroundStyle" TargetType="Border">
+                <Setter Property="Margin" Value="{DynamicResource {x:Static app:UiScaleKeys.OverlaySelectionBackgroundMargin}}"/>
+                <Setter Property="Background" Value="Transparent"/>
+                <Setter Property="CornerRadius" Value="{DynamicResource {x:Static app:UiScaleKeys.OverlaySelectionBackgroundCornerRadius}}"/>
+            </Style>
 
             <!-- Icons -->
             <Style TargetType="Path">

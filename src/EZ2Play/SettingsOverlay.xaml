@@ -15,14 +15,8 @@
         </Style>
     </UserControl.Resources>
 
-    <Border Background="{DynamicResource SolidBackgroundFillColorQuarternaryBrush}"
-            BorderBrush="{DynamicResource DividerStrokeColorDefaultBrush}"
-            BorderThickness="{DynamicResource {x:Static app:UiScaleKeys.OverlayBorderThickness}}"
-            CornerRadius="{DynamicResource {x:Static app:UiScaleKeys.OverlayCornerRadius}}"
-            Width="{DynamicResource {x:Static app:UiScaleKeys.OverlayWidth}}" 
-            Height="Auto"
-            HorizontalAlignment="Center"
-            VerticalAlignment="Center">
+    <Border Style="{StaticResource OverlaySurfaceStyle}"
+            Height="Auto">
         <Grid>
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
@@ -34,7 +28,7 @@
             <TextBlock x:Name="ExitConfirmText"
                         Grid.Row="0"
                         Visibility="Collapsed"
-                        FontSize="{DynamicResource {x:Static app:UiScaleKeys.OverlayPrimaryFontSize}}"
+                        Style="{StaticResource OverlayPrimaryTextStyle}"
                         HorizontalAlignment="Center"
                         Margin="{DynamicResource {x:Static app:UiScaleKeys.SettingsOverlayItemPadding}}"/>
 
@@ -58,14 +52,9 @@
                                     <Grid>
                                         <!-- SelectionBorder -->
                                         <Border x:Name="SelectionBorder"
-                                                Margin="{DynamicResource {x:Static app:UiScaleKeys.OverlaySelectionBorderMargin}}"
-                                                BorderThickness="{DynamicResource {x:Static app:UiScaleKeys.OverlaySelectionBorderThickness}}"
-                                                BorderBrush="Transparent"
-                                                CornerRadius="{DynamicResource {x:Static app:UiScaleKeys.OverlaySelectionCornerRadius}}">
+                                                Style="{StaticResource OverlaySelectionBorderStyle}">
                                             <Border x:Name="SelectionBackground"
-                                                    Margin="{DynamicResource {x:Static app:UiScaleKeys.OverlaySelectionBackgroundMargin}}"
-                                                    Background="Transparent"
-                                                    CornerRadius="{DynamicResource {x:Static app:UiScaleKeys.OverlaySelectionBackgroundCornerRadius}}"/>
+                                                    Style="{StaticResource OverlaySelectionBackgroundStyle}"/>
                                         </Border>
 
                                         <!-- ItemBorder -->
@@ -173,14 +162,9 @@
                                             <ControlTemplate TargetType="ListBoxItem">
                                                 <Grid>
                                                     <Border x:Name="SelectionBorder"
-                                                            Margin="{DynamicResource {x:Static app:UiScaleKeys.OverlaySelectionBorderMargin}}"
-                                                            BorderThickness="{DynamicResource {x:Static app:UiScaleKeys.OverlaySelectionBorderThickness}}"
-                                                            BorderBrush="Transparent"
-                                                            CornerRadius="{DynamicResource {x:Static app:UiScaleKeys.OverlaySelectionCornerRadius}}">
+                                                            Style="{StaticResource OverlaySelectionBorderStyle}">
                                                         <Border x:Name="SelectionBackground"
-                                                                Margin="{DynamicResource {x:Static app:UiScaleKeys.OverlaySelectionBackgroundMargin}}"
-                                                                Background="Transparent"
-                                                                CornerRadius="{DynamicResource {x:Static app:UiScaleKeys.OverlaySelectionBackgroundCornerRadius}}"/>
+                                                                Style="{StaticResource OverlaySelectionBackgroundStyle}"/>
                                                     </Border>
 
                                                     <!-- TreeItemStyle -->
@@ -379,14 +363,9 @@
                                 <ControlTemplate TargetType="ListBoxItem">
                                     <Grid>
                                         <Border x:Name="SelectionBorder"
-                                                Margin="{DynamicResource {x:Static app:UiScaleKeys.OverlaySelectionBorderMargin}}"
-                                                BorderThickness="{DynamicResource {x:Static app:UiScaleKeys.OverlaySelectionBorderThickness}}"
-                                                BorderBrush="Transparent"
-                                                CornerRadius="{DynamicResource {x:Static app:UiScaleKeys.OverlaySelectionCornerRadius}}">
+                                                Style="{StaticResource OverlaySelectionBorderStyle}">
                                             <Border x:Name="SelectionBackground"
-                                                    Margin="{DynamicResource {x:Static app:UiScaleKeys.OverlaySelectionBackgroundMargin}}"
-                                                    Background="Transparent"
-                                                    CornerRadius="{DynamicResource {x:Static app:UiScaleKeys.OverlaySelectionBackgroundCornerRadius}}"/>
+                                                    Style="{StaticResource OverlaySelectionBackgroundStyle}"/>
                                         </Border>
 
                                         <Border Padding="{TemplateBinding Padding}"
