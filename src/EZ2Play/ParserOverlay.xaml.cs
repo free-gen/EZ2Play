@@ -14,10 +14,10 @@ using System.Windows.Media.Animation;
 using System.Windows.Media.Imaging;
 using Newtonsoft.Json.Linq;
 using System.Threading;
-
+using System.Globalization;
+using System.Net;
 using System.Windows.Input;
 using System.Windows.Threading;
-
 using Drawing = System.Drawing;
 using Drawing2D = System.Drawing.Drawing2D;
 using DrawingImaging = System.Drawing.Imaging;
@@ -26,7 +26,7 @@ using Windows.UI.ViewManagement.Core;
 
 namespace EZ2Play.App
 {
-    public partial class ParserOverlay : UserControl
+    public partial class ParserOverlay : UserControl, IDisposable
     {
         private const string ApiKey = "";
         private const string BaseUrl = "https://www.steamgriddb.com/api/v2";
@@ -38,8 +38,16 @@ namespace EZ2Play.App
 
         private readonly InputHandler _inputHandler;
         private readonly MainWindow _mainWindow;
+        private readonly AppConfig _config;
+
         private readonly HttpClient _httpClient;
         private readonly HttpClient _imageHttpClient;
+
+        private CancellationTokenSource _sessionCts;
+        private bool _disposed;
+
+        private CultureInfo _inputLanguageBeforeManualSearch;
+        private bool _inputLanguageCaptured;
 
         private readonly ObservableCollection<ParserGameResult> _gameResults = new ObservableCollection<ParserGameResult>();
         private readonly ObservableCollection<ParserGridResult> _gridResults = new ObservableCollection<ParserGridResult>();
@@ -64,9 +72,9 @@ namespace EZ2Play.App
 
             _inputHandler = inputHandler;
             _mainWindow = mainWindow;
+            _config = _mainWindow.GetConfig();
 
             _httpClient = new HttpClient();
-            _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", ApiKey);
             _httpClient.DefaultRequestHeaders.UserAgent.ParseAdd("EZ2Play/1.0");
 
             _imageHttpClient = new HttpClient();
@@ -77,6 +85,79 @@ namespace EZ2Play.App
 
             Opacity = 0;
             Visibility = Visibility.Collapsed;
+        }
+
+        private string ResolveApiKey()
+        {
+            if (!string.IsNullOrWhiteSpace(ApiKey))
+                return ApiKey.Trim();
+
+            if (!string.IsNullOrWhiteSpace(_config?.SteamGridDbApiKey))
+            {
+                return _config.SteamGridDbApiKey.Trim();
+            }
+
+            return string.Empty;
+        }
+
+        private bool ConfigureApiAuthorization()
+        {
+            string apiKey = ResolveApiKey();
+
+            if (string.IsNullOrWhiteSpace(apiKey))
+            {
+                _httpClient.DefaultRequestHeaders.Authorization = null;
+                return false;
+            }
+
+            _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", apiKey);
+
+            return true;
+        }
+
+        private bool IsCurrentSession(CancellationToken cancellationToken)
+        {
+            return !_disposed && _sessionCts != null && cancellationToken == _sessionCts.Token;
+        }
+
+        private bool IsSessionActive(CancellationToken cancellationToken)
+        {
+            return
+                IsCurrentSession(cancellationToken) &&
+                !cancellationToken.IsCancellationRequested &&
+                Visibility == Visibility.Visible;
+        }
+
+        private void CancelSession()
+        {
+            try
+            {
+                _sessionCts?.Cancel();
+            }
+
+            catch
+            {
+            }
+        }
+
+        private void CaptureInputLanguage()
+        {
+            if (_inputLanguageCaptured)
+                return;
+
+            _inputLanguageBeforeManualSearch = SystemProvider.ForceEnglishInputLanguage();
+            _inputLanguageCaptured = true;
+        }
+
+        private void RestoreInputLanguage()
+        {
+            if (!_inputLanguageCaptured)
+                return;
+
+            SystemProvider.RestoreInputLanguage(_inputLanguageBeforeManualSearch);
+
+            _inputLanguageBeforeManualSearch = null;
+            _inputLanguageCaptured = false;
         }
 
         private void CancelCoverLoading()
@@ -94,22 +175,34 @@ namespace EZ2Play.App
 
         public async void Open()
         {
-            if (Visibility == Visibility.Visible)
+            if (_disposed || Visibility == Visibility.Visible)
+            {
                 return;
+            }
 
             var launcher = _mainWindow.GetLauncher();
 
             if (launcher == null || launcher.SelectedIndex < 0 || launcher.SelectedIndex >= launcher.Shortcuts.Length)
+            {
                 return;
+            }
+
+            _sessionCts?.Dispose();
+            _sessionCts = new CancellationTokenSource();
+
+            CancellationToken cancellationToken = _sessionCts.Token;
 
             _shortcut = launcher.Shortcuts[launcher.SelectedIndex];
             _mode = ParserMode.Games;
+            _isBusy = false;
+            _manualSearchFromNoMatches = false;
 
             _gameResults.Clear();
             _gridResults.Clear();
 
             GamesListBox.Visibility = Visibility.Visible;
             CoversListBox.Visibility = Visibility.Collapsed;
+            ManualSearchPanel.Visibility = Visibility.Collapsed;
 
             ShowStatus(Locals.GetString("SearchCovers"));
 
@@ -119,16 +212,26 @@ namespace EZ2Play.App
             Visibility = Visibility.Visible;
 
             var fadeIn = new DoubleAnimation
-            {
-                From = 0,
-                To = 1,
-                Duration = TimeSpan.FromSeconds(FadeDuration),
-                EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut }
-            };
+                {
+                    From = 0, To = 1, Duration = TimeSpan.FromSeconds( FadeDuration),
+
+                    EasingFunction = new CubicEase
+                        {
+                            EasingMode = EasingMode.EaseOut
+                        }
+                };
 
             BeginAnimation(OpacityProperty, fadeIn);
 
-            await SearchCurrentGameAsync();
+            if (!ConfigureApiAuthorization())
+            {
+                DebugLog.Write("Parser", "SteamGridDB API key is not configured.");
+                ShowStatus(Locals.GetString("SteamGridDbApiKeyMissing"));
+
+                return;
+            }
+
+            await SearchCurrentGameAsync(null, cancellationToken);
         }
 
         public void Close()
@@ -136,6 +239,7 @@ namespace EZ2Play.App
             if (Visibility != Visibility.Visible)
                 return;
 
+            CancelSession();
             CancelCoverLoading();
 
             if (_manualSearchInputView != null)
@@ -145,19 +249,25 @@ namespace EZ2Play.App
             }
 
             SystemProvider.HideSystemKeyboard();
+            RestoreInputLanguage();
+
             ManualSearchPanel.Visibility = Visibility.Collapsed;
 
+            _manualSearchFromNoMatches = false;
+
             var fadeOut = new DoubleAnimation
-            {
-                From = Opacity,
-                To = 0,
-                Duration = TimeSpan.FromSeconds(FadeDuration),
-                EasingFunction = new CubicEase { EasingMode = EasingMode.EaseIn }
-            };
+                {
+                    From = Opacity, To = 0, Duration = TimeSpan.FromSeconds(FadeDuration),
+                    EasingFunction = new CubicEase
+                        {
+                            EasingMode = EasingMode.EaseIn
+                        }
+                };
 
             fadeOut.Completed += (s, e) =>
             {
                 Visibility = Visibility.Collapsed;
+
                 _inputHandler.SetParserOpen(false);
                 _mainWindow.SetHintsMode(HintPanel.HintMode.Main);
             };
@@ -242,12 +352,21 @@ namespace EZ2Play.App
             if (GamesListBox.Visibility != Visibility.Visible)
                 return;
 
-            ShowManualSearch(false);
+            if (_sessionCts == null)
+                return;
+            
+            if (!ConfigureApiAuthorization())
+            {
+                ShowStatus(Locals.GetString("SteamGridDbApiKeyMissing"));
+                return;
+            }
+
+            ShowManualSearch(false, _sessionCts.Token);
         }
 
         public async void Confirm()
         {
-            if (_isBusy)
+            if (_isBusy || _sessionCts == null)
                 return;
 
             if (_mode == ParserMode.Games)
@@ -255,7 +374,7 @@ namespace EZ2Play.App
                 var game = GamesListBox.SelectedItem as ParserGameResult;
 
                 if (game != null)
-                    await LoadCoversAsync(game);
+                    await LoadCoversAsync(game, _sessionCts.Token);
 
                 return;
             }
@@ -263,7 +382,7 @@ namespace EZ2Play.App
             var cover = CoversListBox.SelectedItem as ParserGridResult;
 
             if (cover != null)
-                await DownloadCoverAsync(cover);
+                await DownloadCoverAsync(cover, _sessionCts.Token);
         }
 
         private void MoveSelection(ListBox listBox, int targetIndex)
@@ -280,8 +399,11 @@ namespace EZ2Play.App
             listBox.ScrollIntoView(listBox.SelectedItem);
         }
 
-        private async void ShowManualSearch(bool showHint)
+        private async void ShowManualSearch(bool showHint, CancellationToken cancellationToken)
         {
+            if (!IsSessionActive(cancellationToken))
+                return;
+
             _manualSearchFromNoMatches = showHint;
 
             HideStatus();
@@ -308,19 +430,37 @@ namespace EZ2Play.App
             _mainWindow.SetHintsMode(HintPanel.HintMode.Settings);
 
             // Перед фокусом переключаем язык ввода на English.
-            SystemProvider.ForceEnglishInputLanguage();
+            CaptureInputLanguage();
 
             SearchInputBox.UpdateLayout();
 
-            await Dispatcher.InvokeAsync(
-                () => { },
-                DispatcherPriority.ApplicationIdle);
+            await Dispatcher.InvokeAsync(() => { }, DispatcherPriority.ApplicationIdle);
+
+            if (!IsSessionActive(cancellationToken))
+            {
+                RestoreInputLanguage();
+                return;
+            }
 
             SearchInputBox.Focus();
             Keyboard.Focus(SearchInputBox);
             SearchInputBox.SelectAll();
 
-            await Task.Delay(100);
+            try
+            {
+                await Task.Delay(100, cancellationToken);
+            }
+            catch (OperationCanceledException)
+            {
+                RestoreInputLanguage();
+                return;
+            }
+
+            if (!IsSessionActive(cancellationToken))
+            {
+                RestoreInputLanguage();
+                return;
+            }
 
             if (_mainWindow.IsGamepadConnected)
             {
@@ -346,6 +486,8 @@ namespace EZ2Play.App
         {
             if (ManualSearchPanel.Visibility != Visibility.Visible)
                 return;
+
+            RestoreInputLanguage();
 
             if (_manualSearchInputView != null)
             {
@@ -373,46 +515,75 @@ namespace EZ2Play.App
 
         // ----------------- GAME SEARCH -----------------
 
-        private async Task SearchCurrentGameAsync(string customQuery = null)
+        private async Task SearchCurrentGameAsync(string customQuery, CancellationToken cancellationToken)
         {
+            if (!IsSessionActive(cancellationToken))
+                return;
+
             _isBusy = true;
 
             try
             {
-                string query = string.IsNullOrWhiteSpace(customQuery)
-                    ? (_shortcut.DisplayName ?? _shortcut.Name)
-                    : customQuery.Trim();
-                var results = await SearchGamesAsync(query);
+                string query =
+                    string.IsNullOrWhiteSpace(customQuery)
+                        ? (_shortcut.DisplayName ??
+                        _shortcut.Name)
+                        : customQuery.Trim();
+
+                var results =
+                    await SearchGamesAsync(query, cancellationToken);
+
+                if (!IsSessionActive(cancellationToken))
+                    return;
 
                 _gameResults.Clear();
 
-                foreach (var result in results)
-                    _gameResults.Add(result);
+                foreach (var result in results) _gameResults.Add(result);
 
                 HideStatus();
 
                 if (_gameResults.Count == 0)
                 {
-                    ShowManualSearch(true);
+                    ShowManualSearch(true, cancellationToken);
                     return;
                 }
 
                 ManualSearchPanel.Visibility = Visibility.Collapsed;
                 GamesListBox.Visibility = Visibility.Visible;
-
                 _mainWindow.SetHintsMode(HintPanel.HintMode.ParserGames);
-
                 GamesListBox.SelectedIndex = 0;
                 GamesListBox.ScrollIntoView(GamesListBox.SelectedItem);
                 GamesListBox.Focus();
             }
-            catch
+
+            catch (OperationCanceledException)
             {
-                ShowStatus(Locals.GetString("ErrorGridDB"));
+                // Parser закрыт или операция отменена.
             }
+
+            catch (SteamGridDbAuthException ex)
+            {
+                DebugLog.Error("Parser", ex, "SteamGridDB authorization failed.");
+
+                if (IsSessionActive(cancellationToken))
+                {
+                    ShowStatus(Locals.GetString("SteamGridDbApiKeyInvalid"));
+                }
+            }
+
+            catch (Exception ex)
+            {
+                DebugLog.Error("Parser", ex, "SteamGridDB game search failed.");
+
+                if (IsSessionActive(cancellationToken))
+                {
+                    ShowStatus(Locals.GetString( "ErrorGridDB"));
+                }
+            }
+
             finally
             {
-                _isBusy = false;
+                if (IsCurrentSession(cancellationToken)) _isBusy = false;
             }
         }
 
@@ -430,49 +601,75 @@ namespace EZ2Play.App
 
             SystemProvider.HideSystemKeyboard();
 
+            RestoreInputLanguage();
+
             ManualSearchPanel.Visibility = Visibility.Collapsed;
 
             ShowStatus(Locals.GetString("SearchCovers"));
 
-            await SearchCurrentGameAsync(query);
+            if (_sessionCts == null)
+                return;
+
+            await SearchCurrentGameAsync(query, _sessionCts.Token);
         }
 
-        private async Task<List<ParserGameResult>> SearchGamesAsync(string query)
+        private async Task<List<ParserGameResult>> SearchGamesAsync(string query, CancellationToken cancellationToken)
         {
-            string encoded = Uri.EscapeDataString(query.Trim());
+            cancellationToken.ThrowIfCancellationRequested();
+
+            string encoded = Uri.EscapeDataString( query.Trim());
             string url = $"{BaseUrl}/search/autocomplete/{encoded}";
 
-            using (var response = await _httpClient.GetAsync(url))
+            using (var response = await _httpClient.GetAsync(url, cancellationToken))
             {
+                cancellationToken.ThrowIfCancellationRequested();
+
+                if (response.StatusCode == HttpStatusCode.Unauthorized || response.StatusCode == HttpStatusCode.Forbidden)
+                {
+                    throw new SteamGridDbAuthException($"HTTP {(int)response.StatusCode}");
+                }
+
                 if (!response.IsSuccessStatusCode)
-                    return new List<ParserGameResult>();
+                {
+                    throw new HttpRequestException($"SteamGridDB returned HTTP " + $"{(int)response.StatusCode}.");
+                }
 
                 string content = await response.Content.ReadAsStringAsync();
+                cancellationToken.ThrowIfCancellationRequested();
+
                 var json = JObject.Parse(content);
                 var data = json["data"] as JArray;
 
-                if (json["success"]?.ToObject<bool>() != true || data == null)
+                if (json["success"]?.ToObject<bool>() != true)
+                {
+                    throw new InvalidOperationException("SteamGridDB returned success=false.");
+                }
+
+                if (data == null)
                     return new List<ParserGameResult>();
 
                 return data
                     .Where(item => item["id"] != null && item["name"] != null)
                     .Take(MaxGames)
                     .Select(item => new ParserGameResult
-                    {
-                        Id = item["id"].ToObject<int>(),
-                        Name = item["name"].ToString()
-                    })
+                        {
+                            Id = item["id"].ToObject<int>(),
+                            Name = item["name"].ToString()
+                        })
                     .ToList();
             }
         }
 
         // ----------------- COVER SEARCH -----------------
 
-        private async Task LoadCoversAsync(ParserGameResult game)
+        private async Task LoadCoversAsync(ParserGameResult game, CancellationToken sessionToken)
         {
+            if (!IsSessionActive(sessionToken))
+                return;
+
             CancelCoverLoading();
 
-            var cts = new CancellationTokenSource();
+            var cts = CancellationTokenSource.CreateLinkedTokenSource(sessionToken);
             _coversLoadCts = cts;
 
             var cancellationToken = cts.Token;
@@ -494,11 +691,12 @@ namespace EZ2Play.App
 
             try
             {
-                var results = await GetSquareGridsAsync(
-                    game.Id,
-                    cancellationToken);
+                var results = await GetSquareGridsAsync(game.Id, cancellationToken);
 
                 cancellationToken.ThrowIfCancellationRequested();
+
+                if (!IsSessionActive(sessionToken))
+                    return;
 
                 _gridResults.Clear();
 
@@ -529,26 +727,39 @@ namespace EZ2Play.App
 
                 int loadedCount = 0;
 
-                var tasks = _gridResults.Select(async grid =>
+                using (var thumbnailSemaphore = new SemaphoreSlim(6, 6))
                 {
-                    await LoadThumbnailAsync(
-                        grid,
-                        cancellationToken);
+                    var tasks = _gridResults.Select(async grid =>
+                            {
+                                await thumbnailSemaphore.WaitAsync( cancellationToken);
 
-                    cancellationToken.ThrowIfCancellationRequested();
+                                try
+                                {
+                                    await LoadThumbnailAsync(grid, cancellationToken);
+                                    cancellationToken.ThrowIfCancellationRequested();
+                                    int completed = Interlocked.Increment(ref loadedCount);
+                                    await Dispatcher.InvokeAsync(() =>
+                                        {
+                                            if (!cancellationToken.IsCancellationRequested)
+                                            {
+                                                CoversProgressBar.Value = completed;
+                                            }
+                                        });
+                                }
 
-                    int completed = Interlocked.Increment(ref loadedCount);
+                                finally
+                                {
+                                    thumbnailSemaphore.Release();
+                                }
+                            });
 
-                    await Dispatcher.InvokeAsync(() =>
-                    {
-                        if (!cancellationToken.IsCancellationRequested)
-                            CoversProgressBar.Value = completed;
-                    });
-                });
-
-                await Task.WhenAll(tasks);
+                    await Task.WhenAll(tasks);
+                }
 
                 cancellationToken.ThrowIfCancellationRequested();
+
+                if (!IsSessionActive(sessionToken))
+                    return;
 
                 CoversListBox.Opacity = 1.0;
                 CoversProgressBar.Visibility = Visibility.Collapsed;
@@ -557,23 +768,44 @@ namespace EZ2Play.App
             {
                 // Пользователь нажал Back или закрыл ParserOverlay.
             }
-            catch
-            {
-                CoversListBox.Opacity = 1.0;
 
+            catch (SteamGridDbAuthException ex)
+            {
+                DebugLog.Error("Parser", ex, "SteamGridDB authorization failed while loading covers.");
+
+                if (IsSessionActive(sessionToken))
+                {
+                    CoversListBox.Opacity = 1.0;
+                    CoversProgressBar.IsIndeterminate = false;
+                    CoversProgressBar.Visibility = Visibility.Collapsed;
+
+                    ShowStatus(Locals.GetString( "SteamGridDbApiKeyInvalid"));
+                }
+            }
+
+            catch (Exception ex)
+            {
+                DebugLog.Error("Parser", ex, "SteamGridDB cover search failed.");
+
+                if (!IsSessionActive(sessionToken))
+                    return;
+
+                CoversListBox.Opacity = 1.0;
                 CoversProgressBar.IsIndeterminate = false;
                 CoversProgressBar.Visibility = Visibility.Collapsed;
 
-                ShowStatus(Locals.GetString("LoadingCoversError"));
+                ShowStatus(Locals.GetString("ErrorGridDB"));
             }
+
             finally
             {
                 if (_coversLoadCts == cts)
-                {
                     _coversLoadCts = null;
-                    cts.Dispose();
+
+                cts.Dispose();
+
+                if (IsCurrentSession(sessionToken))
                     _isBusy = false;
-                }
             }
         }
 
@@ -583,14 +815,28 @@ namespace EZ2Play.App
 
             using (var response = await _httpClient.GetAsync(url, cancellationToken))
             {
+                if (response.StatusCode == HttpStatusCode.Unauthorized || response.StatusCode == HttpStatusCode.Forbidden)
+                {
+                    throw new SteamGridDbAuthException($"HTTP {(int)response.StatusCode}");
+                }
+
                 if (!response.IsSuccessStatusCode)
-                    return new List<ParserGridResult>();
+                {
+                    throw new HttpRequestException($"SteamGridDB returned HTTP " + $"{(int)response.StatusCode}.");
+                }
 
                 string content = await response.Content.ReadAsStringAsync();
+                cancellationToken.ThrowIfCancellationRequested();
+
                 var json = JObject.Parse(content);
                 var data = json["data"] as JArray;
 
-                if (json["success"]?.ToObject<bool>() != true || data == null)
+                if (json["success"]?.ToObject<bool>() != true)
+                {
+                    throw new InvalidOperationException("SteamGridDB returned success=false.");
+                }
+
+                if (data == null)
                     return new List<ParserGridResult>();
 
                 return data
@@ -614,7 +860,7 @@ namespace EZ2Play.App
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                using (var response = await _imageHttpClient.GetAsync(result.Url, cancellationToken))
+                using (var response = await _imageHttpClient.GetAsync(result.Thumb, cancellationToken))
                 {
                     response.EnsureSuccessStatusCode();
 
@@ -652,7 +898,7 @@ namespace EZ2Play.App
 
         // ----------------- DOWNLOAD -----------------
 
-        private async Task DownloadCoverAsync(ParserGridResult cover)
+        private async Task DownloadCoverAsync(ParserGridResult cover, CancellationToken cancellationToken)
         {
             _isBusy = true;
 
@@ -661,12 +907,20 @@ namespace EZ2Play.App
 
             try
             {
-                byte[] bytes = await _imageHttpClient.GetByteArrayAsync(cover.Url);
+                byte[] bytes;
 
-                string coversDirectory = Path.Combine(
-                    AppDomain.CurrentDomain.BaseDirectory,
-                    "shortcuts",
-                    "covers");
+                using (var response = await _imageHttpClient.GetAsync(cover.Url, cancellationToken))
+                {
+                    response.EnsureSuccessStatusCode();
+                    bytes = await response.Content.ReadAsByteArrayAsync();
+                }
+
+                cancellationToken.ThrowIfCancellationRequested();
+
+                if (!IsSessionActive(cancellationToken))
+                    return;
+
+                string coversDirectory = Path.Combine(AppDomain.CurrentDomain.BaseDirectory,"shortcuts", "covers");
 
                 Directory.CreateDirectory(coversDirectory);
 
@@ -702,28 +956,44 @@ namespace EZ2Play.App
                             Drawing.GraphicsUnit.Pixel);
                     }
 
-                    using (var output = new FileStream(
-                        coverPath,
-                        FileMode.Create,
-                        FileAccess.Write,
-                        FileShare.None))
+                    cancellationToken.ThrowIfCancellationRequested();
+
+                    using (var output = new FileStream(coverPath, FileMode.Create, FileAccess.Write, FileShare.None))
                     {
                         resizedImage.Save(output, DrawingImaging.ImageFormat.Png);
                     }
                 }
 
+                cancellationToken.ThrowIfCancellationRequested();
+
+                if (!IsSessionActive(cancellationToken))
+                    return;
+
                 _mainWindow.GetLauncher()?.RefreshSelectedCover();
 
                 Close();
             }
+
+            catch (OperationCanceledException)
+            {
+                // Parser закрыт во время скачивания.
+            }
+
             catch (Exception ex)
             {
-                CoversListBox.Visibility = Visibility.Visible;
-                ShowStatus(Locals.GetString("LoadingCoversError") + ": " + ex.Message);
+                DebugLog.Error("Parser", ex, "Failed to download or save cover.");
+
+                if (IsSessionActive(cancellationToken))
+                {
+                    CoversListBox.Visibility = Visibility.Visible;
+                    ShowStatus(Locals.GetString("LoadingCoversError") + ": " + ex.Message);
+                }
             }
+
             finally
             {
-                _isBusy = false;
+                if (IsCurrentSession(cancellationToken))
+                    _isBusy = false;
             }
         }
 
@@ -738,6 +1008,39 @@ namespace EZ2Play.App
         private void HideStatus()
         {
             StatusText.Visibility = Visibility.Collapsed;
+        }
+
+
+        public void Dispose()
+        {
+            if (_disposed)
+                return;
+
+            _disposed = true;
+
+            CancelSession();
+            CancelCoverLoading();
+
+            if (_manualSearchInputView != null)
+            {
+                _manualSearchInputView.PrimaryViewHiding -= ManualSearchInputView_Hiding;
+                _manualSearchInputView = null;
+            }
+
+            RestoreInputLanguage();
+
+            _httpClient.Dispose();
+            _imageHttpClient.Dispose();
+
+            _sessionCts?.Dispose();
+            _sessionCts = null;
+        }
+
+        private sealed class SteamGridDbAuthException : Exception
+        {
+            public SteamGridDbAuthException(string message) : base(message)
+            {
+            }
         }
     }
 

@@ -565,7 +565,8 @@ namespace EZ2Play
         protected override void OnClosed(EventArgs e)
         {
             _isExiting = false;
-            
+
+            _parserOverlay?.Dispose();
             _input?.Dispose();
             _guideHandler?.Dispose();
             _sound?.Dispose();

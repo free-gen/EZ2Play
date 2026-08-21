@@ -41,6 +41,23 @@ namespace EZ2Play.App
             ["NoGamesFound"] = new[] { "No matches found", "Совпадения не найдены", "Keine Übereinstimmungen gefunden", "Aucune correspondance trouvée", "未找到匹配项" },
             ["ManualSearchHint"] = new[] { "No matches found. Try entering the title manually.", "Совпадений не найдено, попробуйте ручной ввод.", "Keine Übereinstimmungen gefunden. Versuchen Sie, den Titel manuell einzugeben.", "Aucune correspondance trouvée. Essayez de saisir le titre manuellement.", "未找到匹配项。请尝试手动输入名称。" },
             ["ErrorGridDB"] = new[] { "Error connecting to SteamGridDB", "Ошибка подключения к SteamGridDB", "Fehler bei der Verbindung zu SteamGridDB", "Erreur de connexion à SteamGridDB", "连接 SteamGridDB 时出错" },
+            ["SteamGridDbApiKeyMissing"] = new[]
+            {
+                "SteamGridDB API key is not configured",
+                "API-ключ SteamGridDB не настроен",
+                "Der SteamGridDB-API-Schlüssel ist nicht konfiguriert",
+                "La clé API SteamGridDB n’est pas configurée",
+                "未配置 SteamGridDB API 密钥"
+            },
+
+            ["SteamGridDbApiKeyInvalid"] = new[]
+            {
+                "SteamGridDB API key is invalid or unauthorized",
+                "API-ключ SteamGridDB недействителен или не авторизован",
+                "Der SteamGridDB-API-Schlüssel ist ungültig oder nicht autorisiert",
+                "La clé API SteamGridDB est invalide ou non autorisée",
+                "SteamGridDB API 密钥无效或未授权"
+            },
             ["LoadingCovers"] = new[] { "Loading covers", "Загрузка обложек", "Cover werden geladen", "Chargement des couvertures", "正在加载封面" },
             ["NoCoversFound"] = new[] { "No covers found", "Обложки не найдены", "Keine Cover gefunden", "Aucune couverture trouvée", "未找到封面" },
             ["LoadingCoversError"] = new[] { "Loading error", "Ошибка загрузки", "Fehler beim Laden", "Erreur de chargement", "加载出错" },

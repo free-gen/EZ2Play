@@ -16,22 +16,14 @@ namespace EZ2Play.App
 
         // Настройка автозапуска
         public bool AutorunEnabled { get; set; }
+        // SteamGridDB
+        public string SteamGridDbApiKey { get; set; }
 
         public AppConfig()
         {
-            string appData =
-                Environment.GetFolderPath(
-                    Environment.SpecialFolder.ApplicationData);
-
-            string folder =
-                Path.Combine(
-                    appData,
-                    AppInfo.Name);
-
-            _filePath =
-                Path.Combine(
-                    folder,
-                    "config.json");
+            string appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+            string folder = Path.Combine(appData, AppInfo.Name);
+            _filePath = Path.Combine(folder, "config.json");
 
             Load();
         }
@@ -75,6 +67,7 @@ namespace EZ2Play.App
             HotSwapNotificationShown = false;
             LastHotSwapState = false;
             AutorunEnabled = false;
+            SteamGridDbApiKey = string.Empty;
         }
 
         private void Load()
@@ -87,37 +80,24 @@ namespace EZ2Play.App
 
             try
             {
-                string json =
-                    File.ReadAllText(_filePath);
-
-                var data =
-                    JsonConvert.DeserializeObject<AppConfigData>(json);
+                string json = File.ReadAllText(_filePath);
+                var data = JsonConvert.DeserializeObject<AppConfigData>(json);
 
                 if (data == null)
                 {
                     ResetToDefaults();
-
-                    DebugLog.Write(
-                        "Config",
-                        "config.json contained no usable data.");
-
+                    DebugLog.Write("Config", "config.json contained no usable data.");
                     return;
                 }
 
                 if (data.Notifications != null)
                 {
-                    GamebarNotificationShown =
-                        data.Notifications.GamebarShown;
-
-                    LastGamebarState =
-                        data.Notifications.LastGamebarState;
-
-                    HotSwapNotificationShown =
-                        data.Notifications.HotSwapShown;
-
-                    LastHotSwapState =
-                        data.Notifications.LastHotSwapState;
+                    GamebarNotificationShown = data.Notifications.GamebarShown;
+                    LastGamebarState = data.Notifications.LastGamebarState;
+                    HotSwapNotificationShown = data.Notifications.HotSwapShown;
+                    LastHotSwapState = data.Notifications.LastHotSwapState;
                 }
+
                 else
                 {
                     GamebarNotificationShown = false;
@@ -126,8 +106,8 @@ namespace EZ2Play.App
                     LastHotSwapState = false;
                 }
 
-                AutorunEnabled =
-                    data.AutorunEnabled;
+                AutorunEnabled = data.AutorunEnabled;
+                SteamGridDbApiKey = data.SteamGridDbApiKey ?? string.Empty;
             }
             catch (Exception ex)
             {
@@ -147,74 +127,54 @@ namespace EZ2Play.App
 
             try
             {
-                string folder =
-                    Path.GetDirectoryName(_filePath);
+                string folder = Path.GetDirectoryName(_filePath);
 
                 if (!Directory.Exists(folder))
                     Directory.CreateDirectory(folder);
 
-                var data =
-                    new AppConfigData
+                var data = new AppConfigData
                     {
-                        Notifications =
-                            new NotificationSettings
+                        Notifications = new NotificationSettings
                             {
-                                GamebarShown =
-                                    GamebarNotificationShown,
-
-                                LastGamebarState =
-                                    LastGamebarState,
-
-                                HotSwapShown =
-                                    HotSwapNotificationShown,
-
-                                LastHotSwapState =
-                                    LastHotSwapState
+                                GamebarShown = GamebarNotificationShown,
+                                LastGamebarState = LastGamebarState,
+                                HotSwapShown = HotSwapNotificationShown,
+                                LastHotSwapState = LastHotSwapState
                             },
 
-                        AutorunEnabled =
-                            AutorunEnabled
+                        AutorunEnabled = AutorunEnabled,
+                        SteamGridDbApiKey = SteamGridDbApiKey ?? string.Empty
                     };
 
-                string json =
-                    JsonConvert.SerializeObject(
-                        data,
-                        Formatting.Indented);
+                string json = JsonConvert.SerializeObject(data, Formatting.Indented);
 
                 // Сначала полностью пишем временный файл.
-                File.WriteAllText(
-                    tempPath,
-                    json);
+                File.WriteAllText(tempPath, json);
 
                 // Затем атомарно подменяем основной.
                 if (File.Exists(_filePath))
                 {
-                    File.Replace(
-                        tempPath,
-                        _filePath,
-                        null);
+                    File.Replace(tempPath, _filePath, null);
                 }
+
                 else
                 {
-                    File.Move(
-                        tempPath,
-                        _filePath);
+                    File.Move(tempPath, _filePath);
                 }
             }
+
             catch (Exception ex)
             {
-                DebugLog.Error(
-                    "Config",
-                    ex,
-                    "Failed to save config.json.");
+                DebugLog.Error("Config", ex, "Failed to save config.json.");
             }
+
             finally
             {
                 try
                 {
-                    if (File.Exists(tempPath))
-                        File.Delete(tempPath);
+                    if (File.Exists(tempPath)) File.Delete(tempPath);
                 }
+
                 catch
                 {
                 }
@@ -225,6 +185,7 @@ namespace EZ2Play.App
         {
             public NotificationSettings Notifications { get; set; }
             public bool AutorunEnabled { get; set; }
+            public string SteamGridDbApiKey { get; set; }
         }
 
         private class NotificationSettings

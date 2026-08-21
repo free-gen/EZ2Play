@@ -660,34 +660,47 @@ namespace EZ2Play.App
 
         // --------------- Системный ввод ---------------
 
-        public static void ForceEnglishInputLanguage()
+        public static CultureInfo ForceEnglishInputLanguage()
         {
             try
             {
                 var manager = InputLanguageManager.Current;
-                var current = manager.CurrentInputLanguage;
 
-                if (current != null &&
-                    string.Equals(
-                        current.TwoLetterISOLanguageName,
-                        "en",
-                        StringComparison.OrdinalIgnoreCase))
+                var previousLanguage = manager.CurrentInputLanguage;
+
+                if (previousLanguage != null &&
+                    string.Equals(previousLanguage.TwoLetterISOLanguageName, "en", StringComparison.OrdinalIgnoreCase))
                 {
-                    return;
+                    return previousLanguage;
                 }
 
                 foreach (CultureInfo language in manager.AvailableInputLanguages)
                 {
-                    if (string.Equals(
-                        language.TwoLetterISOLanguageName,
-                        "en",
-                        StringComparison.OrdinalIgnoreCase))
+                    if (string.Equals(language.TwoLetterISOLanguageName, "en", StringComparison.OrdinalIgnoreCase))
                     {
                         manager.CurrentInputLanguage = language;
-                        return;
+                        return previousLanguage;
                     }
                 }
+
+                return previousLanguage;
             }
+            catch
+            {
+                return null;
+            }
+        }
+
+        public static void RestoreInputLanguage(CultureInfo language)
+        {
+            if (language == null)
+                return;
+
+            try
+            {
+                InputLanguageManager.Current.CurrentInputLanguage = language;
+            }
+            
             catch
             {
             }
