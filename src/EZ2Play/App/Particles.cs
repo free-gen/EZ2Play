@@ -11,6 +11,9 @@ namespace EZ2Play.App
         private const int BrushLevels = 64;
         private const double MaxDelta = 0.05;
 
+        private static readonly TimeSpan ParticleFrameInterval =
+            TimeSpan.FromSeconds(1.0 / 60.0);
+
         private const double MinSpeed = 4.0;
         private const double MaxSpeed = 16.0;
 
@@ -65,6 +68,7 @@ namespace EZ2Play.App
         private bool _isRunning;
         private bool _renderHooked;
         private TimeSpan _lastRenderingTime;
+        private TimeSpan _nextRenderingTime;
         private double _time;
         private double _lastWidth;
         private double _lastHeight;
@@ -110,7 +114,9 @@ namespace EZ2Play.App
             if (_isRunning) return;
 
             _isRunning = true;
+            _isRunning = true;
             _lastRenderingTime = TimeSpan.Zero;
+            _nextRenderingTime = TimeSpan.Zero;
 
             if (!_renderHooked)
             {
@@ -123,6 +129,7 @@ namespace EZ2Play.App
         {
             _isRunning = false;
             _lastRenderingTime = TimeSpan.Zero;
+            _nextRenderingTime = TimeSpan.Zero;
 
             if (_renderHooked)
             {
@@ -316,12 +323,24 @@ namespace EZ2Play.App
             if (_lastRenderingTime == TimeSpan.Zero)
             {
                 _lastRenderingTime = renderingTime;
+                _nextRenderingTime = renderingTime + ParticleFrameInterval;
+
                 InvalidateVisual();
                 return;
             }
 
+            // Max 60 FPS fix
+            if (renderingTime < _nextRenderingTime)
+                return;
+
             double delta = (renderingTime - _lastRenderingTime).TotalSeconds;
             _lastRenderingTime = renderingTime;
+
+            do
+            {
+                _nextRenderingTime += ParticleFrameInterval;
+            }
+            while (_nextRenderingTime <= renderingTime);
 
             if (delta <= 0) return;
 

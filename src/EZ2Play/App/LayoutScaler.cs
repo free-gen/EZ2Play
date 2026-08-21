@@ -43,7 +43,6 @@ namespace EZ2Play.App
             target[UiScaleKeys.ViewportWidth] = s(2560);
 
             target[UiScaleKeys.SettingsOverlayWidth] = s(1280);
-            target[UiScaleKeys.SettingsOverlayTreeItemWidth] = s(1280 / 3);
             target[UiScaleKeys.SettingsOverlayThickness] = new Thickness(s(2));
             target[UiScaleKeys.SettingsOverlayCornerRadius] = new CornerRadius(s(16));
 
@@ -91,7 +90,6 @@ namespace EZ2Play.App
             target[UiScaleKeys.UserAvatarSize] = s(56);
 
             target[UiScaleKeys.NotificationPanelHeight] = s(96);
-            target[UiScaleKeys.NotificationPanelCornerRadius] = new CornerRadius(s(16));
             target[UiScaleKeys.NotificationPanelMaxWidth] = s(1024);
             target[UiScaleKeys.NotificationPanelPadding] = new Thickness(s(32), 0, s(32), 0);
             target[UiScaleKeys.NotificationPanelOuterMargin] = new Thickness(0, 0, s(32), 0);
@@ -127,21 +125,18 @@ namespace EZ2Play.App
             target[UiScaleKeys.ParserInputWidth] = s(1244);
             target[UiScaleKeys.ParserInputHeight] = s(72);
             target[UiScaleKeys.ParserInputFontSize] = fs(40);
-            target[UiScaleKeys.ParserManualSearchHintMargin] = new Thickness(0, 8, 0, 24);
+            target[UiScaleKeys.ParserManualSearchHintMargin] = new Thickness(0, s(8), 0, s(24));
 
             target[UiScaleKeys.GameTitleMargin] = new Thickness(s(224), 0, 0, 0);
             target[UiScaleKeys.SelectedGameTitleFontSize] = fs(72);
 
             target[UiScaleKeys.SourceCardWidth] = s(320);
             target[UiScaleKeys.SourceCardHeight] = s(64);
-            target[UiScaleKeys.SourceCardCornerRadius] = new CornerRadius(s(16));
-            target[UiScaleKeys.SourceCardPadding] = new Thickness(s(96), 0, s(96), 0);
             target[UiScaleKeys.BaseCardThickness] = new Thickness(s(2));
             target[UiScaleKeys.SourceCardMargin] = new Thickness(0, s(72), 0, 0);
             target[UiScaleKeys.SourceCardFontSize] = fs(28);
 
             target[UiScaleKeys.CounterCardHeight] = s(64);
-            target[UiScaleKeys.CounterCardCornerRadius] = new CornerRadius(s(16));
             target[UiScaleKeys.CounterCardPadding] = new Thickness(s(32), 0, s(32), 0);
             target[UiScaleKeys.CounterCardThickness] = new Thickness(s(2));
             target[UiScaleKeys.CounterCardMargin] = new Thickness(s(48), 0, 0, 0);
@@ -152,10 +147,8 @@ namespace EZ2Play.App
             target[UiScaleKeys.LoadingProgressScale] = fs(42);
 
             target[UiScaleKeys.BottomPanelHeight] = s(64);
-            target[UiScaleKeys.BottomPanelCornerRadius] = new CornerRadius(s(16));
             target[UiScaleKeys.BottomPanelMargin] = new Thickness(0, 0, s(96), s(64));
             target[UiScaleKeys.BottomPanelPadding] = new Thickness(s(8), 0, s(8), 0);
-            target[UiScaleKeys.BottomPanelBorderThickness] = new Thickness(s(2));
             target[UiScaleKeys.HintBlockMargin] = new Thickness(s(16), 0, s(16), 0);
             target[UiScaleKeys.HintTextMargin] = new Thickness(s(16), 0, 0, 0);
             target[UiScaleKeys.HintIconHeightGamepad] = s(28);
@@ -171,7 +164,6 @@ namespace EZ2Play.App
         public const string ViewportWidth = "ViewportWidth";
 
         public const string SettingsOverlayWidth = "SettingsOverlayWidth";
-        public const string SettingsOverlayTreeItemWidth = "SettingsOverlayTreeItemWidth";
         public const string SettingsOverlayThickness = "SettingsOverlayThickness";
         public const string SettingsOverlayLabelFontSize = "SettingsOverlayLabelFontSize";
         public const string SettingsOverlayLabelTreeFontSize = "SettingsOverlayLabelTreeFontSize";
@@ -216,7 +208,6 @@ namespace EZ2Play.App
 
         public const string NotificationPanelHeight = "NotificationPanelHeight";
         public const string NotificationPanelMaxWidth = "NotificationPanelMaxWidth";
-        public const string NotificationPanelCornerRadius = "NotificationPanelCornerRadius";
         public const string NotificationPanelPadding = "NotificationPanelPadding";
         public const string NotificationPanelOuterMargin = "NotificationPanelOuterMargin";
         public const string NotificationPanelMargin = "NotificationPanelMargin";
@@ -247,15 +238,12 @@ namespace EZ2Play.App
 
         public const string SourceCardWidth = "SourceCardWidth";
         public const string SourceCardHeight = "SourceCardHeight";
-        public const string SourceCardPadding = "SourceCardPadding";
-        public const string SourceCardCornerRadius = "SourceCardCornerRadius";
         public const string BaseCardThickness = "BaseCardThickness";
         public const string SourceCardMargin = "SourceCardMargin";
         public const string SourceCardFontSize = "SourceCardFontSize";
 
         public const string CounterCardHeight = "CounterCardHeight";
         public const string CounterCardPadding = "CounterCardPadding";
-        public const string CounterCardCornerRadius = "CounterCardCornerRadius";
         public const string CounterCardThickness = "CounterCardThickness";
         public const string CounterCardMargin = "CounterCardMargin";
         public const string CounterCardIconMargin = "CounterCardIconMargin";
@@ -265,8 +253,6 @@ namespace EZ2Play.App
         public const string BottomPanelHeight = "BottomPanelHeight";
         public const string BottomPanelMargin = "BottomPanelMargin";
         public const string BottomPanelPadding = "BottomPanelPadding";
-        public const string BottomPanelCornerRadius = "BottomPanelCornerRadius";
-        public const string BottomPanelBorderThickness = "BottomPanelBorderThickness";
         public const string HintBlockMargin = "HintBlockMargin";
         public const string HintTextFontSize = "HintTextFontSize";
         public const string HintTextMargin = "HintTextMargin";

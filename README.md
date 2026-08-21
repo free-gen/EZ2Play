@@ -1,133 +1,256 @@
 # <img src="src/EZ2Play/Assets/Logo.png" width="36"> EZ2Play Launcher
 
 [![GitHub release](https://img.shields.io/github/v/release/free-gen/EZ2Play?style=for-the-badge)](https://github.com/free-gen/EZ2Play/releases/latest)
-[![Platform](https://img.shields.io/badge/.Net-0066ff?style=for-the-badge&logo=data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNSIgaGVpZ2h0PSIxNSIgdmlld0JveD0iMCAwIDE1IDE1Ij48cGF0aCBmaWxsPSIjZmZmIiBkPSJNMTQuODE0LjExMUEuNS41IDAgMCAxIDE1IC41VjdIN1YxLjU5NkwxNC4zOTUuMDFhLjUuNSAwIDAgMSAuNDIuMU02IDEuODFMLjM5NSAzLjAxMUEuNS41IDAgMCAwIDAgMy41VjdoNnpNMCA4djQuNWEuNS41IDAgMCAwIC40My40OTVsNS41Ny43OTZWOHptNyA1LjkzNGw3LjQzIDEuMDYxQS41LjUgMCAwIDAgMTUgMTQuNVY4SDd6Ii8+PC9zdmc+&labelColor=gray)](https://dotnet.microsoft.com)
-[![Framework](https://img.shields.io/badge/WPF--UI-0066ff?style=for-the-badge&logo=data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0OCIgaGVpZ2h0PSI0OCIgdmlld0JveD0iMCAwIDQ4IDQ4Ij48cGF0aCBmaWxsPSIjZmZmIiBkPSJNMjUuMTcgNC4xNjNhMS41IDEuNSAwIDAgMC0xLjM0IDBsLTEyIDZhMS41IDEuNSAwIDAgMC0uODMgMS4zNDJ2MjMuNDU2YzAgLjUxNi4yNjUuOTk2LjcwMiAxLjI3bDEyIDcuNTRBMS41IDEuNSAwIDAgMCAyNiA0Mi41VjMwLjQzMmwxMS4xNy01LjU4NWExLjUgMS41IDAgMCAwIDAtMi42ODRsLTkuMzE2LTQuNjU4bDkuMzE3LTQuNjU4YTEuNSAxLjUgMCAwIDAgMC0yLjY4NHoiLz48L3N2Zz4=&labelColor=gray)](https://wpfui.lepo.co/)
+[![Platform](https://img.shields.io/badge/.Net-0066ff?style=for-the-badge&labelColor=gray)](https://dotnet.microsoft.com)
+[![Framework](https://img.shields.io/badge/WPF--UI-0066ff?style=for-the-badge&labelColor=gray)](https://wpfui.lepo.co/)
 
-EZ2Play is a minimalistic game launcher for those who value simplicity and a lack of unnecessary settings. Its logic is based on using standard Windows shortcuts, which already contain everything you need: the game path, launch options, and an .ico icon as a cover. The launcher allows you to control games with a gamepad and quickly switch between your monitor and TV, making playing on a large screen as convenient as possible.
+EZ2Play is a minimalistic portable game launcher for Windows focused on gamepad control, simple shortcut-based game management, and fast switching between a monitor and TV.
+
+Instead of scanning installed games or maintaining its own library database, EZ2Play uses standard Windows `.lnk` and `.url` shortcuts. Put the shortcuts you want into the `shortcuts` folder and the launcher builds the library from them.
 
 ![Screenshot](res/ez2play01.jpg)
 ![Screenshot](res/ez2play02.jpg)
 
 ## Features
 
-- **Home/Guide button handler** - return to the launcher from any game by pressing one button (when Xbox Game Bar is unavailable)
-- **Quick screen switching** - available from Settings on systems with two or more displays (when Xbox Game Bar is unavailable)
-- **Xbox Game Bar compatibility** - automatically uses native Windows game and display controls when available
-- **Multilingual support** - 🇬🇧 🇷🇺 🇩🇪 🇫🇷 🇨🇳
-- **No game scanning** - just put your shortcuts in the `shortcuts` folder
-- **WPF-UI** - full support for Windows 11 styles
-- **EZ2Play Helper** - optional background process for launching EZ2Play via the Home/Guide button on a gamepad (can be enabled in Settings and supports launch arguments)
+- **Gamepad-first interface** - navigate and launch games using an XInput-compatible controller
+- **Home/Guide button handling** - close the current foreground game or application and return to the launcher when Xbox Game Bar is unavailable
+- **Quick display switching** - switch between the default and external display from Settings on systems with multiple displays
+- **HotSwap mode** - automatically switch to an external display on launch and return to the internal display when EZ2Play exits
+- **Recent Games** - sort games by the last successful launch
+- **Playtime tracking** - keeps lightweight playtime metadata for launched games
+- **Built-in artwork search** - find square game covers through SteamGridDB
+- **Custom covers** - use your own PNG, JPG, or JPEG artwork
+- **Multilingual interface** - 🇬🇧 🇷🇺 🇩🇪 🇫🇷 🇨🇳
+- **No game scanning** - the library is entirely based on files in the `shortcuts` folder
+- **Portable design** - shortcuts, covers and optional UI resources stay with the launcher
+- **WPF-UI** - Windows 11-style interface
+- **EZ2Play Helper** - optional background process for launching EZ2Play with the Home/Guide button
 
-> **Note:** If Xbox Game Bar is installed, EZ2Play automatically defers game and display management to the operating system. Otherwise, the launcher uses its built-in game closing and display switching functions.
+## Xbox Game Bar
+
+EZ2Play checks whether Xbox Game Bar is installed.
+
+When Xbox Game Bar is available, EZ2Play does not intercept the Home/Guide button for its own foreground-window closing behavior. The Guide button remains available to the native Xbox Game Bar interface.
+
+Display switching and HotSwap remain EZ2Play features and are independent of the Guide handler.
 
 ## Usage
 
-1. Download and run `EZ2Play.exe`
-2. Place game shortcuts (.lnk and .url) in the `shortcuts` folder (created automatically)
-3. Optionally, you can use `EZParser` to customize shortcuts
-4. The launcher is ready to use
+1. Download or build `EZ2Play.exe`.
+2. Place `EZ2Play Helper.exe` next to it if you want Guide-button background launching.
+3. Run `EZ2Play.exe`.
+4. Place game shortcuts (`.lnk` or `.url`) in the automatically created `shortcuts` folder.
+5. Launch games directly from the EZ2Play library.
 
-## Customization
+The launcher is designed to run as a portable application from a writable folder.
 
-EZ2Play supports custom sounds, background images, and launch logos.
-To do this, use the `ui.pack` file in the launcher folder.
+## Game Covers
 
-#### Creating a ui.pack
+Custom covers are stored in:
 
-1. Prepare the required files (see the composition below).
-2. Pack them into the archive `ui.zip` (without subfolders, the files should be in the root).
-3. Rename the archive `ui.zip` to `ui.pack`.
+```text
+shortcuts/covers
+```
 
-#### Package contents
+Supported custom image formats:
 
-- `Logo.png` - splash screen logo
-- `Bg.png` or `Bg.jpg` - background image
-- `Focus.mp3` - movement sound
-- `Invoke.mp3` - start sound
-- `Back.mp3` - return sound
-- `Ambient.mp3` - background music
+```text
+.png
+.jpg
+.jpeg
+```
 
-> **Note:** If the `ui.pack` file is missing or does not contain any resources, the built-in default value is used.
+The file name must match the shortcut file name.
+
+Example:
+
+```text
+shortcuts/
+  Cyberpunk 2077.lnk
+
+shortcuts/covers/
+  Cyberpunk 2077.png
+```
+
+## Built-in Artwork Search
+
+EZ2Play includes an integrated SteamGridDB artwork browser.
+
+It can:
+
+- search SteamGridDB for the selected game;
+- show artwork previews;
+- download the selected original artwork;
+- crop and save it as a 512×512 PNG cover;
+- refresh the selected game immediately after saving.
+
+The resulting file is stored in:
+
+```text
+shortcuts/covers
+```
+
+### SteamGridDB API key
+
+SteamGridDB requires an API key.
+
+EZ2Play checks for a key in this order:
+
+1. the embedded key in `ParserOverlay.xaml.cs`;
+2. `SteamGridDbApiKey` in the EZ2Play configuration.
+
+An embedded key has priority when both are present.
+
+For builds from the public source code, the embedded key may be empty. In this case add your own SteamGridDB key to:
+
+```text
+%APPDATA%\EZ2Play\config.json
+```
+
+Example:
+
+```json
+{
+  "SteamGridDbApiKey": "YOUR_STEAMGRIDDB_API_KEY"
+}
+```
+
+Other configuration fields may also be present in the file. They do not need to be removed.
+
+If no key is configured, EZ2Play displays a localized configuration message instead of treating the request as an empty search result.
 
 ## Custom Game Source
 
-EZ2Play allows you to set a custom game source name using the "Comment" field in the `.lnk` shortcut.
+EZ2Play can display a custom source name for `.lnk` shortcuts.
 
-- In the shortcut properties, find the Comment. field.
-- Enter any value there, and it will be displayed in the game source card in EZ2Play.
+Open the shortcut properties and enter the desired source name in the **Comment** field.
 
-This is useful for marking games that are launched using emulators.
+For example:
 
-> **Note:** If the Comment field is empty, EZ2Play uses the default value (Portable).
+```text
+PCSX2
+RPCS3
+Emulator
+Portable
+```
+
+If no source information can be detected, EZ2Play uses `Portable`.
 
 ## Settings
 
-EZ2Play now includes a basic settings:
+The Settings overlay provides:
 
-- Enable/disable launching EZ2Play via gamepad (Home/Guide button)
-- When enabled, EZ2Play Helper is automatically added to Windows startup
-- Optional launch arguments for Helper:
-  - `--nosplash`
-  - `--nomusic`
-  - `--hotswap`
-- Display switching is now available only from Settings
+- enable or disable launching EZ2Play through the Home/Guide button;
+- automatically configure EZ2Play Helper in Windows startup;
+- enable or disable FPS Monitor integration when FPS Monitor is installed;
+- switch between displays on systems with multiple monitors;
+- exit EZ2Play.
 
-## Command Line Args
+When Helper autorun is enabled, the following launch options can also be configured:
 
-```bash
-EZ2Play.exe [arg]
+- `--nosplash`
+- `--nomusic`
+- `--hotswap`
+
+## Command Line Arguments
+
+```text
+EZ2Play.exe [arguments]
 ```
 
-| Arg            | Description |
-|----------------|-------------|
-| `--nosplash`   | Launch without a splash screen |
-| `--hotswap`    | Automatically switches the display when started and returns the original display when closed |
-| `--nomusic`    | Turns off background music |
+| Argument | Description |
+| --- | --- |
+| `--nosplash` | Skip the startup splash screen |
+| `--hotswap` | Switch to the external display on launch and restore the internal display on exit |
+| `--nomusic` | Disable background music |
 
-### Samples
+Arguments can be combined:
 
-```bash
-# Launching without a splash screen
-EZ2Play.exe --nosplash
-
-# Launching with automatic display switching
-EZ2Play.exe --hotswap
-
-# Launching without background music
-EZ2Play.exe --nomusic
-
-# Combinations
+```text
 EZ2Play.exe --hotswap --nosplash --nomusic
 ```
 
 ## EZ2Play Helper
 
-An optional background helper that allows launching EZ2Play by holding the Home/Guide button on a gamepad.
-The helper can be enabled from the settings. When enabled, it is automatically added to Windows startup and runs in the background even when EZ2Play is closed. Any launch arguments selected in settings and passed via EZ2Play Helper are automatically forwarded to EZ2Play when it is launched.
+`EZ2Play Helper.exe` is an optional background companion process.
 
-## EZParser Auxiliary application
+When enabled from Settings it:
 
-![Screenshot](res/ezparser01.jpg)
-![Screenshot](res/ezparser02.jpg)
+- runs in the background;
+- is added to Windows startup;
+- monitors XInput controller slots 0-3;
+- launches EZ2Play when the Home/Guide button is held;
+- forwards the configured EZ2Play launch arguments.
 
-Allows you to quickly find game covers and save them in icon format using the built-in `.png → .ico` converter. Supports **PsStore** and **SteamGridDB**.
+Only one Helper instance is allowed to run at a time.
 
-> SteamGridDB requires an API key
+## UI Customization
 
-## System requirements
+EZ2Play supports an optional `ui.pack` file placed next to the launcher.
 
-- Windows 10 / 11
-- .NET Framework 472
+It can override the built-in:
 
-## Build from source code
+- splash logo;
+- background image;
+- movement sound;
+- launch sound;
+- back sound;
+- ambient music.
 
-To build the project, use the .NET SDK:
-```bash
-dotnet build --configuration Release
+### Creating `ui.pack`
+
+1. Prepare the desired files.
+2. Put them directly in the root of a ZIP archive.
+3. Rename the archive from `ui.zip` to `ui.pack`.
+
+Supported entries:
+
+```text
+Logo.png
+Bg.png
+Bg.jpg
+Focus.mp3
+Invoke.mp3
+Back.mp3
+Ambient.mp3
 ```
 
-## Support the project
+Missing entries automatically fall back to the built-in resources.
+
+## System Requirements
+
+- Windows 10 or Windows 11
+- Windows 11 24H2 or later is required for the gamepad on-screen keyboard; on Windows 10 this feature is unavailable
+- .NET Framework 4.7.2 or newer compatible .NET Framework 4.x runtime
+- XInput-compatible controller for gamepad features
+
+## Build from Source
+
+EZ2Play uses normal `dotnet` project builds. Visual Studio and a solution file are not required.
+
+From the repository root:
+
+```powershell
+dotnet build "src/EZ2Play/EZ2Play.csproj" -c Release
+dotnet build "src/EZ2Play Helper/EZ2Play Helper.csproj" -c Release
+```
+
+For a diagnostic build:
+
+```powershell
+dotnet build "src/EZ2Play/EZ2Play.csproj" -c Debug
+```
+
+Debug builds can write diagnostic information to:
+
+```text
+%APPDATA%\EZ2Play\debug.log
+```
+
+Diagnostic log calls are compiled out of Release builds.
+
+## Support the Project
 
 **You can use crypto or rubles:**
 
@@ -136,4 +259,4 @@ dotnet build --configuration Release
 
 ## License
 
-The project is distributed under the **MIT** license. For more information, see the [LICENSE](LICENSE) file.
+EZ2Play is distributed under the **MIT License**. See [LICENSE](LICENSE) for details.
