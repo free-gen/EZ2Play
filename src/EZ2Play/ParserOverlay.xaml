@@ -90,7 +90,8 @@
 
     <Grid>
 
-        <Border Style="{StaticResource OverlaySurfaceStyle}"
+        <Border x:Name="ParserSurface" 
+                Style="{StaticResource OverlaySurfaceStyle}"
                 Padding="{DynamicResource {x:Static app:UiScaleKeys.OverlayPadding}}">
 
             <Grid>

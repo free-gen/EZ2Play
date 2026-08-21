@@ -35,6 +35,7 @@ namespace EZ2Play.App
         private const int MaxGames = 15;
         private const int MaxCovers = 30;
         private const double FadeDuration = 0.1;
+        private const double ManualSearchKeyboardGap = 32.0;
 
         private readonly InputHandler _inputHandler;
         private readonly MainWindow _mainWindow;
@@ -229,8 +230,11 @@ namespace EZ2Play.App
             if (_manualSearchInputView != null)
             {
                 _manualSearchInputView.PrimaryViewHiding -= ManualSearchInputView_Hiding;
+                _manualSearchInputView.OcclusionsChanged -= ManualSearchInputView_OcclusionsChanged;
                 _manualSearchInputView = null;
             }
+
+            ParserSurface.RenderTransform = null;
 
             SystemProvider.HideSystemKeyboard();
             RestoreInputLanguage();
@@ -388,6 +392,7 @@ namespace EZ2Play.App
             }
 
             ManualSearchPanel.Visibility = Visibility.Visible;
+            ParserSurface.RenderTransform = null;
 
             // Manual search uses the settings-style hint layout.
             _mainWindow.SetHintsMode(HintPanel.HintMode.Settings);
@@ -436,6 +441,8 @@ namespace EZ2Play.App
                     {
                         _manualSearchInputView.PrimaryViewHiding -= ManualSearchInputView_Hiding;
                         _manualSearchInputView.PrimaryViewHiding += ManualSearchInputView_Hiding;
+                        _manualSearchInputView.OcclusionsChanged -= ManualSearchInputView_OcclusionsChanged;
+                        _manualSearchInputView.OcclusionsChanged += ManualSearchInputView_OcclusionsChanged;
                     }
                 }
 
@@ -447,6 +454,31 @@ namespace EZ2Play.App
             }
         }
 
+        private void ManualSearchInputView_OcclusionsChanged(CoreInputView sender, CoreInputViewOcclusionsChangedEventArgs args)
+        {
+            if (ManualSearchPanel.Visibility != Visibility.Visible) return;
+
+            double currentOffset = (ParserSurface.RenderTransform as TranslateTransform)?.Y ?? 0;
+            Point inputPosition = SearchInputBox.TranslatePoint(new Point(0, 0), _mainWindow);
+
+            double inputLeft = inputPosition.X;
+            double inputRight = inputPosition.X + SearchInputBox.ActualWidth;
+            double inputBottom = inputPosition.Y + SearchInputBox.ActualHeight - currentOffset;
+            double requiredOffset = 0;
+
+            foreach (var occlusion in args.Occlusions)
+            {
+                var rect = occlusion.OccludingRect;
+
+                if (rect.Y <= 0) continue;
+                if (rect.X >= inputRight || rect.X + rect.Width <= inputLeft) continue;
+
+                requiredOffset = Math.Max(requiredOffset, inputBottom + ManualSearchKeyboardGap - rect.Y);
+            }
+
+            ParserSurface.RenderTransform = requiredOffset > 0 ? new TranslateTransform(0, -requiredOffset) : null;
+        }
+
         private void ManualSearchInputView_Hiding(CoreInputView sender, CoreInputViewHidingEventArgs args)
         {
             if (ManualSearchPanel.Visibility != Visibility.Visible) return;
@@ -456,9 +488,11 @@ namespace EZ2Play.App
             if (_manualSearchInputView != null)
             {
                 _manualSearchInputView.PrimaryViewHiding -= ManualSearchInputView_Hiding;
+                _manualSearchInputView.OcclusionsChanged -= ManualSearchInputView_OcclusionsChanged;
                 _manualSearchInputView = null;
             }
 
+            ParserSurface.RenderTransform = null;
             ManualSearchPanel.Visibility = Visibility.Collapsed;
 
             if (_manualSearchFromNoMatches)
@@ -950,6 +984,7 @@ namespace EZ2Play.App
             if (_manualSearchInputView != null)
             {
                 _manualSearchInputView.PrimaryViewHiding -= ManualSearchInputView_Hiding;
+                _manualSearchInputView.OcclusionsChanged -= ManualSearchInputView_OcclusionsChanged;
                 _manualSearchInputView = null;
             }
 
