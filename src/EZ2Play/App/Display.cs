@@ -119,8 +119,6 @@ namespace EZ2Play.App
 
         public void RefreshDisplayList()
         {
-            CheckMultipleDisplays();
-
             _displayNames.Clear();
             _currentDisplayIndex = 0;
             _displayNames.Add("Default");
@@ -217,6 +215,7 @@ namespace EZ2Play.App
 
         private void OnDisplaySettingsChanged(object sender, EventArgs e)
         {
+            CheckMultipleDisplays();
             ScheduleLayoutRefresh();
         }
 

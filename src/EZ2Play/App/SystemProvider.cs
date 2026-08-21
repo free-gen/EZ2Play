@@ -418,6 +418,9 @@ namespace EZ2Play.App
 
         public static string GetAutorunArguments()
         {
+            object shell = null;
+            object shortcut = null;
+
             try
             {
                 string shortcutPath = Path.Combine(
@@ -425,32 +428,32 @@ namespace EZ2Play.App
                     AutorunShortcutName);
 
                 if (!File.Exists(shortcutPath))
-                    return "";
+                    return string.Empty;
 
-                string ps = 
-                    "$WshShell = New-Object -ComObject WScript.Shell; " +
-                    "$Shortcut = $WshShell.CreateShortcut('" + shortcutPath.Replace("'", "''") + "'); " +
-                    "$Shortcut.Arguments;";
+                Type shellType = Type.GetTypeFromProgID("WScript.Shell");
+                if (shellType == null)
+                    return string.Empty;
 
-                var startInfo = new System.Diagnostics.ProcessStartInfo
-                {
-                    FileName = "powershell.exe",
-                    Arguments = "-NoProfile -ExecutionPolicy Bypass -Command \"" + ps + "\"",
-                    CreateNoWindow = true,
-                    UseShellExecute = false,
-                    RedirectStandardOutput = true
-                };
+                shell = Activator.CreateInstance(shellType);
+                dynamic dynamicShell = shell;
 
-                using (var process = System.Diagnostics.Process.Start(startInfo))
-                {
-                    string output = process.StandardOutput.ReadToEnd().Trim();
-                    process.WaitForExit();
-                    return output;
-                }
+                shortcut = dynamicShell.CreateShortcut(shortcutPath);
+                dynamic dynamicShortcut = shortcut;
+
+                string arguments = dynamicShortcut.Arguments;
+                return arguments?.Trim() ?? string.Empty;
             }
             catch
             {
-                return "";
+                return string.Empty;
+            }
+            finally
+            {
+                if (shortcut != null && Marshal.IsComObject(shortcut))
+                    Marshal.FinalReleaseComObject(shortcut);
+
+                if (shell != null && Marshal.IsComObject(shell))
+                    Marshal.FinalReleaseComObject(shell);
             }
         }
 

@@ -44,7 +44,6 @@ namespace EZ2Play.App
                 RefreshAutorunState();
                 RefreshFpsMonitorVisibility();
                 RefreshFpsMonitorState();
-                LoadSubOptionsStates();
 
                 if (SettingsListBox.Items.Count > 0)
                     SettingsListBox.SelectedIndex = 0;
@@ -77,17 +76,13 @@ namespace EZ2Play.App
             Visibility = Visibility.Collapsed;
         }
 
-        /// <summary>
-        /// Общий обработчик SelectionChanged для обоих ListBox.
-        /// </summary>
+        // Общий обработчик SelectionChanged для обоих ListBox.
         private void OnSelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             ScheduleUpdateSelectionVisuals();
         }
 
-        /// <summary>
-        /// Откладывает обновление визуала до завершения генерации контейнеров.
-        /// </summary>
+        // Откладывает обновление визуала до завершения генерации контейнеров.
         private void ScheduleUpdateSelectionVisuals()
         {
             Dispatcher.BeginInvoke(DispatcherPriority.Loaded, new Action(UpdateSelectionVisuals));
@@ -115,10 +110,8 @@ namespace EZ2Play.App
             }
         }
 
-        /// <summary>
-        /// Полностью управляет видимостью рамок селектора в обоих ListBox.
-        /// Определяет, какой ListBox сейчас активен, и рисует рамку только на одном элементе.
-        /// </summary>
+        // Полностью управляет видимостью рамок селектора в обоих ListBox.
+        // Определяет, какой ListBox сейчас активен, и рисует рамку только на одном элементе.
         private void UpdateSelectionVisuals()
         {
             if (_exitConfirmationMode)
@@ -205,9 +198,7 @@ namespace EZ2Play.App
             }
         }
 
-        /// <summary>
-        /// Применяет или снимает визуал выделения с конкретного контейнера.
-        /// </summary>
+        // Применяет или снимает визуал выделения с конкретного контейнера.
         private void ApplySelectionVisual(ListBoxItem container, bool isSelected)
         {
             var border = FindVisualChild<Border>(container, "SelectionBorder");
@@ -643,9 +634,7 @@ namespace EZ2Play.App
             ScheduleUpdateSelectionVisuals();
         }
 
-        /// <summary>
-        /// Рекурсивно ищет дочерний элемент визуального дерева по имени.
-        /// </summary>
+        // Рекурсивно ищет дочерний элемент визуального дерева по имени.
         private T FindVisualChild<T>(DependencyObject parent, string childName) where T : DependencyObject
         {
             if (parent == null) return null;
