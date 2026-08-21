@@ -3,13 +3,9 @@ using System.Reflection;
 
 namespace EZ2Play.App
 {
-    // --------------- Информация о приложении из AssemblyInfo ---------------
-
     public static class AppInfo
     {
-        // --------------- Приватные методы ---------------
-
-        // Получение значения атрибута по ключу
+        // Read an application metadata value by key.
         private static string Get(string key)
         {
             return Assembly.GetExecutingAssembly()
@@ -18,11 +14,9 @@ namespace EZ2Play.App
                 ?.Value ?? string.Empty;
         }
 
-        // --------------- Публичные свойства ---------------
-
-        public static string Name        => Get("AppName");
+        public static string Name => Get("AppName");
         public static string Description => Get("AppDescription");
-        public static string Company     => Get("Company");
-        public static string Version     => Get("FileVersion");
+        public static string Company => Get("Company");
+        public static string Version => Get("FileVersion");
     }
 }

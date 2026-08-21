@@ -8,15 +8,16 @@ namespace EZ2Play.App
     {
         private readonly string _filePath;
 
-        // Настройки уведомлений
+        // Notification settings
         public bool GamebarNotificationShown { get; set; }
         public bool LastGamebarState { get; set; }
         public bool HotSwapNotificationShown { get; set; }
         public bool LastHotSwapState { get; set; }
 
-        // Настройка автозапуска
+        // Autorun setting
         public bool AutorunEnabled { get; set; }
-        // SteamGridDB
+
+        // SteamGridDB API key
         public string SteamGridDbApiKey { get; set; }
 
         public AppConfig()
@@ -28,7 +29,7 @@ namespace EZ2Play.App
             Load();
         }
 
-        // Логика уведомления GameBar
+        // Game Bar notification logic
         public bool ShouldShowGamebarNotification(bool currentState)
         {
             if (!GamebarNotificationShown)
@@ -44,7 +45,7 @@ namespace EZ2Play.App
             Save();
         }
 
-        // Логика уведомления HotSwap
+        // HotSwap notification logic
         public bool ShouldShowHotSwapNotification(bool currentState)
         {
             if (!HotSwapNotificationShown)
@@ -60,6 +61,7 @@ namespace EZ2Play.App
             Save();
         }
 
+        // Restore default configuration values
         private void ResetToDefaults()
         {
             GamebarNotificationShown = false;
@@ -70,6 +72,7 @@ namespace EZ2Play.App
             SteamGridDbApiKey = string.Empty;
         }
 
+        // Load configuration from disk
         private void Load()
         {
             if (!File.Exists(_filePath))
@@ -112,14 +115,11 @@ namespace EZ2Play.App
             catch (Exception ex)
             {
                 ResetToDefaults();
-
-                DebugLog.Error(
-                    "Config",
-                    ex,
-                    "Failed to load config.json. Defaults were used.");
+                DebugLog.Error("Config", ex, "Failed to load config.json. Defaults were used.");
             }
         }
 
+        // Save configuration atomically
         public void Save()
         {
             string tempPath =
@@ -148,10 +148,10 @@ namespace EZ2Play.App
 
                 string json = JsonConvert.SerializeObject(data, Formatting.Indented);
 
-                // Сначала полностью пишем временный файл.
+                // Write the complete temporary file first.
                 File.WriteAllText(tempPath, json);
 
-                // Затем атомарно подменяем основной.
+                // Then replace the main file atomically.
                 if (File.Exists(_filePath))
                 {
                     File.Replace(tempPath, _filePath, null);
@@ -181,6 +181,7 @@ namespace EZ2Play.App
             }
         }
 
+        // Serialized configuration model
         private class AppConfigData
         {
             public NotificationSettings Notifications { get; set; }
@@ -188,6 +189,7 @@ namespace EZ2Play.App
             public string SteamGridDbApiKey { get; set; }
         }
 
+        // Serialized notification settings
         private class NotificationSettings
         {
             public bool GamebarShown { get; set; }

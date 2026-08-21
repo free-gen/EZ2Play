@@ -7,11 +7,10 @@ using NAudio.Wave;
 
 namespace EZ2Play.App
 {
-    // --------------- Класс управления громкостью волны ---------------
-
+    // Apply volume scaling to an underlying wave provider.
     internal sealed class VolumeWaveProvider : IWaveProvider
     {
-        // Максимальная громкость (2.0 = +6dB)
+        // Maximum volume level, where 2.0 is approximately +6 dB.
         private const float MaxVolume = 2f;
 
         private readonly IWaveProvider _source;
@@ -36,44 +35,49 @@ namespace EZ2Play.App
         public int Read(byte[] buffer, int offset, int count)
         {
             int read = _source.Read(buffer, offset, count);
+
             if (read <= 0) return read;
 
-            // Полная тишина
             if (_volume <= 0.001f)
             {
                 Array.Clear(buffer, offset, read);
                 return read;
             }
 
-            // Громкость без изменений (оптимизация)
+            // Skip scaling when the volume is effectively unchanged.
             if (_volume >= 0.999f && _volume <= 1.001f)
                 return read;
 
             int bps = WaveFormat.BitsPerSample;
 
-            // 16-bit PCM
             if (bps == 16)
             {
                 int sampleCount = read / 2;
+
                 for (int i = 0; i < sampleCount; i++)
                 {
                     int idx = offset + i * 2;
                     short s = (short)(buffer[idx] | (buffer[idx + 1] << 8));
                     int scaled = (int)(s * _volume);
+
                     scaled = Math.Max(short.MinValue, Math.Min(short.MaxValue, scaled));
+
                     buffer[idx] = (byte)(scaled & 0xFF);
                     buffer[idx + 1] = (byte)(scaled >> 8);
                 }
             }
-            // 32-bit Float
+
             else if (bps == 32 && WaveFormat.Encoding == WaveFormatEncoding.IeeeFloat)
             {
                 int sampleCount = read / 4;
+
                 for (int i = 0; i < sampleCount; i++)
                 {
                     int idx = offset + i * 4;
                     float s = BitConverter.ToSingle(buffer, idx) * _volume;
+
                     s = Math.Max(-1f, Math.Min(1f, s));
+
                     byte[] b = BitConverter.GetBytes(s);
                     Array.Copy(b, 0, buffer, idx, 4);
                 }
@@ -83,31 +87,20 @@ namespace EZ2Play.App
         }
     }
 
-    // --------------- Класс управления звуком (SFX + музыка) ---------------
-
     public class Sound : IDisposable
     {
-        // --------------- Настройки ---------------
-
-        // Отключение фоновой музыки (для отладки)
+        // Disable background music for debugging.
         public static bool DisableMusic { get; set; } = false;
 
-        // Громкость эффектов (0.0 - 2.0)
         private const float SfxVolume = 0.65f;
-
-        // Громкость фоновой музыки (0.0 - 2.0)
         private const float MusicVolume = 0.80f;
 
-        // Длительность fade in/out (мс)
         public const int FadeDurationMs = 1000;
 
-        // Ресурсы звуковых файлов
         private const string ResMove = "EZ2Play.Assets.Focus.mp3";
         private const string ResLaunch = "EZ2Play.Assets.Invoke.mp3";
         private const string ResBack = "EZ2Play.Assets.Back.mp3";
         private const string ResMenu = "EZ2Play.Assets.Ambient.mp3";
-
-        // --------------- Поля SFX ---------------
 
         private Mp3FileReader _moveReader;
         private Mp3FileReader _launchReader;
@@ -119,8 +112,6 @@ namespace EZ2Play.App
 
         private WaveOutEvent _sfxPlayer;
 
-        // --------------- Поля музыки ---------------
-
         private WaveOutEvent _backgroundPlayer;
         private Mp3FileReader _backgroundReader;
         private VolumeWaveProvider _musicVolumeProvider;
@@ -131,19 +122,13 @@ namespace EZ2Play.App
         private readonly object _musicStopLock = new object();
         private CancellationTokenSource _pendingMusicStopCts;
 
-        // --------------- Публичные свойства ---------------
-
         public bool IsBackgroundPlaying => _isBackgroundPlaying;
-
-        // --------------- Конструктор ---------------
 
         public Sound()
         {
             InitializeSfx();
             InitializeBackgroundMusic();
         }
-
-        // --------------- Инициализация SFX ---------------
 
         private void InitializeSfx()
         {
@@ -159,31 +144,37 @@ namespace EZ2Play.App
                 if (_launchStream != null) _launchReader = new Mp3FileReader(_launchStream);
                 if (_backStream != null) _backReader = new Mp3FileReader(_backStream);
             }
-            catch { }
-        }
 
-        // --------------- Инициализация музыки ---------------
+            catch
+            {
+            }
+        }
 
         private void InitializeBackgroundMusic()
         {
             try
             {
                 _menuStream = LoadSound(ResMenu, "Ambient.mp3");
+
                 if (_menuStream == null) return;
 
                 _backgroundReader = new Mp3FileReader(_menuStream);
+
                 var looped = new LoopStream(_backgroundReader);
                 var fadeProvider = new FadeWaveProvider(looped, 0f);
+
                 _musicVolumeProvider = new VolumeWaveProvider(fadeProvider, MusicVolume);
 
                 _backgroundPlayer = new WaveOutEvent();
                 _backgroundPlayer.Init(_musicVolumeProvider);
             }
-            catch { }
+
+            catch
+            {
+            }
         }
 
-        // --------------- Загрузка звуков ---------------
-
+        // Prefer ui.pack and fall back to the embedded resource.
         private static MemoryStream LoadSound(string resourceName, string fileName)
         {
             return PackLoader.LoadFromPack(fileName) ?? LoadEmbeddedToMemory(resourceName);
@@ -192,6 +183,7 @@ namespace EZ2Play.App
         private static MemoryStream LoadEmbeddedToMemory(string resourceName)
         {
             var assembly = Assembly.GetExecutingAssembly();
+
             using (var res = assembly.GetManifestResourceStream(resourceName))
             {
                 if (res == null) return null;
@@ -199,11 +191,10 @@ namespace EZ2Play.App
                 var ms = new MemoryStream();
                 res.CopyTo(ms);
                 ms.Position = 0;
+
                 return ms;
             }
         }
-
-        // --------------- Воспроизведение SFX ---------------
 
         public void PlayMoveSound() => PlaySfx(_moveReader);
         public void PlayLaunchSound() => PlaySfx(_launchReader);
@@ -219,21 +210,22 @@ namespace EZ2Play.App
                 reader.Position = 0;
 
                 var sfxWithVolume = new VolumeWaveProvider(reader, SfxVolume);
+
                 _sfxPlayer.Init(sfxWithVolume);
                 _sfxPlayer.Volume = 1f;
                 _sfxPlayer.Play();
             }
-            catch { }
-        }
 
-        // --------------- Управление фоновой музыкой ---------------
+            catch
+            {
+            }
+        }
 
         private void CancelPendingMusicStop()
         {
             lock (_musicStopLock)
             {
-                if (_pendingMusicStopCts == null)
-                    return;
+                if (_pendingMusicStopCts == null) return;
 
                 _pendingMusicStopCts.Cancel();
                 _pendingMusicStopCts = null;
@@ -244,25 +236,19 @@ namespace EZ2Play.App
         {
             CancelPendingMusicStop();
 
-            if (DisableMusic ||
-                _backgroundPlayer == null ||
-                _backgroundReader == null)
-            {
+            if (DisableMusic || _backgroundPlayer == null || _backgroundReader == null)
                 return;
-            }
 
             _isBackgroundPlaying = true;
             _backgroundReader.Position = 0;
             _backgroundPlayer.Play();
 
-            (_musicVolumeProvider.Source as FadeWaveProvider)?
-                .FadeTo(1f, fadeMs);
+            (_musicVolumeProvider.Source as FadeWaveProvider)?.FadeTo(1f, fadeMs);
         }
 
         public void StopBackgroundMusicSafe(int fadeMs = FadeDurationMs)
         {
-            if (_backgroundPlayer == null)
-                return;
+            if (_backgroundPlayer == null) return;
 
             CancellationTokenSource stopCts;
 
@@ -274,8 +260,7 @@ namespace EZ2Play.App
                 _pendingMusicStopCts = stopCts;
             }
 
-            (_musicVolumeProvider.Source as FadeWaveProvider)?
-                .FadeTo(0f, fadeMs);
+            (_musicVolumeProvider.Source as FadeWaveProvider)?.FadeTo(0f, fadeMs);
 
             Task.Run(async () =>
             {
@@ -285,13 +270,9 @@ namespace EZ2Play.App
 
                     lock (_musicStopLock)
                     {
-                        // Пока мы ждали, мог уже начаться новый Play
-                        // или новый Stop.
-                        if (stopCts.IsCancellationRequested ||
-                            !ReferenceEquals(_pendingMusicStopCts, stopCts))
-                        {
+                        // A new Play or Stop may have been requested while waiting.
+                        if (stopCts.IsCancellationRequested || !ReferenceEquals(_pendingMusicStopCts, stopCts))
                             return;
-                        }
 
                         _pendingMusicStopCts = null;
 
@@ -299,11 +280,12 @@ namespace EZ2Play.App
                         _backgroundPlayer?.Stop();
                     }
                 }
+
                 catch (TaskCanceledException)
                 {
-                    // Нормальный сценарий:
-                    // музыка снова понадобилась до завершения fade-out.
+                    // Expected when music is requested again before fade-out completes.
                 }
+
                 finally
                 {
                     stopCts.Dispose();
@@ -311,9 +293,7 @@ namespace EZ2Play.App
             });
         }
 
-        // --------------- Вспомогательные классы ---------------
-
-        // Провайдер с плавным изменением громкости (fade in/out)
+        // Apply smooth fade-in and fade-out volume changes.
         internal class FadeWaveProvider : IWaveProvider
         {
             private readonly IWaveProvider _source;
@@ -333,6 +313,7 @@ namespace EZ2Play.App
             public void FadeTo(float target, int milliseconds, int sampleRate = 44100)
             {
                 _targetVolume = target;
+
                 int steps = (milliseconds * sampleRate) / 1000;
                 _fadeStep = (_targetVolume - _currentVolume) / Math.Max(1, steps);
             }
@@ -340,40 +321,47 @@ namespace EZ2Play.App
             public int Read(byte[] buffer, int offset, int count)
             {
                 int read = _source.Read(buffer, offset, count);
+
                 if (read <= 0) return read;
 
                 int bps = WaveFormat.BitsPerSample;
 
-                // 16-bit PCM
                 if (bps == 16)
                 {
                     int samples = read / 2;
+
                     for (int i = 0; i < samples; i++)
                     {
                         int idx = offset + i * 2;
                         short s = (short)(buffer[idx] | (buffer[idx + 1] << 8));
+
                         s = (short)(s * _currentVolume);
+
                         buffer[idx] = (byte)(s & 0xFF);
                         buffer[idx + 1] = (byte)(s >> 8);
 
                         _currentVolume += _fadeStep;
+
                         if ((_fadeStep > 0 && _currentVolume > _targetVolume) ||
                             (_fadeStep < 0 && _currentVolume < _targetVolume))
                             _currentVolume = _targetVolume;
                     }
                 }
-                // 32-bit Float
+
                 else if (bps == 32 && WaveFormat.Encoding == WaveFormatEncoding.IeeeFloat)
                 {
                     int samples = read / 4;
+
                     for (int i = 0; i < samples; i++)
                     {
                         int idx = offset + i * 4;
                         float s = BitConverter.ToSingle(buffer, idx) * _currentVolume;
                         byte[] b = BitConverter.GetBytes(s);
+
                         Array.Copy(b, 0, buffer, idx, 4);
 
                         _currentVolume += _fadeStep;
+
                         if ((_fadeStep > 0 && _currentVolume > _targetVolume) ||
                             (_fadeStep < 0 && _currentVolume < _targetVolume))
                             _currentVolume = _targetVolume;
@@ -384,7 +372,7 @@ namespace EZ2Play.App
             }
         }
 
-        // Провайдер с зацикливанием потока (для фоновой музыки)
+        // Restart the source when it reaches the end.
         internal class LoopStream : IWaveProvider
         {
             private readonly IWaveProvider _source;
@@ -399,9 +387,11 @@ namespace EZ2Play.App
             public int Read(byte[] buffer, int offset, int count)
             {
                 int totalRead = 0;
+
                 while (totalRead < count)
                 {
                     int read = _source.Read(buffer, offset + totalRead, count - totalRead);
+
                     if (read == 0)
                     {
                         if (_source is Mp3FileReader mp3Reader)
@@ -409,18 +399,18 @@ namespace EZ2Play.App
                         else
                             break;
                     }
+
                     totalRead += read;
                 }
+
                 return totalRead;
             }
         }
 
-        // --------------- Очистка ресурсов ---------------
-
         public void Dispose()
         {
             CancelPendingMusicStop();
-            
+
             _isBackgroundPlaying = false;
 
             _sfxPlayer?.Stop();

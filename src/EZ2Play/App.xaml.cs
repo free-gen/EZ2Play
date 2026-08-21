@@ -1,13 +1,11 @@
 using System;
+using System.Threading;
 using System.Windows;
-using System.Windows.Media;
-using System.Windows.Threading;
-using Wpf.Ui.Appearance;
-using EZ2Play.App;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Shapes;
-using System.Threading;
+using Wpf.Ui.Appearance;
+using EZ2Play.App;
 
 namespace EZ2Play.Main
 {
@@ -20,15 +18,10 @@ namespace EZ2Play.Main
 
         protected override void OnStartup(StartupEventArgs e)
         {
-            // --------------- ЗАПРЕТ ВТОРОГО ЭКЗЕМПЛЯРА ---------------
-
+            // Prevent multiple application instances.
             bool createdNew;
 
-            _singleInstanceMutex = new Mutex(
-                true,
-                @"Local\EZ2Play.SingleInstance",
-                out createdNew);
-
+            _singleInstanceMutex = new Mutex(true, @"Local\EZ2Play.SingleInstance", out createdNew);
             _ownsSingleInstanceMutex = createdNew;
 
             if (!createdNew)
@@ -43,9 +36,7 @@ namespace EZ2Play.Main
             }
 
             DebugLog.Write("App", "Application startup.");
-            
-            // --------------- ОСНОВНОЙ ЗАПУСК ---------------
-            
+
             try
             {
                 Locals.Init();
@@ -70,7 +61,8 @@ namespace EZ2Play.Main
 
                 _mainWindow = new MainWindow(hotSwap);
 
-                EventManager.RegisterClassHandler(typeof(UIElement),
+                EventManager.RegisterClassHandler(
+                    typeof(UIElement),
                     UIElement.GotFocusEvent,
                     new RoutedEventHandler(OnAnyElementGotFocus));
 
@@ -80,6 +72,7 @@ namespace EZ2Play.Main
 
                 base.OnStartup(e);
             }
+
             catch (Exception ex)
             {
                 DebugLog.Error("App", ex, "Application startup failed.");
@@ -97,6 +90,7 @@ namespace EZ2Play.Main
                 {
                     _singleInstanceMutex.ReleaseMutex();
                 }
+
                 catch (ApplicationException)
                 {
                 }
@@ -109,6 +103,7 @@ namespace EZ2Play.Main
             base.OnExit(e);
         }
 
+        // Disable default focus visuals for non-interactive UI elements.
         private void OnAnyElementGotFocus(object sender, RoutedEventArgs e)
         {
             if (sender is FrameworkElement element)

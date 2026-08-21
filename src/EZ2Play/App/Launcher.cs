@@ -9,12 +9,8 @@ using System.Windows.Threading;
 
 namespace EZ2Play.App
 {
-    // --------------- Координатор логики карусели ---------------
-
     public class Launcher
     {
-        // --------------- Поля ---------------
-
         private readonly ListBox _itemsListBox;
         private readonly TextBlock _selectedGameTitle;
         private readonly MainWindow _mainWindow;
@@ -25,21 +21,14 @@ namespace EZ2Play.App
         private GameMetadata _metadata;
         private bool _launchCooldown;
 
-        // --------------- Публичные свойства ---------------
-
         public ShortcutInfo[] Shortcuts => _navigation?.Shortcuts ?? Array.Empty<ShortcutInfo>();
         public int SelectedIndex => _navigation?.SelectedIndex ?? -1;
         public GameMetadata Playtime => _metadata;
         public bool SkipScaleUpAnimationOnEdgeScroll { get; set; }
 
-        // --------------- События ---------------
-
         public event Action<int> SelectionChanged;
 
-        // --------------- Конструктор ---------------
-
-        public Launcher(ListBox itemsListBox, TextBlock selectedGameTitle, 
-                        MainWindow mainWindow, Sound audioManager)
+        public Launcher(ListBox itemsListBox, TextBlock selectedGameTitle, MainWindow mainWindow, Sound audioManager)
         {
             _itemsListBox = itemsListBox;
             _selectedGameTitle = selectedGameTitle;
@@ -48,20 +37,18 @@ namespace EZ2Play.App
             _metadata = new GameMetadata();
         }
 
-        // --------------- Загрузка и сортировка ---------------
-
         public void LoadShortcuts()
         {
             _defaultShortcuts = IconExtractor.LoadShortcuts();
             _navigation = new CarouselNavigation(_defaultShortcuts);
+
             ApplyVisibleWindow();
             UpdateSelectedName();
         }
 
         public void SortByLastPlayed()
         {
-            if (_defaultShortcuts.Length == 0)
-                return;
+            if (_defaultShortcuts.Length == 0) return;
 
             var sorted = _defaultShortcuts
                 .OrderByDescending(s => _metadata.GetLastPlayed(s.FullPath))
@@ -69,22 +56,21 @@ namespace EZ2Play.App
 
             _navigation = new CarouselNavigation(sorted);
             _navigation.ResetView();
+
             ApplyVisibleWindow();
             UpdateSelectedName();
         }
 
         public void SortDefault()
         {
-            if (_defaultShortcuts.Length == 0)
-                return;
+            if (_defaultShortcuts.Length == 0) return;
 
             _navigation = new CarouselNavigation(_defaultShortcuts);
             _navigation.ResetView();
+
             ApplyVisibleWindow();
             UpdateSelectedName();
         }
-
-        // --------------- Навигация ---------------
 
         public void MoveSelection(int direction)
         {
@@ -103,7 +89,7 @@ namespace EZ2Play.App
 
             int leftOffset = _navigation.HasLeftOverflow ? 1 : 0;
             _navigation.SetSelectedIndex(visibleIndex, leftOffset);
-            
+
             UpdateSelectedName();
             SelectionChanged?.Invoke(_navigation.SelectedIndex);
         }
@@ -116,18 +102,15 @@ namespace EZ2Play.App
             int previousAbsoluteIndex = _navigation.SelectedIndex;
 
             HandleSelectionChanged(currentVisibleIndex);
+
             int currentAbsoluteIndex = _navigation.SelectedIndex;
 
-            ApplySelectionAnimations(listBox, e, currentVisibleIndex, 
-                                     previousAbsoluteIndex, currentAbsoluteIndex);
+            ApplySelectionAnimations(listBox, e, currentVisibleIndex, previousAbsoluteIndex, currentAbsoluteIndex);
         }
-
-        // --------------- Запуск игры ---------------
 
         public async void LaunchSelected()
         {
-            if (_launchCooldown || _navigation.IsEmpty)
-                return;
+            if (_launchCooldown || _navigation.IsEmpty) return;
 
             _launchCooldown = true;
 
@@ -136,8 +119,7 @@ namespace EZ2Play.App
                 _sound?.PlayLaunchSound();
                 _mainWindow?.ShowLoadingUI(true);
 
-                var shortcutPath =
-                    _navigation.Shortcuts[_navigation.SelectedIndex].FullPath;
+                var shortcutPath = _navigation.Shortcuts[_navigation.SelectedIndex].FullPath;
 
                 Process.Start(new ProcessStartInfo
                 {
@@ -145,19 +127,15 @@ namespace EZ2Play.App
                     UseShellExecute = true
                 });
 
-                // Сессия начинается только после того,
-                // как Windows приняла команду запуска.
+                // Start the session only after Windows accepts the launch command.
                 _metadata.Start(shortcutPath);
             }
+
             catch (Exception ex)
             {
-                DebugLog.Error(
-                    "Launcher",
-                    ex,
-                    "Failed to launch selected shortcut.");
+                DebugLog.Error("Launcher", ex, "Failed to launch selected shortcut.");
 
-                Application.Current?.Dispatcher.Invoke(
-                    () => _mainWindow?.ShowLoadingUI(false));
+                Application.Current?.Dispatcher.Invoke(() => _mainWindow?.ShowLoadingUI(false));
             }
 
             await Task.Delay(2000);
@@ -166,14 +144,12 @@ namespace EZ2Play.App
 
         public void RefreshSelectedCover()
         {
-            if (_navigation == null || _navigation.IsEmpty || _navigation.SelectedIndex < 0)
-                return;
+            if (_navigation == null || _navigation.IsEmpty || _navigation.SelectedIndex < 0) return;
 
             var shortcut = _navigation.Shortcuts[_navigation.SelectedIndex];
             var cover = IconExtractor.GetCustomCover(shortcut.FullPath);
 
-            if (cover == null)
-                return;
+            if (cover == null) return;
 
             shortcut.Icon = cover;
 
@@ -182,8 +158,6 @@ namespace EZ2Play.App
             ApplyVisibleWindow();
             UpdateSelectedName();
         }
-
-        // --------------- UI синхронизация ---------------
 
         private void ApplyVisibleWindow(bool updateItemsSource = true)
         {
@@ -200,6 +174,7 @@ namespace EZ2Play.App
             }
 
             int visibleIndex = _navigation.GetSelectedVisibleIndex();
+
             if (visibleIndex >= 0 && visibleIndex < (_itemsListBox.Items?.Count ?? 0))
                 _itemsListBox.SelectedIndex = visibleIndex;
         }
@@ -208,24 +183,23 @@ namespace EZ2Play.App
         {
             if (_selectedGameTitle == null || _navigation.IsEmpty) return;
 
-            _selectedGameTitle.Text = _navigation.SelectedIndex >= 0 
-                ? _navigation.Shortcuts[_navigation.SelectedIndex].DisplayName 
+            _selectedGameTitle.Text = _navigation.SelectedIndex >= 0
+                ? _navigation.Shortcuts[_navigation.SelectedIndex].DisplayName
                 : string.Empty;
         }
 
-        private void ApplySelectionAnimations(ListBox listBox, SelectionChangedEventArgs e,
-                                              int currentVisibleIndex, int previousAbsoluteIndex,
-                                              int currentAbsoluteIndex)
+        private void ApplySelectionAnimations(ListBox listBox, SelectionChangedEventArgs e, int currentVisibleIndex, int previousAbsoluteIndex, int currentAbsoluteIndex)
         {
             bool wasWindowShift = _navigation.ConsumePendingWindowShiftAnimation();
             bool skipScaleUp = wasWindowShift && SkipScaleUpAnimationOnEdgeScroll;
 
             int fallbackPreviousIndex = _navigation.GetFallbackPreviousIndex(
-                currentVisibleIndex, previousAbsoluteIndex, currentAbsoluteIndex,
+                currentVisibleIndex,
+                previousAbsoluteIndex,
+                currentAbsoluteIndex,
                 listBox.Items.Count);
 
-            CarouselAnimation.AnimateSelectionChanged(listBox, e, fallbackPreviousIndex, 
-                                                       skipScaleUp: skipScaleUp);
+            CarouselAnimation.AnimateSelectionChanged(listBox, e, fallbackPreviousIndex, skipScaleUp: skipScaleUp);
         }
     }
 }

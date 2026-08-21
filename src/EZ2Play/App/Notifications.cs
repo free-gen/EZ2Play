@@ -13,7 +13,6 @@ namespace EZ2Play.App
         private Border _NotificationPanel;
         private TextBlock _NotificationText;
 
-        // очередь уведомлений
         private readonly Queue<Action> _queue = new Queue<Action>();
         private bool _running;
 
@@ -22,7 +21,7 @@ namespace EZ2Play.App
             _ui = uiRegistry;
         }
 
-        // Инициализация UI-элементов (вызывается из UIRegistry после того как они найдены)
+        // Initialize UI elements after they are resolved by UIRegistry.
         public void Initialize(Border NotificationPanel, TextBlock NotificationText)
         {
             _NotificationPanel = NotificationPanel;
@@ -32,6 +31,7 @@ namespace EZ2Play.App
         private void Enqueue(Action action)
         {
             _queue.Enqueue(action);
+
             if (!_running)
                 ProcessNext();
         }
@@ -45,6 +45,7 @@ namespace EZ2Play.App
             }
 
             _running = true;
+
             var action = _queue.Dequeue();
             action.Invoke();
         }
@@ -54,7 +55,7 @@ namespace EZ2Play.App
             ProcessNext();
         }
 
-        // Основной метод показа уведомления с анимацией
+        // Show a notification with delayed fade-in and fade-out animation.
         private void Show(string text, double delaySeconds, double displaySeconds, Action onComplete = null)
         {
             if (_NotificationPanel == null || _NotificationText == null)
@@ -129,8 +130,6 @@ namespace EZ2Play.App
             delay.Start();
         }
 
-        // ====== Публичные методы уведомлений ======
-        
         public void Debug(double delaySeconds, double displaySeconds)
         {
             Enqueue(() => Show(Locals.GetString("MessageTest"), delaySeconds, displaySeconds, Done));

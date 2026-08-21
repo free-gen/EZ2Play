@@ -10,17 +10,13 @@ using System.Windows.Threading;
 
 namespace EZ2Play.App
 {
-    // --------------- Класс управления состоянием UI-элементов ---------------
-
     public class UIRegistry
     {
-        // --------------- Свойства UI-элементов ---------------
-
         public Image SplashLogo { get; set; }
         public Grid SplashOverlay { get; set; }
         public TextBlock NoShortcutsMessage { get; set; }
         public TextBlock ExitMessageText { get; set; }
-        
+
         public Grid TopPanel { get; set; }
         public TextBlock TabGamelistText { get; set; }
         public TextBlock TabLastPlayedText { get; set; }
@@ -28,7 +24,7 @@ namespace EZ2Play.App
         public TextBlock NotificationText { get; set; }
         public Notifications Notifications { get; private set; }
         public Image UserAvatar { get; set; }
-        public TextBlock TimeLabel { get; set; } 
+        public TextBlock TimeLabel { get; set; }
 
         public Border GameSourceCard { get; set; }
         public Grid MainScreenGrid { get; set; }
@@ -37,45 +33,34 @@ namespace EZ2Play.App
         public TextBlock GameCounterText { get; set; }
         public ListBox ItemsListBox { get; set; }
         public Grid CarouselWrapper { get; set; }
-        public Image BackgroundImage { get; set; }        
-        
-        public HintPanel BottomHintPanel { get; set; }
+        public Image BackgroundImage { get; set; }
 
-        // --------------- Поля класса ---------------
+        public HintPanel BottomHintPanel { get; set; }
 
         private bool UseImageBackground => BackgroundImage?.Source != null;
         private SplashScreen _splash;
         private ParticlesCanvas _particlesCanvas;
         private Wpf.Ui.Controls.ProgressRing _loadingRing;
 
-        // --------------- Конструктор ---------------
-
-        public UIRegistry() 
+        public UIRegistry()
         {
             Notifications = new Notifications(this);
         }
 
-        // --------------- Инициализация ---------------
-
-        // Инициализация заставки
         public void InitializeSplash(Image logo, Grid overlay, Grid mainScreen)
         {
             _splash = new SplashScreen(logo, overlay, mainScreen);
         }
 
-        // Инициализация уведомлений
         public void InitializeNotifications(Border NotificationPanel, TextBlock NotificationText)
         {
             Notifications.Initialize(NotificationPanel, NotificationText);
         }
 
-        // Инициализация времени
         public void InitializeClock()
         {
-            // Устанавливаем время один раз сразу
             UpdateClockDisplay();
-            
-            // Запускаем таймер через SystemProvider
+
             SystemProvider.StartClock((time) =>
             {
                 if (TimeLabel != null)
@@ -83,20 +68,18 @@ namespace EZ2Play.App
             });
         }
 
-        // Обновляет отображение времени (ручной вызов при необходимости)
         public void UpdateClockDisplay()
         {
             if (TimeLabel != null)
                 TimeLabel.Text = SystemProvider.GetCurrentTime();
         }
 
-        // Загружает и отображает аватар пользователя
         public void LoadUserAvatar()
         {
             if (UserAvatar == null) return;
 
             var avatar = SystemProvider.GetUserAvatar();
-            
+
             if (avatar == null)
             {
                 UserAvatar.Visibility = Visibility.Collapsed;
@@ -106,20 +89,19 @@ namespace EZ2Play.App
             UserAvatar.Source = avatar;
             UserAvatar.Visibility = Visibility.Visible;
 
-            // Подписываемся на события для обрезки в круг
+            // Keep the avatar clipped to a circle when its size changes.
             UserAvatar.Loaded += (s, e) => ClipAvatarToCircle();
             UserAvatar.SizeChanged += (s, e) => ClipAvatarToCircle();
         }
 
-        // Обрезает аватар в круг
         private void ClipAvatarToCircle()
         {
             var r = UserAvatar.ActualWidth / 2;
+
             if (r > 0)
                 UserAvatar.Clip = new EllipseGeometry(new Point(r, r), r, r);
         }
 
-        // Показывает или скрывает основной экран в зависимости от наличия ярлыков
         public void SetEmptyState(bool isEmpty)
         {
             if (MainScreenGrid != null)
@@ -131,8 +113,6 @@ namespace EZ2Play.App
             if (NoShortcutsMessage != null)
                 NoShortcutsMessage.Visibility = isEmpty ? Visibility.Visible : Visibility.Collapsed;
         }
-
-        // --------------- Экран выхода ---------------
 
         public void ShowExitOverlay()
         {
@@ -161,8 +141,6 @@ namespace EZ2Play.App
             }
         }
 
-        // --------------- Сплеш-экран ---------------
-
         public void RunSplashSequence(Action onComplete)
         {
             _splash?.RunSequence(onComplete);
@@ -173,18 +151,14 @@ namespace EZ2Play.App
             _splash?.ShowWithAnimation(skipSplash, onAfterSplash);
         }
 
-        // --------------- Счетчик времени ---------------
-
         public void UpdatePlaytimeDisplay(string text, bool visible)
         {
             if (GameCounterText != null)
                 GameCounterText.Text = text;
-            
+
             if (GameCounterCard != null)
                 GameCounterCard.Visibility = visible ? Visibility.Visible : Visibility.Collapsed;
         }
-
-        // --------------- Индикатор загрузки ---------------
 
         public void InitializeLoadingRing(Wpf.Ui.Controls.ProgressRing ring)
         {
@@ -196,20 +170,16 @@ namespace EZ2Play.App
             if (_loadingRing != null)
                 _loadingRing.Visibility = show ? Visibility.Visible : Visibility.Collapsed;
         }
-        
-        // --------------- Иконки подсказок ---------------
 
         public void RefreshHintIcons(bool isGamepad)
         {
             if (BottomHintPanel != null)
             {
-                BottomHintPanel.Device = isGamepad 
-                    ? HintPanel.InputDevice.Gamepad 
+                BottomHintPanel.Device = isGamepad
+                    ? HintPanel.InputDevice.Gamepad
                     : HintPanel.InputDevice.Keyboard;
             }
         }
-
-        // --------------- Загрузка ресурсов ---------------
 
         public bool LoadBackgroundImage()
         {
@@ -218,6 +188,7 @@ namespace EZ2Play.App
             try
             {
                 var bgFromPack = PackLoader.LoadFromPack("Bg.jpg") ?? PackLoader.LoadFromPack("Bg.png");
+
                 if (bgFromPack != null)
                 {
                     var decoder = BitmapDecoder.Create(
@@ -242,7 +213,10 @@ namespace EZ2Play.App
                     return true;
                 }
             }
-            catch { }
+
+            catch
+            {
+            }
 
             BackgroundImage.Source = null;
             BackgroundImage.Visibility = Visibility.Collapsed;
@@ -270,6 +244,7 @@ namespace EZ2Play.App
                 BackgroundImage.Visibility = Visibility.Visible;
                 BackgroundImage.BeginAnimation(UIElement.OpacityProperty, bgAnim);
             }
+
             else
             {
                 _particlesCanvas?.SetParticlesVisible(visible, true, 0.2);
@@ -280,8 +255,6 @@ namespace EZ2Play.App
         {
             _particlesCanvas = canvas;
         }
-
-        // --------------- Очистка ресурсов ---------------
 
         public void Dispose()
         {

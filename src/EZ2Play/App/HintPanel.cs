@@ -11,15 +11,21 @@ namespace EZ2Play.App
         public enum InputDevice { Keyboard, Gamepad }
 
         private StackPanel _container;
-        
+
         private Dictionary<string, (string glyph, string pathKey, Brush color)> _buttonIcons;
 
         public static readonly DependencyProperty ModeProperty =
-            DependencyProperty.Register(nameof(Mode), typeof(HintMode), typeof(HintPanel),
+            DependencyProperty.Register(
+                nameof(Mode),
+                typeof(HintMode),
+                typeof(HintPanel),
                 new PropertyMetadata(HintMode.Main, OnModeChanged));
 
         public static readonly DependencyProperty DeviceProperty =
-            DependencyProperty.Register(nameof(Device), typeof(InputDevice), typeof(HintPanel),
+            DependencyProperty.Register(
+                nameof(Device),
+                typeof(InputDevice),
+                typeof(HintPanel),
                 new PropertyMetadata(InputDevice.Keyboard, OnDeviceChanged));
 
         public HintMode Mode
@@ -34,26 +40,25 @@ namespace EZ2Play.App
             set => SetValue(DeviceProperty, value);
         }
 
-        // Словарь иконок
         public HintPanel()
         {
             _buttonIcons = new Dictionary<string, (string, string, Brush)>
             {
-                ["BtnA"]     = ("\uE3CE", "KeyEnter", new SolidColorBrush(Color.FromRgb(0x30, 0xC8, 0x30))),
-                ["BtnB"]     = ("\uE3CD", "KeyEscape", new SolidColorBrush(Color.FromRgb(0xEB, 0x1E, 0x00))),
-                ["BtnX"]     = ("\uE3CB", "KeyX", new SolidColorBrush(Color.FromRgb(0x00, 0xA0, 0xE0))),
-                ["BtnY"]     = ("\uE3CC", "KeyY", new SolidColorBrush(Color.FromRgb(0xFF, 0xB9, 0x00))),
+                ["BtnA"] = ("\uE3CE", "KeyEnter", new SolidColorBrush(Color.FromRgb(0x30, 0xC8, 0x30))),
+                ["BtnB"] = ("\uE3CD", "KeyEscape", new SolidColorBrush(Color.FromRgb(0xEB, 0x1E, 0x00))),
+                ["BtnX"] = ("\uE3CB", "KeyX", new SolidColorBrush(Color.FromRgb(0x00, 0xA0, 0xE0))),
+                ["BtnY"] = ("\uE3CC", "KeyY", new SolidColorBrush(Color.FromRgb(0xFF, 0xB9, 0x00))),
                 ["BtnLb"] = ("\uE3ED", null, new SolidColorBrush(Color.FromRgb(0xD3, 0xD3, 0xD3))),
                 ["BtnRb"] = ("\uE3EB", null, new SolidColorBrush(Color.FromRgb(0xD3, 0xD3, 0xD3))),
                 ["BtnStart"] = ("\uE3EC", "KeyEscape", new SolidColorBrush(Color.FromRgb(0xD3, 0xD3, 0xD3))),
                 ["BtnXbox"] = ("\uE636", null, new SolidColorBrush(Color.FromRgb(0xD3, 0xD3, 0xD3))),
-                ["BtnXboxFill"] = ("\uE3E3", null, new SolidColorBrush(Color.FromRgb(0xD3, 0xD3, 0xD3))),
+                ["BtnXboxFill"] = ("\uE3E3", null, new SolidColorBrush(Color.FromRgb(0xD3, 0xD3, 0xD3)))
             };
 
             Style = Application.Current.FindResource("HintCardStyle") as Style;
             HorizontalAlignment = HorizontalAlignment.Right;
             VerticalAlignment = VerticalAlignment.Bottom;
-            
+
             Render();
         }
 
@@ -65,19 +70,20 @@ namespace EZ2Play.App
             _container = new StackPanel { Orientation = Orientation.Horizontal };
             Child = _container;
 
-            // Разметка основного экрана
             if (Mode == HintMode.Main)
             {
                 _container.Children.Add(CreateHintBlock("BtnA", Locals.GetString("Launch")));
                 _container.Children.Add(CreateHintBlock("BtnX", Locals.GetString("ParserOverlay")));
                 _container.Children.Add(CreateHintBlock("BtnStart", Locals.GetString("SettingsOverlay")));
             }
+
             else if (Mode == HintMode.ParserGames)
             {
                 _container.Children.Add(CreateHintBlock("BtnA", Locals.GetString("Select")));
                 _container.Children.Add(CreateHintBlock("BtnY", Locals.GetString("Search")));
                 _container.Children.Add(CreateHintBlock("BtnB", Locals.GetString("Back")));
             }
+
             else
             {
                 _container.Children.Add(CreateHintBlock("BtnA", Locals.GetString("Select")));
@@ -87,11 +93,12 @@ namespace EZ2Play.App
 
         private FrameworkElement CreateHintBlock(string buttonKey, string text)
         {
-            var stack = new StackPanel 
-            { 
-                Orientation = Orientation.Horizontal, 
+            var stack = new StackPanel
+            {
+                Orientation = Orientation.Horizontal,
                 VerticalAlignment = VerticalAlignment.Center
             };
+
             stack.SetResourceReference(StackPanel.MarginProperty, UiScaleKeys.HintBlockMargin);
 
             var icon = _buttonIcons[buttonKey];
@@ -102,29 +109,29 @@ namespace EZ2Play.App
                 viewbox.SetResourceReference(Viewbox.HeightProperty, UiScaleKeys.HintIconHeightGamepad);
                 viewbox.Stretch = Stretch.Uniform;
                 viewbox.VerticalAlignment = VerticalAlignment.Center;
-                
+
                 viewbox.Child = new TextBlock
                 {
                     Text = icon.glyph,
                     FontFamily = (FontFamily)Application.Current.Resources["XboxFont"],
-                    // FontWeight = FontWeights.SemiBold,
                     Foreground = icon.color
                 };
-                
+
                 stack.Children.Add(viewbox);
             }
+
             else if (Device == InputDevice.Keyboard && icon.pathKey != null)
             {
                 var viewbox = new Viewbox();
                 viewbox.SetResourceReference(Viewbox.HeightProperty, UiScaleKeys.HintIconHeightKeyboard);
                 viewbox.Stretch = Stretch.Uniform;
                 viewbox.VerticalAlignment = VerticalAlignment.Center;
-                
+
                 viewbox.Child = new ContentPresenter
                 {
                     Content = Application.Current.FindResource(icon.pathKey)
                 };
-                
+
                 stack.Children.Add(viewbox);
             }
 
@@ -134,9 +141,10 @@ namespace EZ2Play.App
                 Style = Application.Current.FindResource("HintTextStyle") as Style,
                 VerticalAlignment = VerticalAlignment.Center
             };
+
             textBlock.SetResourceReference(TextBlock.MarginProperty, UiScaleKeys.HintTextMargin);
             textBlock.SetResourceReference(TextBlock.FontSizeProperty, UiScaleKeys.HintTextFontSize);
-            
+
             stack.Children.Add(textBlock);
 
             return stack;

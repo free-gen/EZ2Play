@@ -7,24 +7,17 @@ using System.Windows.Shapes;
 
 namespace EZ2Play.App
 {
-    // --------------- Элемент карусели для рендеринга иконки ярлыка ---------------
-
     public class CarouselItem : ContentControl
     {
-        // --------------- Константы анимации ---------------
-
         private const double GlowStartOffset = -2;
         private const double GlowEndOffset = 2;
         private const double AnimDuration = 1.5;
         private const double AnimDelay = 4;
 
-        // --------------- Статические поля для глобального управления анимацией ---------------
-
+        // Active items share one global rendering loop.
         private static readonly HashSet<CarouselItem> _activeItems = new HashSet<CarouselItem>();
         private static DateTime _startTime = DateTime.UtcNow;
         private static bool _isRenderingHooked = false;
-
-        // --------------- Dependency Properties ---------------
 
         public static readonly DependencyProperty IsSelectedProperty =
             DependencyProperty.Register(
@@ -52,17 +45,11 @@ namespace EZ2Play.App
             set => SetValue(GlowOffsetProperty, value);
         }
 
-        // --------------- Поля класса ---------------
-
         private readonly Rectangle _cover;
         private readonly Rectangle _background;
 
-        // --------------- Кэш кистей ---------------
-
         private static readonly Dictionary<string, ImageBrush> BrushCache = new Dictionary<string, ImageBrush>();
         private static readonly object CacheLock = new object();
-
-        // --------------- Конструктор ---------------
 
         public CarouselItem()
         {
@@ -99,9 +86,6 @@ namespace EZ2Play.App
             }
         }
 
-        // --------------- Обработчики событий ---------------
-
-        // Изменение свойства IsSelected
         private static void OnIsSelectedChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
             var item = (CarouselItem)d;
@@ -112,6 +96,7 @@ namespace EZ2Play.App
             {
                 _activeItems.Add(item);
             }
+
             else
             {
                 _activeItems.Remove(item);
@@ -121,7 +106,7 @@ namespace EZ2Play.App
             item.InvalidateVisual();
         }
 
-        // Глобальный рендеринг для анимации
+        // Advance the glow animation for all selected items.
         private static void OnRendering(object sender, EventArgs e)
         {
             var now = DateTime.UtcNow;
@@ -136,16 +121,15 @@ namespace EZ2Play.App
             }
         }
 
-        // Обновление эффекта свечения
         private void UpdateGlow(double t)
         {
-            if (!IsSelected)
-                return;
+            if (!IsSelected) return;
 
             if (t < AnimDelay)
             {
                 GlowOffset = GlowStartOffset;
             }
+
             else
             {
                 double animT = (t - AnimDelay) / AnimDuration;
@@ -156,13 +140,10 @@ namespace EZ2Play.App
             InvalidateVisual();
         }
 
-        // Изменение DataContext
         private void OnDataContextChanged(object sender, DependencyPropertyChangedEventArgs e)
         {
             UpdateContent();
         }
-
-        // --------------- Обновление контента ---------------
 
         private void UpdateContent()
         {
@@ -172,20 +153,18 @@ namespace EZ2Play.App
             _cover.StrokeThickness = 0;
         }
 
-        // --------------- Измерение и компоновка ---------------
-
         protected override Size MeasureOverride(Size availableSize)
         {
             double size = Math.Min(availableSize.Width, availableSize.Height);
-            
+
             if (size <= 0 || double.IsNaN(size) || double.IsInfinity(size))
                 size = CarouselLayout.NormalSize;
-            
+
             _cover.Width = size;
             _cover.Height = size;
             _background.Width = size;
             _background.Height = size;
-            
+
             if (TryFindResource(UiScaleKeys.ItemCornerRadius) is double r)
             {
                 _cover.RadiusX = r;
@@ -193,18 +172,15 @@ namespace EZ2Play.App
                 _background.RadiusX = r;
                 _background.RadiusY = r;
             }
-            
+
             return new Size(size, size);
         }
-
-        // --------------- Отрисовка селектора ---------------
 
         protected override void OnRender(DrawingContext dc)
         {
             base.OnRender(dc);
 
-            if (!IsSelected)
-                return;
+            if (!IsSelected) return;
 
             double thickness = (double)TryFindResource(UiScaleKeys.SelectorThickness);
             double spacing = (double)TryFindResource(UiScaleKeys.SelectorSpacing);
@@ -215,8 +191,7 @@ namespace EZ2Play.App
                 -spacing - half,
                 -spacing - half,
                 ActualWidth + (spacing + half) * 2,
-                ActualHeight + (spacing + half) * 2
-            );
+                ActualHeight + (spacing + half) * 2);
 
             var baseBrush = (SolidColorBrush)FindResource("FocusStrokeColorOuterBrush");
             Color c = baseBrush.Color;
@@ -225,14 +200,14 @@ namespace EZ2Play.App
 
             var brush = new LinearGradientBrush
             {
-                StartPoint = new Point(0,0),
-                EndPoint = new Point(1,0),
-                RelativeTransform = new RotateTransform(45,0.5,0.5),
+                StartPoint = new Point(0, 0),
+                EndPoint = new Point(1, 0),
+                RelativeTransform = new RotateTransform(45, 0.5, 0.5),
                 GradientStops = new GradientStopCollection
                 {
-                    new GradientStop(Color.FromArgb((byte)(0.55*255),c.R,c.G,c.B), o - 0.75),
-                    new GradientStop(Color.FromArgb((byte)(1.0*255),c.R,c.G,c.B), o),
-                    new GradientStop(Color.FromArgb((byte)(0.55*255),c.R,c.G,c.B), o + 0.75)
+                    new GradientStop(Color.FromArgb((byte)(0.55 * 255), c.R, c.G, c.B), o - 0.75),
+                    new GradientStop(Color.FromArgb((byte)(1.0 * 255), c.R, c.G, c.B), o),
+                    new GradientStop(Color.FromArgb((byte)(0.55 * 255), c.R, c.G, c.B), o + 0.75)
                 }
             };
 
@@ -241,22 +216,16 @@ namespace EZ2Play.App
 
             double radius = (double)TryFindResource(UiScaleKeys.ItemCornerRadius) + radiusOffset;
 
-            dc.DrawRoundedRectangle(
-                null,
-                pen,
-                rect,
-                radius,
-                radius);
+            dc.DrawRoundedRectangle(null, pen, rect, radius, radius);
         }
 
-        // --------------- Кэширование кистей ---------------
-
+        // Reuse frozen brushes for shortcut images across carousel items.
         private static ImageBrush GetCachedImageBrush(ImageSource source, string shortcutFullPath)
         {
-            string key = !string.IsNullOrEmpty(shortcutFullPath) 
-                ? shortcutFullPath 
-                : ("img_" + (source?.GetHashCode() ?? 0));
-            
+            string key = !string.IsNullOrEmpty(shortcutFullPath)
+                ? shortcutFullPath
+                : "img_" + (source?.GetHashCode() ?? 0);
+
             lock (CacheLock)
             {
                 if (BrushCache.TryGetValue(key, out var brush))
@@ -268,11 +237,11 @@ namespace EZ2Play.App
                 brush = new ImageBrush(source) { Stretch = Stretch.UniformToFill };
                 brush.Freeze();
                 BrushCache[key] = brush;
+
                 return brush;
             }
         }
 
-        // Очистка кэша кистей
         public static void ClearBrushCache()
         {
             lock (CacheLock)

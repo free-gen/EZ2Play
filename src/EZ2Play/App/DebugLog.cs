@@ -47,9 +47,10 @@ namespace EZ2Play.App
                     File.AppendAllText(LogPath, line);
                 }
             }
+
             catch
             {
-                // Диагностика никогда не должна ломать приложение.
+                // Diagnostics must never break the application.
             }
         }
     }

@@ -10,16 +10,10 @@ namespace EZ2Play.App
 {
     public static class TabsAnimation
     {
-        // Анимация переключения табов (Gamelist / LastPlayed)
-        public static async Task AnimateCarouselSwitch(
-            Grid carouselWrapper,
-            Dispatcher dispatcher,
-            double windowWidth,
-            Action sortAction,
-            int direction)
+        // Animate carousel switching between Gamelist and LastPlayed.
+        public static async Task AnimateCarouselSwitch(Grid carouselWrapper, Dispatcher dispatcher, double windowWidth, Action sortAction, int direction)
         {
-            if (carouselWrapper == null)
-                return;
+            if (carouselWrapper == null) return;
 
             if (carouselWrapper.CacheMode == null)
                 carouselWrapper.CacheMode = new BitmapCache();
@@ -46,6 +40,7 @@ namespace EZ2Play.App
 
             var duration = TimeSpan.FromMilliseconds(150);
             var fadeIn = new DoubleAnimation(0, 1, duration);
+
             var slide = new DoubleAnimation(transform.X, 0, duration)
             {
                 EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut }
@@ -67,7 +62,7 @@ namespace EZ2Play.App
             transform.BeginAnimation(TranslateTransform.XProperty, slide);
         }
 
-        // Анимация текста вкладки (активная/неактивная)
+        // Animate the active and inactive tab text states.
         public static void AnimateTabText(TextBlock text, bool active)
         {
             var anim = new DoubleAnimation
@@ -81,15 +76,12 @@ namespace EZ2Play.App
 
             if (active)
             {
-                text.SetResourceReference(
-                    TextBlock.FontSizeProperty,
-                    UiScaleKeys.TopInfoPrimalyFontSize);
+                text.SetResourceReference(TextBlock.FontSizeProperty, UiScaleKeys.TopInfoPrimalyFontSize);
             }
+
             else
             {
-                text.SetResourceReference(
-                    TextBlock.FontSizeProperty,
-                    UiScaleKeys.TopInfoSecondaryFontSize);
+                text.SetResourceReference(TextBlock.FontSizeProperty, UiScaleKeys.TopInfoSecondaryFontSize);
             }
 
             text.FontWeight = active ? FontWeights.ExtraBold : FontWeights.Medium;

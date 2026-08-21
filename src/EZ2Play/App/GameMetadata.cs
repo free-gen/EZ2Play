@@ -18,30 +18,18 @@ namespace EZ2Play.App
 
         public GameMetadata()
         {
-            string appData =
-                Environment.GetFolderPath(
-                    Environment.SpecialFolder.ApplicationData);
+            string appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+            string folder = Path.Combine(appData, AppInfo.Name);
 
-            string folder =
-                Path.Combine(
-                    appData,
-                    AppInfo.Name);
-
-            _filePath =
-                Path.Combine(
-                    folder,
-                    "metadata.json");
-
-            _backupPath =
-                _filePath + ".bak";
+            _filePath = Path.Combine(folder, "metadata.json");
+            _backupPath = _filePath + ".bak";
 
             Load();
         }
 
         public DateTime GetLastPlayed(string gameId)
         {
-            gameId =
-                NormalizeGameId(gameId);
+            gameId = NormalizeGameId(gameId);
 
             if (_data.ContainsKey(gameId))
                 return _data[gameId].LastPlayed;
@@ -49,55 +37,39 @@ namespace EZ2Play.App
             return DateTime.MinValue;
         }
 
-        // ========================= СЕССИЯ =========================
-
         public void Start(string gameId)
         {
-            _currentGameId =
-                NormalizeGameId(gameId);
-
-            _startTime =
-                DateTime.Now;
-
+            _currentGameId = NormalizeGameId(gameId);
+            _startTime = DateTime.Now;
             _isRunning = true;
 
             if (!_data.ContainsKey(_currentGameId))
             {
-                _data[_currentGameId] =
-                    new PlaytimeEntry();
+                _data[_currentGameId] = new PlaytimeEntry();
             }
 
-            // LastPlayed означает факт успешного запуска.
-            // Launcher вызывает Start только после успешного Process.Start().
-            _data[_currentGameId].LastPlayed =
-                _startTime;
+            // LastPlayed records a successful launch.
+            // Start is called only after Process.Start() succeeds.
+            _data[_currentGameId].LastPlayed = _startTime;
 
             Save();
         }
 
         public void Stop()
         {
-            if (!_isRunning ||
-                _currentGameId == null)
-            {
-                return;
-            }
+            if (!_isRunning || _currentGameId == null) return;
 
-            var session =
-                DateTime.Now - _startTime;
+            var session = DateTime.Now - _startTime;
 
-            // Playtime учитываем по старому правилу:
-            // только сессии продолжительностью >= 10 секунд.
+            // Count playtime only for sessions lasting at least 10 seconds.
             if (session.TotalSeconds >= 10)
             {
                 if (!_data.ContainsKey(_currentGameId))
                 {
-                    _data[_currentGameId] =
-                        new PlaytimeEntry();
+                    _data[_currentGameId] = new PlaytimeEntry();
                 }
 
-                _data[_currentGameId].Playtime +=
-                    (int)session.TotalSeconds;
+                _data[_currentGameId].Playtime += (int)session.TotalSeconds;
 
                 Save();
             }
@@ -106,12 +78,9 @@ namespace EZ2Play.App
             _currentGameId = null;
         }
 
-        // ========================= ДАННЫЕ =========================
-
         public int GetSeconds(string gameId)
         {
-            gameId =
-                NormalizeGameId(gameId);
+            gameId = NormalizeGameId(gameId);
 
             if (_data.ContainsKey(gameId))
                 return _data[gameId].Playtime;
@@ -119,27 +88,19 @@ namespace EZ2Play.App
             return 0;
         }
 
-        // ========================= ФОРМАТ =========================
-
-        public (int value, bool isHours)
-            GetFormattedValue(string gameId)
+        public (int value, bool isHours) GetFormattedValue(string gameId)
         {
-            int seconds =
-                GetSeconds(gameId);
+            int seconds = GetSeconds(gameId);
 
             if (seconds == 0)
                 return (0, false);
 
-            var ts =
-                TimeSpan.FromSeconds(seconds);
+            var ts = TimeSpan.FromSeconds(seconds);
 
             if (ts.TotalHours >= 1)
             {
-                int hours =
-                    (int)ts.TotalHours;
-
-                int minutes =
-                    ts.Minutes;
+                int hours = (int)ts.TotalHours;
+                int minutes = ts.Minutes;
 
                 if (minutes >= 50)
                     hours++;
@@ -147,14 +108,10 @@ namespace EZ2Play.App
                 return (hours, true);
             }
 
-            int totalMinutes =
-                (int)Math.Ceiling(
-                    ts.TotalMinutes);
+            int totalMinutes = (int)Math.Ceiling(ts.TotalMinutes);
 
             return (totalMinutes, false);
         }
-
-        // ========================= JSON =========================
 
         private string NormalizeGameId(string path)
         {
@@ -165,111 +122,80 @@ namespace EZ2Play.App
         {
             Dictionary<string, PlaytimeEntry> loaded;
 
-            if (TryLoadFile(
-                    _filePath,
-                    out loaded))
+            if (TryLoadFile(_filePath, out loaded))
             {
                 _data = loaded;
                 return;
             }
 
-            if (TryLoadFile(
-                    _backupPath,
-                    out loaded))
+            if (TryLoadFile(_backupPath, out loaded))
             {
                 _data = loaded;
 
-                DebugLog.Write(
-                    "Metadata",
-                    "metadata.json could not be loaded. Backup recovered successfully.");
+                DebugLog.Write("Metadata", "metadata.json could not be loaded. Backup recovered successfully.");
 
                 RestorePrimaryFromBackup();
 
                 return;
             }
 
-            _data =
-                new Dictionary<string, PlaytimeEntry>(
-                    StringComparer.OrdinalIgnoreCase);
+            _data = new Dictionary<string, PlaytimeEntry>(StringComparer.OrdinalIgnoreCase);
 
-            if (File.Exists(_filePath) ||
-                File.Exists(_backupPath))
+            if (File.Exists(_filePath) || File.Exists(_backupPath))
             {
-                DebugLog.Write(
-                    "Metadata",
-                    "metadata.json and backup could not be loaded. Empty metadata was used.");
+                DebugLog.Write("Metadata", "metadata.json and backup could not be loaded. Empty metadata was used.");
             }
         }
 
-        private bool TryLoadFile(
-            string path,
-            out Dictionary<string, PlaytimeEntry> result)
+        private bool TryLoadFile(string path, out Dictionary<string, PlaytimeEntry> result)
         {
             result = null;
 
-            if (!File.Exists(path))
-                return false;
+            if (!File.Exists(path)) return false;
 
             try
             {
-                string json =
-                    File.ReadAllText(path);
+                string json = File.ReadAllText(path);
 
-                // Текущий формат.
+                // Try the current metadata format first.
                 try
                 {
-                    var current =
-                        JsonConvert.DeserializeObject<
-                            Dictionary<string, PlaytimeEntry>>(
-                            json);
+                    var current = JsonConvert.DeserializeObject<Dictionary<string, PlaytimeEntry>>(json);
 
                     if (current != null)
                     {
-                        result =
-                            new Dictionary<string, PlaytimeEntry>(
-                                current,
-                                StringComparer.OrdinalIgnoreCase);
-
+                        result = new Dictionary<string, PlaytimeEntry>(current, StringComparer.OrdinalIgnoreCase);
                         return true;
                     }
                 }
+
                 catch
                 {
-                    // Ниже попробуем legacy-формат.
+                    // Fall back to the legacy format below.
                 }
 
-                // Старый формат:
-                // { "game.lnk": 1234 }
-                var legacy =
-                    JsonConvert.DeserializeObject<
-                        Dictionary<string, int>>(
-                        json);
+                // Legacy format: { "game.lnk": 1234 }
+                var legacy = JsonConvert.DeserializeObject<Dictionary<string, int>>(json);
 
-                if (legacy == null)
-                    return false;
+                if (legacy == null) return false;
 
-                result =
-                    new Dictionary<string, PlaytimeEntry>(
-                        StringComparer.OrdinalIgnoreCase);
+                result = new Dictionary<string, PlaytimeEntry>(StringComparer.OrdinalIgnoreCase);
 
                 foreach (var kv in legacy)
                 {
-                    result[kv.Key] =
-                        new PlaytimeEntry
-                        {
-                            Playtime = kv.Value,
-                            LastPlayed = DateTime.MinValue
-                        };
+                    result[kv.Key] = new PlaytimeEntry
+                    {
+                        Playtime = kv.Value,
+                        LastPlayed = DateTime.MinValue
+                    };
                 }
 
                 return true;
             }
+
             catch (Exception ex)
             {
-                DebugLog.Error(
-                    "Metadata",
-                    ex,
-                    $"Failed to load {Path.GetFileName(path)}.");
+                DebugLog.Error("Metadata", ex, $"Failed to load {Path.GetFileName(path)}.");
 
                 return false;
             }
@@ -277,41 +203,30 @@ namespace EZ2Play.App
 
         private void RestorePrimaryFromBackup()
         {
-            string recoveryTemp =
-                _filePath + ".recovery.tmp";
+            string recoveryTemp = _filePath + ".recovery.tmp";
 
             try
             {
-                File.Copy(
-                    _backupPath,
-                    recoveryTemp,
-                    true);
+                File.Copy(_backupPath, recoveryTemp, true);
 
                 if (File.Exists(_filePath))
                 {
-                    File.Replace(
-                        recoveryTemp,
-                        _filePath,
-                        null);
-                }
-                else
-                {
-                    File.Move(
-                        recoveryTemp,
-                        _filePath);
+                    File.Replace(recoveryTemp, _filePath, null);
                 }
 
-                DebugLog.Write(
-                    "Metadata",
-                    "Primary metadata.json restored from backup.");
+                else
+                {
+                    File.Move(recoveryTemp, _filePath);
+                }
+
+                DebugLog.Write("Metadata", "Primary metadata.json restored from backup.");
             }
+
             catch (Exception ex)
             {
-                DebugLog.Error(
-                    "Metadata",
-                    ex,
-                    "Failed to restore primary metadata.json from backup.");
+                DebugLog.Error("Metadata", ex, "Failed to restore primary metadata.json from backup.");
             }
+
             finally
             {
                 try
@@ -319,6 +234,7 @@ namespace EZ2Play.App
                     if (File.Exists(recoveryTemp))
                         File.Delete(recoveryTemp);
                 }
+
                 catch
                 {
                 }
@@ -327,62 +243,43 @@ namespace EZ2Play.App
 
         private void Save()
         {
-            string tempPath =
-                _filePath + ".tmp";
+            string tempPath = _filePath + ".tmp";
 
             try
             {
-                string folder =
-                    Path.GetDirectoryName(_filePath);
+                string folder = Path.GetDirectoryName(_filePath);
 
                 if (!Directory.Exists(folder))
                     Directory.CreateDirectory(folder);
 
-                var sorted =
-                    new SortedDictionary<string, PlaytimeEntry>(
-                        _data,
-                        StringComparer.OrdinalIgnoreCase);
+                var sorted = new SortedDictionary<string, PlaytimeEntry>(_data, StringComparer.OrdinalIgnoreCase);
 
-                var settings =
-                    new JsonSerializerSettings
-                    {
-                        DateFormatString =
-                            "yyyy-MM-dd HH:mm:ss"
-                    };
+                var settings = new JsonSerializerSettings
+                {
+                    DateFormatString = "yyyy-MM-dd HH:mm:ss"
+                };
 
-                string json =
-                    JsonConvert.SerializeObject(
-                        sorted,
-                        Formatting.Indented,
-                        settings);
+                string json = JsonConvert.SerializeObject(sorted, Formatting.Indented, settings);
 
-                File.WriteAllText(
-                    tempPath,
-                    json);
+                File.WriteAllText(tempPath, json);
 
                 if (File.Exists(_filePath))
                 {
-                    // metadata.json становится новым файлом,
-                    // старый гарантированно уходит в metadata.json.bak.
-                    File.Replace(
-                        tempPath,
-                        _filePath,
-                        _backupPath);
+                    // Replace metadata.json and preserve the previous file as metadata.json.bak.
+                    File.Replace(tempPath, _filePath, _backupPath);
                 }
+
                 else
                 {
-                    File.Move(
-                        tempPath,
-                        _filePath);
+                    File.Move(tempPath, _filePath);
                 }
             }
+
             catch (Exception ex)
             {
-                DebugLog.Error(
-                    "Metadata",
-                    ex,
-                    "Failed to save metadata.json.");
+                DebugLog.Error("Metadata", ex, "Failed to save metadata.json.");
             }
+
             finally
             {
                 try
@@ -390,6 +287,7 @@ namespace EZ2Play.App
                     if (File.Exists(tempPath))
                         File.Delete(tempPath);
                 }
+
                 catch
                 {
                 }

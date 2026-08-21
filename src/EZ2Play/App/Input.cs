@@ -9,19 +9,18 @@ namespace EZ2Play.App
 {
     public class Input : IDisposable
     {
-        // Задержки ввода (мс)
+        // Input repeat timing in milliseconds
         private const int InitialDelay = 250;
         private const int RepeatDelay = 75;
         private const int GamepadButtonCooldown = 200;
 
-        // Частота опроса геймпада (мс)
+        // Gamepad polling intervals in milliseconds
         private const int GamepadPollInterval = 16;
         private const int GamepadCheckInterval = 2000;
 
-        // Мертвая зона для стика
+        // Analog stick dead zone
         private const short StickDeadZone = 8000;
 
-        // Поля
         private Controller _controller;
         private DispatcherTimer _keyboardTimer;
         private DispatcherTimer _gamepadTimer;
@@ -43,7 +42,6 @@ namespace EZ2Play.App
         private bool _escapeKeyPressed;
         private bool _lastBackState;
 
-        // События (нейтральные, без логики)
         public event Action<int> OnLeftRight;
         public event Action<int> OnUpDown;
         public event Action OnA;
@@ -71,6 +69,7 @@ namespace EZ2Play.App
             {
                 ConnectToFirstAvailableGamepad();
             }
+
             catch
             {
                 UpdateConnectionState(false, "XInput initialization failed");
@@ -82,12 +81,14 @@ namespace EZ2Play.App
             for (int i = 0; i < 4; i++)
             {
                 var testController = new Controller((UserIndex)i);
+
                 if (testController.IsConnected)
                 {
                     SetActiveController(testController, i);
                     return;
                 }
             }
+
             UpdateConnectionState(false, "No XInput controller found");
         }
 
@@ -95,6 +96,7 @@ namespace EZ2Play.App
         {
             _controller = newController;
             string deviceName = $"XInput Controller {userId + 1}";
+
             UpdateConnectionState(true, deviceName);
             StartGamepadTimer();
         }
@@ -102,6 +104,7 @@ namespace EZ2Play.App
         private void StartGamepadTimer()
         {
             if (_gamepadTimer != null) return;
+
             _gamepadTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(GamepadPollInterval) };
             _gamepadTimer.Tick += CheckGamepadInput;
             _gamepadTimer.Start();
@@ -124,6 +127,7 @@ namespace EZ2Play.App
         private void UpdateConnectionState(bool isConnected, string deviceName)
         {
             if (IsGamepadConnected == isConnected) return;
+
             IsGamepadConnected = isConnected;
             OnGamepadConnectionChanged?.Invoke(isConnected, deviceName);
         }
@@ -131,9 +135,15 @@ namespace EZ2Play.App
         private void CheckGamepadConnection(object sender, EventArgs e)
         {
             if (_isReconnecting) return;
+
             try
             {
-                if (_controller == null) { TryReconnectGamepad(); return; }
+                if (_controller == null)
+                {
+                    TryReconnectGamepad();
+                    return;
+                }
+
                 if (!_controller.IsConnected)
                 {
                     _controller = null;
@@ -141,6 +151,7 @@ namespace EZ2Play.App
                     TryReconnectGamepad();
                 }
             }
+
             catch
             {
                 _controller = null;
@@ -152,11 +163,13 @@ namespace EZ2Play.App
         private void TryReconnectGamepad()
         {
             _isReconnecting = true;
+
             try
             {
                 for (int i = 0; i < 4; i++)
                 {
                     var testController = new Controller((UserIndex)i);
+
                     if (testController.IsConnected)
                     {
                         SetActiveController(testController, i);
@@ -164,7 +177,11 @@ namespace EZ2Play.App
                     }
                 }
             }
-            finally { _isReconnecting = false; }
+
+            finally
+            {
+                _isReconnecting = false;
+            }
         }
 
         private void CheckKeyboardInput(object sender, EventArgs e)
@@ -173,14 +190,17 @@ namespace EZ2Play.App
             if (_keyHoldStart < 0) return;
 
             long now = _stopwatch.ElapsedMilliseconds;
+
             if (now - _keyHoldStart < InitialDelay) return;
 
             long timeSinceLast = now - _lastKeyboardInput;
+
             if (_leftKeyPressed && timeSinceLast >= RepeatDelay)
             {
                 _lastKeyboardInput = now;
                 OnLeftRight?.Invoke(-1);
             }
+
             else if (_rightKeyPressed && timeSinceLast >= RepeatDelay)
             {
                 _lastKeyboardInput = now;
@@ -302,12 +322,16 @@ namespace EZ2Play.App
                 HandleVerticalNavigation(up, down, now);
                 HandleGamepadButtons(gamepad, now);
             }
-            catch { }
+
+            catch
+            {
+            }
         }
 
         private void HandleHorizontalNavigation(bool left, bool right, long now)
         {
             bool pressed = left || right;
+
             if (pressed)
             {
                 if (_gamepadHoldStart < 0)
@@ -316,12 +340,14 @@ namespace EZ2Play.App
                     _lastGamepadNavInput = now;
                     OnLeftRight?.Invoke(left ? -1 : 1);
                 }
+
                 else if (now - _gamepadHoldStart >= InitialDelay && now - _lastGamepadNavInput >= RepeatDelay)
                 {
                     _lastGamepadNavInput = now;
                     OnLeftRight?.Invoke(left ? -1 : 1);
                 }
             }
+
             else
             {
                 _gamepadHoldStart = -1;
@@ -331,6 +357,7 @@ namespace EZ2Play.App
         private void HandleVerticalNavigation(bool up, bool down, long now)
         {
             bool pressed = up || down;
+
             if (pressed)
             {
                 if (_verticalHoldStart < 0)
@@ -339,12 +366,14 @@ namespace EZ2Play.App
                     _lastVerticalInput = now;
                     OnUpDown?.Invoke(up ? -1 : 1);
                 }
+
                 else if (now - _verticalHoldStart >= InitialDelay && now - _lastVerticalInput >= RepeatDelay)
                 {
                     _lastVerticalInput = now;
                     OnUpDown?.Invoke(up ? -1 : 1);
                 }
             }
+
             else
             {
                 _verticalHoldStart = -1;
@@ -357,7 +386,7 @@ namespace EZ2Play.App
             bool bPressed = (gamepad.Buttons & GamepadButtonFlags.B) != 0;
             bool backPressed = (gamepad.Buttons & GamepadButtonFlags.Back) != 0;
 
-            // Back срабатывает только один раз за физическое нажатие.
+            // Back fires only once per physical button press.
             if (backPressed && !_lastBackState)
             {
                 _lastBackState = true;
@@ -368,7 +397,7 @@ namespace EZ2Play.App
             if (!backPressed)
                 _lastBackState = false;
 
-            // A срабатывает только один раз за физическое нажатие.
+            // A fires only once per physical button press.
             if (aPressed && !_lastAState)
             {
                 _lastAState = true;
@@ -380,7 +409,7 @@ namespace EZ2Play.App
             if (!aPressed)
                 _lastAState = false;
 
-            // B срабатывает только один раз за физическое нажатие.
+            // B fires only once per physical button press.
             if (bPressed && !_lastBState)
             {
                 _lastBState = true;
@@ -392,29 +421,32 @@ namespace EZ2Play.App
             if (!bPressed)
                 _lastBState = false;
 
-            if (now - _lastGamepadButtonInput < GamepadButtonCooldown)
-                return;
+            if (now - _lastGamepadButtonInput < GamepadButtonCooldown) return;
 
             if ((gamepad.Buttons & GamepadButtonFlags.X) != 0)
             {
                 _lastGamepadButtonInput = now;
                 OnX?.Invoke();
             }
+
             else if ((gamepad.Buttons & GamepadButtonFlags.Y) != 0)
             {
                 _lastGamepadButtonInput = now;
                 OnY?.Invoke();
             }
+
             else if ((gamepad.Buttons & GamepadButtonFlags.LeftShoulder) != 0)
             {
                 _lastGamepadButtonInput = now;
                 OnLB?.Invoke();
             }
+
             else if ((gamepad.Buttons & GamepadButtonFlags.RightShoulder) != 0)
             {
                 _lastGamepadButtonInput = now;
                 OnRB?.Invoke();
             }
+
             else if ((gamepad.Buttons & GamepadButtonFlags.Start) != 0)
             {
                 _lastGamepadButtonInput = now;

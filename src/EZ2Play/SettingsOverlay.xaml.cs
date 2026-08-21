@@ -16,7 +16,7 @@ namespace EZ2Play.App
         private double fadeDuration = 0.1;
         private bool _exitConfirmationMode = false;
 
-        // Замороженные кисти для производительности
+        // Frozen brushes used by the custom selection visuals.
         private static readonly Brush SelectedBorderBrush;
         private static readonly Brush SelectedBackgroundBrush;
         private static readonly Brush TransparentBrush = Brushes.Transparent;
@@ -25,6 +25,7 @@ namespace EZ2Play.App
         {
             SelectedBorderBrush = new SolidColorBrush(Color.FromArgb(0xC0, 0xFF, 0xFF, 0xFF));
             SelectedBorderBrush.Freeze();
+
             SelectedBackgroundBrush = new SolidColorBrush(Color.FromArgb(0x10, 0xFF, 0xFF, 0xFF));
             SelectedBackgroundBrush.Freeze();
         }
@@ -32,6 +33,7 @@ namespace EZ2Play.App
         public SettingsOverlay(InputHandler inputHandler, MainWindow mainWindow)
         {
             InitializeComponent();
+
             _inputHandler = inputHandler;
             _mainWindow = mainWindow;
             _config = _mainWindow.GetConfig();
@@ -40,6 +42,7 @@ namespace EZ2Play.App
             {
                 Locals.ApplyLocalization(this);
                 SetDescriptionWithIcon(SettingsAutorunAppDesc, "SettingsAutorunAppDesc", "\uE3E3");
+
                 RefreshDisplayList();
                 RefreshAutorunState();
                 RefreshFpsMonitorVisibility();
@@ -54,19 +57,14 @@ namespace EZ2Play.App
                 if (ExitConfirmationListBox.Items.Count > 0)
                     ExitConfirmationListBox.SelectedIndex = 0;
 
-                // Подписываемся на изменение выбора
                 SettingsListBox.SelectionChanged += OnSelectionChanged;
                 SubOptionsListBox.SelectionChanged += OnSelectionChanged;
                 ExitConfirmationListBox.SelectionChanged += OnSelectionChanged;
 
-                // Подписываемся на тумблер (ОДИН РАЗ)
                 AutorunToggle.Checked += (sender, args) => ScheduleUpdateTreeHeaderDivider();
                 AutorunToggle.Unchecked += (sender, args) => ScheduleUpdateTreeHeaderDivider();
 
-                // Первоначальная отрисовка селектора
                 ScheduleUpdateSelectionVisuals();
-                
-                // Планируем обновление разделителя ПОСЛЕ генерации контейнеров
                 ScheduleUpdateTreeHeaderDivider();
             };
 
@@ -76,13 +74,12 @@ namespace EZ2Play.App
             Visibility = Visibility.Collapsed;
         }
 
-        // Общий обработчик SelectionChanged для обоих ListBox.
         private void OnSelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             ScheduleUpdateSelectionVisuals();
         }
 
-        // Откладывает обновление визуала до завершения генерации контейнеров.
+        // Defer visual updates until item containers are generated.
         private void ScheduleUpdateSelectionVisuals()
         {
             Dispatcher.BeginInvoke(DispatcherPriority.Loaded, new Action(UpdateSelectionVisuals));
@@ -97,11 +94,12 @@ namespace EZ2Play.App
         {
             if (SettingsListBox.Items.Count == 0) return;
 
-            // SettingsAutorunApp — первый элемент в списке (индекс 0)
             var container = SettingsListBox.ItemContainerGenerator.ContainerFromIndex(0) as ListBoxItem;
+
             if (container == null) return;
 
             var divider = FindVisualChild<Border>(container, "ItemDivider");
+
             if (divider != null)
             {
                 divider.Visibility = AutorunToggle.IsChecked.GetValueOrDefault(false)
@@ -110,18 +108,14 @@ namespace EZ2Play.App
             }
         }
 
-        // Полностью управляет видимостью рамок селектора в обоих ListBox.
-        // Определяет, какой ListBox сейчас активен, и рисует рамку только на одном элементе.
+        // Keep the custom selector visible only in the currently active list.
         private void UpdateSelectionVisuals()
         {
             if (_exitConfirmationMode)
             {
-                // Основные настройки сейчас неактивны.
                 for (int i = 0; i < SettingsListBox.Items.Count; i++)
                 {
-                    var container =
-                        SettingsListBox.ItemContainerGenerator.ContainerFromIndex(i)
-                        as ListBoxItem;
+                    var container = SettingsListBox.ItemContainerGenerator.ContainerFromIndex(i) as ListBoxItem;
 
                     if (container != null)
                         ApplySelectionVisual(container, false);
@@ -129,23 +123,17 @@ namespace EZ2Play.App
 
                 for (int i = 0; i < SubOptionsListBox.Items.Count; i++)
                 {
-                    var container =
-                        SubOptionsListBox.ItemContainerGenerator.ContainerFromIndex(i)
-                        as ListBoxItem;
+                    var container = SubOptionsListBox.ItemContainerGenerator.ContainerFromIndex(i) as ListBoxItem;
 
                     if (container != null)
                         ApplySelectionVisual(container, false);
                 }
 
-                // Активен confirmation list.
                 for (int i = 0; i < ExitConfirmationListBox.Items.Count; i++)
                 {
-                    var container =
-                        ExitConfirmationListBox.ItemContainerGenerator.ContainerFromIndex(i)
-                        as ListBoxItem;
+                    var container = ExitConfirmationListBox.ItemContainerGenerator.ContainerFromIndex(i) as ListBoxItem;
 
-                    if (container == null)
-                        continue;
+                    if (container == null) continue;
 
                     ApplySelectionVisual(container, container.IsSelected);
                 }
@@ -153,52 +141,39 @@ namespace EZ2Play.App
                 return;
             }
 
-            bool isSubOptionsActive =
-                SettingsListBox.SelectedItem == TreeItemsContainer;
+            bool isSubOptionsActive = SettingsListBox.SelectedItem == TreeItemsContainer;
 
             for (int i = 0; i < SettingsListBox.Items.Count; i++)
             {
-                var container =
-                    SettingsListBox.ItemContainerGenerator.ContainerFromIndex(i)
-                    as ListBoxItem;
+                var container = SettingsListBox.ItemContainerGenerator.ContainerFromIndex(i) as ListBoxItem;
 
-                if (container == null)
-                    continue;
+                if (container == null) continue;
 
-                bool shouldBeSelected =
-                    !isSubOptionsActive && container.IsSelected;
+                bool shouldBeSelected = !isSubOptionsActive && container.IsSelected;
 
                 ApplySelectionVisual(container, shouldBeSelected);
             }
 
             for (int i = 0; i < SubOptionsListBox.Items.Count; i++)
             {
-                var container =
-                    SubOptionsListBox.ItemContainerGenerator.ContainerFromIndex(i)
-                    as ListBoxItem;
+                var container = SubOptionsListBox.ItemContainerGenerator.ContainerFromIndex(i) as ListBoxItem;
 
-                if (container == null)
-                    continue;
+                if (container == null) continue;
 
-                bool shouldBeSelected =
-                    isSubOptionsActive && container.IsSelected;
+                bool shouldBeSelected = isSubOptionsActive && container.IsSelected;
 
                 ApplySelectionVisual(container, shouldBeSelected);
             }
 
-            // Confirmation list сейчас неактивен.
             for (int i = 0; i < ExitConfirmationListBox.Items.Count; i++)
             {
-                var container =
-                    ExitConfirmationListBox.ItemContainerGenerator.ContainerFromIndex(i)
-                    as ListBoxItem;
+                var container = ExitConfirmationListBox.ItemContainerGenerator.ContainerFromIndex(i) as ListBoxItem;
 
                 if (container != null)
                     ApplySelectionVisual(container, false);
             }
         }
 
-        // Применяет или снимает визуал выделения с конкретного контейнера.
         private void ApplySelectionVisual(ListBoxItem container, bool isSelected)
         {
             var border = FindVisualChild<Border>(container, "SelectionBorder");
@@ -296,10 +271,9 @@ namespace EZ2Play.App
 
         private void RefreshFpsMonitorVisibility()
         {
-            SettingsFpsMonitor.Visibility =
-                SystemProvider.IsFpsMonitorInstalled()
-                    ? Visibility.Visible
-                    : Visibility.Collapsed;
+            SettingsFpsMonitor.Visibility = SystemProvider.IsFpsMonitorInstalled()
+                ? Visibility.Visible
+                : Visibility.Collapsed;
         }
 
         private void RefreshFpsMonitorState()
@@ -347,6 +321,7 @@ namespace EZ2Play.App
                 NoMusic.Visibility = Visibility.Visible;
                 HotSwap.Visibility = Visibility.Visible;
             }
+
             else
             {
                 TreeItemsContainer.Visibility = Visibility.Collapsed;
@@ -362,17 +337,14 @@ namespace EZ2Play.App
         {
             if (_exitConfirmationMode)
             {
-                if (isHorizontal)
-                    return;
+                if (isHorizontal) return;
 
                 int newIndex = ExitConfirmationListBox.SelectedIndex + direction;
 
-                if (newIndex >= 0 &&
-                    newIndex < ExitConfirmationListBox.Items.Count)
+                if (newIndex >= 0 && newIndex < ExitConfirmationListBox.Items.Count)
                 {
                     ExitConfirmationListBox.SelectedIndex = newIndex;
-                    ExitConfirmationListBox.ScrollIntoView(
-                        ExitConfirmationListBox.SelectedItem);
+                    ExitConfirmationListBox.ScrollIntoView(ExitConfirmationListBox.SelectedItem);
                 }
 
                 return;
@@ -383,25 +355,30 @@ namespace EZ2Play.App
                 if (SettingsListBox.SelectedItem == TreeItemsContainer && TreeItemsContainer.Visibility == Visibility.Visible)
                 {
                     int newIndex = SubOptionsListBox.SelectedIndex + direction;
+
                     while (newIndex >= 0 && newIndex < SubOptionsListBox.Items.Count)
                     {
                         var targetItem = SubOptionsListBox.Items[newIndex] as ListBoxItem;
+
                         if (targetItem != null && targetItem.Visibility == Visibility.Visible)
                         {
                             SubOptionsListBox.SelectedIndex = newIndex;
-                            // SelectionChanged сам вызовет ScheduleUpdateSelectionVisuals
                             return;
                         }
+
                         newIndex += direction;
                     }
                 }
+
                 return;
             }
 
             int newIndexVert = SettingsListBox.SelectedIndex + direction;
+
             while (newIndexVert >= 0 && newIndexVert < SettingsListBox.Items.Count)
             {
                 var item = SettingsListBox.Items[newIndexVert] as ListBoxItem;
+
                 if (item != null && item.Visibility == Visibility.Visible)
                 {
                     SettingsListBox.SelectedIndex = newIndexVert;
@@ -422,9 +399,9 @@ namespace EZ2Play.App
                         }
                     }
 
-                    // SelectionChanged сам вызовет ScheduleUpdateSelectionVisuals
                     return;
                 }
+
                 newIndexVert += direction;
             }
         }
@@ -439,6 +416,7 @@ namespace EZ2Play.App
                     _mainWindow.ExitApplication();
                     Close();
                 }
+
                 else if (ExitConfirmationListBox.SelectedItem == ConfirmNoItem)
                 {
                     _mainWindow.ExitApplication();
@@ -459,32 +437,40 @@ namespace EZ2Play.App
                 if (SubOptionsListBox.SelectedItem == NoSplash)
                 {
                     bool newState = !NoSplashToggle.IsChecked.GetValueOrDefault(false);
+
                     NoSplashToggle.IsChecked = newState;
                     UpdateAutorunArguments();
                 }
+
                 else if (SubOptionsListBox.SelectedItem == NoMusic)
                 {
                     bool newState = !NoMusicToggle.IsChecked.GetValueOrDefault(false);
+
                     NoMusicToggle.IsChecked = newState;
                     UpdateAutorunArguments();
                 }
+
                 else if (SubOptionsListBox.SelectedItem == HotSwap)
                 {
                     bool newState = !HotSwapToggle.IsChecked.GetValueOrDefault(false);
+
                     HotSwapToggle.IsChecked = newState;
                     UpdateAutorunArguments();
                 }
             }
+
             else if (SettingsListBox.SelectedItem == SettingsAutorunApp)
             {
                 bool newState = !AutorunToggle.IsChecked.GetValueOrDefault(false);
                 SetAutorunState(newState);
             }
+
             else if (SettingsListBox.SelectedItem == SettingsFpsMonitor)
             {
                 bool newState = !FpsMonitorToggle.IsChecked.GetValueOrDefault(false);
                 SetFpsMonitorState(newState);
             }
+
             else if (SettingsListBox.SelectedItem == SettingsExitApp)
             {
                 if (_mainWindow.GetDisplay().IsExternalDisplay)
@@ -496,12 +482,11 @@ namespace EZ2Play.App
                 _mainWindow.ExitApplication();
                 Close();
             }
+
             else if (SettingsListBox.SelectedItem == SettingsSourceDisplay)
             {
                 if (!_mainWindow.IsHotSwapLaunch())
-                {
                     _mainWindow.GetDisplay().SwitchDisplay(1);
-                }
             }
         }
 
@@ -513,8 +498,7 @@ namespace EZ2Play.App
                     ? SystemProvider.EnableAutorun()
                     : SystemProvider.DisableAutorun();
 
-                if (!success ||
-                    SystemProvider.IsAutorunEnabled() != enabled)
+                if (!success || SystemProvider.IsAutorunEnabled() != enabled)
                 {
                     RefreshAutorunState();
                     return;
@@ -529,13 +513,10 @@ namespace EZ2Play.App
 
                 LoadSubOptionsStates();
             }
+
             catch (Exception ex)
             {
-                DebugLog.Error(
-                    "Autorun",
-                    ex,
-                    "Failed to change autorun state.");
-
+                DebugLog.Error("Autorun", ex, "Failed to change autorun state.");
                 RefreshAutorunState();
             }
         }
@@ -543,29 +524,29 @@ namespace EZ2Play.App
         private void UpdateAutorunArguments()
         {
             string args = " ";
+
             if (NoSplashToggle.IsChecked.GetValueOrDefault(false))
                 args += "--nosplash ";
+
             if (NoMusicToggle.IsChecked.GetValueOrDefault(false))
                 args += "--nomusic ";
+
             if (HotSwapToggle.IsChecked.GetValueOrDefault(false))
                 args += "--hotswap ";
 
             args = args.TrimEnd();
 
-            bool success =
-                SystemProvider.SetAutorunArguments(args);
+            bool success = SystemProvider.SetAutorunArguments(args);
 
             if (!success)
             {
-                // Возвращаем UI к реально сохранённым аргументам.
+                // Restore the UI to the arguments actually stored in the shortcut.
                 LoadSubOptionsStates();
                 return;
             }
 
             if (AutorunToggle.IsChecked.GetValueOrDefault(false))
-            {
                 UpdateSubOptionsVisibility(true);
-            }
         }
 
         private void LoadSubOptionsStates()
@@ -583,6 +564,7 @@ namespace EZ2Play.App
             var parts = text.Split(new[] { "{ICON}" }, StringSplitOptions.None);
 
             tb.Inlines.Clear();
+
             for (int i = 0; i < parts.Length; i++)
             {
                 if (i > 0)
@@ -593,10 +575,11 @@ namespace EZ2Play.App
                         FontFamily = new FontFamily("Xbox Fluent"),
                         RenderTransform = new TranslateTransform(0, 4)
                     };
-                    icon.SetResourceReference(TextBlock.FontSizeProperty, UiScaleKeys.SettingsOverlayDescFontSize);
 
+                    icon.SetResourceReference(TextBlock.FontSizeProperty, UiScaleKeys.SettingsOverlayDescFontSize);
                     tb.Inlines.Add(new InlineUIContainer(icon));
                 }
+
                 tb.Inlines.Add(new Run(parts[i]));
             }
         }
@@ -625,16 +608,13 @@ namespace EZ2Play.App
 
             SettingsListBox.Visibility = Visibility.Visible;
 
-            if (focusSettings &&
-                Visibility == Visibility.Visible)
-            {
+            if (focusSettings && Visibility == Visibility.Visible)
                 SettingsListBox.Focus();
-            }
 
             ScheduleUpdateSelectionVisuals();
         }
 
-        // Рекурсивно ищет дочерний элемент визуального дерева по имени.
+        // Recursively find a named child in the visual tree.
         private T FindVisualChild<T>(DependencyObject parent, string childName) where T : DependencyObject
         {
             if (parent == null) return null;
@@ -655,6 +635,7 @@ namespace EZ2Play.App
                 }
 
                 T result = FindVisualChild<T>(child, childName);
+
                 if (result != null)
                     return result;
             }

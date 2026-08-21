@@ -16,12 +16,12 @@ namespace EZ2Play.App
         public event Action<int> OnMoveSelection;
         public event Action<int> OnSettingsNavigate;
         public event Action<int> OnSettingsNavigateVertical;
-        
+
         public event Action OnLaunchSelected;
         public event Action OnOpenSettings;
         public event Action OnSwitchToGamelist;
         public event Action OnSwitchToLastPlayed;
-        
+
         public event Action OnSettingsConfirm;
         public event Action OnSettingsBack;
 
@@ -31,7 +31,6 @@ namespace EZ2Play.App
         public event Action OnParserBack;
         public event Action<int> OnParserNavigateHorizontal;
         public event Action<int> OnParserNavigateVertical;
-        
 
         public InputHandler(Input input)
         {
@@ -54,6 +53,7 @@ namespace EZ2Play.App
             _settingsOverlay = overlay;
         }
 
+        // Route input based on the currently active overlay.
         private void SubscribeEvents()
         {
             _input.OnLeftRight += dir =>
@@ -118,8 +118,7 @@ namespace EZ2Play.App
 
             _input.OnStart += () =>
             {
-                if ((DateTime.Now - _lastStartBackTime).TotalMilliseconds < 300)
-                    return;
+                if ((DateTime.Now - _lastStartBackTime).TotalMilliseconds < 300) return;
 
                 _lastStartBackTime = DateTime.Now;
 
@@ -133,8 +132,7 @@ namespace EZ2Play.App
 
             _input.OnBack += () =>
             {
-                if ((DateTime.Now - _lastStartBackTime).TotalMilliseconds < 300)
-                    return;
+                if ((DateTime.Now - _lastStartBackTime).TotalMilliseconds < 300) return;
 
                 _lastStartBackTime = DateTime.Now;
 

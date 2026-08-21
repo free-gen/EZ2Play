@@ -1,10 +1,10 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
+using System.Management;
+using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Threading;
-using System.Management;
-using System.Collections.Generic;
-using System.Runtime.InteropServices;
 using Microsoft.Win32;
 
 namespace EZ2Play.App
@@ -39,8 +39,7 @@ namespace EZ2Play.App
         }
 
         [DllImport("user32.dll")]
-        private static extern bool SetWindowPos(IntPtr hWnd, IntPtr hWndInsertAfter,
-            int X, int Y, int cx, int cy, uint uFlags);
+        private static extern bool SetWindowPos(IntPtr hWnd, IntPtr hWndInsertAfter, int X, int Y, int cx, int cy, uint uFlags);
 
         private const uint SWP_NOZORDER = 0x0004;
         private const uint SWP_NOACTIVATE = 0x0010;
@@ -67,18 +66,20 @@ namespace EZ2Play.App
 
         private void TryInitialHotSwap()
         {
-            if (!_hasMultipleDisplays)
-                return;
+            if (!_hasMultipleDisplays) return;
 
             try
             {
                 _sound?.PlayBackSound();
-                _isExternalDisplay = true; // При hotswap всегда переключаем на external
-                _currentDisplayIndex = 1; // Синхронизируем индекс
+                _isExternalDisplay = true;
+                _currentDisplayIndex = 1;
                 RunDisplaySwitch("/external");
                 OnDisplayChanged?.Invoke(GetCurrentDisplayName());
             }
-            catch { }
+
+            catch
+            {
+            }
         }
 
         public void CheckMultipleDisplays()
@@ -90,20 +91,23 @@ namespace EZ2Play.App
                     "SELECT * FROM WmiMonitorBasicDisplayParams"))
                 {
                     int monitorCount = 0;
+
                     foreach (ManagementObject monitor in searcher.Get())
                     {
                         monitorCount++;
                     }
+
                     _hasMultipleDisplays = monitorCount > 1;
                 }
             }
+
             catch
             {
                 _hasMultipleDisplays = false;
             }
         }
 
-        // Восстанавливает настройки дисплея при выходе (если был hotswap)
+        // Restore the internal display on exit after a hotswap launch.
         public void HandleHotswapOnExit()
         {
             if (_wasLaunchedWithHotswap && _hasMultipleDisplays && _isExternalDisplay)
@@ -113,7 +117,10 @@ namespace EZ2Play.App
                     _sound?.PlayBackSound();
                     RunDisplaySwitch("/internal");
                 }
-                catch { }
+
+                catch
+                {
+                }
             }
         }
 
@@ -129,32 +136,31 @@ namespace EZ2Play.App
         {
             if (_displayNames.Count == 0) RefreshDisplayList();
             if (_currentDisplayIndex >= _displayNames.Count) _currentDisplayIndex = 0;
+
             return _displayNames[_currentDisplayIndex];
         }
 
         public void SwitchDisplay(int direction)
         {
-            if (!_hasMultipleDisplays || _displayNames.Count <= 1)
-                return;
-            
+            if (!_hasMultipleDisplays || _displayNames.Count <= 1) return;
+
             _currentDisplayIndex += direction;
+
             if (_currentDisplayIndex < 0) _currentDisplayIndex = _displayNames.Count - 1;
             if (_currentDisplayIndex >= _displayNames.Count) _currentDisplayIndex = 0;
-            
+
             bool isExternal = _currentDisplayIndex > 0;
-            
-            // Синхронизируем _isExternalDisplay
+
             _isExternalDisplay = isExternal;
-            
+
             RunDisplaySwitch(isExternal ? "/external" : "/internal");
-            
+
             OnDisplayChanged?.Invoke(GetCurrentDisplayName());
         }
 
         public void EnsureMaximizedAndRefreshLayout()
         {
-            if ((DateTime.Now - _lastLayoutRefresh).TotalMilliseconds < LayoutRefreshDelayMs)
-                return;
+            if ((DateTime.Now - _lastLayoutRefresh).TotalMilliseconds < LayoutRefreshDelayMs) return;
 
             try
             {
@@ -173,13 +179,15 @@ namespace EZ2Play.App
                     window.UpdateLayout();
                 }
             }
-            catch { }
+
+            catch
+            {
+            }
         }
 
         private void ScheduleLayoutRefresh()
         {
-            if (!(_window is Window window))
-                return;
+            if (!(_window is Window window)) return;
 
             window.Dispatcher.BeginInvoke(
                 new Action(async () =>
@@ -200,16 +208,22 @@ namespace EZ2Play.App
                 if (msg == WM_DPICHANGED)
                 {
                     var rect = (RECT)Marshal.PtrToStructure(lParam, typeof(RECT));
-                    SetWindowPos(hwnd, IntPtr.Zero,
-                        rect.Left, rect.Top,
+
+                    SetWindowPos(
+                        hwnd,
+                        IntPtr.Zero,
+                        rect.Left,
+                        rect.Top,
                         rect.Right - rect.Left,
                         rect.Bottom - rect.Top,
                         SWP_NOZORDER | SWP_NOACTIVATE);
+
                     handled = true;
                 }
 
                 ScheduleLayoutRefresh();
             }
+
             return IntPtr.Zero;
         }
 
@@ -231,7 +245,10 @@ namespace EZ2Play.App
                     CreateNoWindow = true
                 });
             }
-            catch { }
+
+            catch
+            {
+            }
         }
 
         public void Dispose()
@@ -240,7 +257,10 @@ namespace EZ2Play.App
             {
                 SystemEvents.DisplaySettingsChanged -= OnDisplaySettingsChanged;
             }
-            catch { }
+
+            catch
+            {
+            }
         }
     }
 }

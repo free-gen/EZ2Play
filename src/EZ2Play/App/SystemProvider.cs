@@ -13,13 +13,9 @@ namespace EZ2Play.App
 {
     public static class SystemProvider
     {
-        // --------------- Поля ---------------
-
         private static DispatcherTimer _clockTimer;
         private static IntPtr _mainWindowHandle;
         private const string AutorunShortcutName = "EZ2Play Helper.lnk";
-
-        // --------------- Аватар пользователя ---------------
 
         public static BitmapImage GetUserAvatar()
         {
@@ -44,38 +40,36 @@ namespace EZ2Play.App
                     return null;
 
                 var bmp = new BitmapImage();
+
                 bmp.BeginInit();
                 bmp.UriSource = new Uri(path);
                 bmp.CacheOption = BitmapCacheOption.OnLoad;
                 bmp.EndInit();
                 bmp.Freeze();
-                
+
                 return bmp;
             }
+
             catch
             {
                 return null;
             }
         }
 
-        // --------------- Системное время ---------------
-
         public static void StartClock(Action<string> onTimeChanged)
-        {            
+        {
             _clockTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
             _clockTimer.Tick += (s, e) => onTimeChanged?.Invoke(GetCurrentTime());
             _clockTimer.Start();
         }
-        
+
         public static void StopClock()
         {
             _clockTimer?.Stop();
             _clockTimer = null;
         }
-        
-        public static string GetCurrentTime() => DateTime.Now.ToString("HH:mm");
 
-        // --------------- Xbox Game Bar ---------------
+        public static string GetCurrentTime() => DateTime.Now.ToString("HH:mm");
 
         public static bool IsXboxGameBarInstalled()
         {
@@ -84,22 +78,21 @@ namespace EZ2Play.App
                 using (var process = new System.Diagnostics.Process())
                 {
                     process.StartInfo.FileName = "powershell.exe";
-                    process.StartInfo.Arguments =
-                        "-NoProfile -Command \"if(Get-AppxPackage Microsoft.XboxGamingOverlay){exit 0}else{exit 1}\"";
+                    process.StartInfo.Arguments = "-NoProfile -Command \"if(Get-AppxPackage Microsoft.XboxGamingOverlay){exit 0}else{exit 1}\"";
                     process.StartInfo.UseShellExecute = false;
                     process.StartInfo.CreateNoWindow = true;
                     process.Start();
                     process.WaitForExit();
+
                     return process.ExitCode == 0;
                 }
             }
+
             catch
             {
                 return false;
             }
         }
-
-        // --------------- Окно и курсор ---------------
 
         public static void SetMainWindowHandle(IntPtr handle)
         {
@@ -121,23 +114,16 @@ namespace EZ2Play.App
             System.Windows.Input.Mouse.OverrideCursor = null;
         }
 
-        // --------------- Автозапуск ---------------
-
         public static bool IsAutorunEnabled()
         {
             try
             {
-                string startupFolder =
-                    Environment.GetFolderPath(
-                        Environment.SpecialFolder.Startup);
-
-                string shortcutPath =
-                    Path.Combine(
-                        startupFolder,
-                        AutorunShortcutName);
+                string startupFolder = Environment.GetFolderPath(Environment.SpecialFolder.Startup);
+                string shortcutPath = Path.Combine(startupFolder, AutorunShortcutName);
 
                 return File.Exists(shortcutPath);
             }
+
             catch
             {
                 return false;
@@ -148,58 +134,44 @@ namespace EZ2Play.App
         {
             try
             {
-                var startInfo =
-                    new System.Diagnostics.ProcessStartInfo
-                    {
-                        FileName = "powershell.exe",
-                        Arguments =
-                            "-NoProfile -ExecutionPolicy Bypass -Command " +
-                            "\"$ErrorActionPreference='Stop'; " +
-                            script +
-                            "\"",
-                        CreateNoWindow = true,
-                        UseShellExecute = false,
-                        RedirectStandardError = true
-                    };
+                var startInfo = new System.Diagnostics.ProcessStartInfo
+                {
+                    FileName = "powershell.exe",
+                    Arguments =
+                        "-NoProfile -ExecutionPolicy Bypass -Command " +
+                        "\"$ErrorActionPreference='Stop'; " +
+                        script +
+                        "\"",
+                    CreateNoWindow = true,
+                    UseShellExecute = false,
+                    RedirectStandardError = true
+                };
 
-                using (var process =
-                    System.Diagnostics.Process.Start(startInfo))
+                using (var process = System.Diagnostics.Process.Start(startInfo))
                 {
                     if (process == null)
                     {
-                        DebugLog.Write(
-                            "Autorun",
-                            $"{operation}: PowerShell could not be started.");
-
+                        DebugLog.Write("Autorun", $"{operation}: PowerShell could not be started.");
                         return false;
                     }
 
-                    string error =
-                        process.StandardError.ReadToEnd().Trim();
+                    string error = process.StandardError.ReadToEnd().Trim();
 
                     process.WaitForExit();
 
                     if (process.ExitCode != 0)
                     {
-                        DebugLog.Write(
-                            "Autorun",
-                            $"{operation} failed. " +
-                            $"ExitCode={process.ExitCode}. " +
-                            $"Error={error}");
-
+                        DebugLog.Write("Autorun", $"{operation} failed. ExitCode={process.ExitCode}. Error={error}");
                         return false;
                     }
 
                     return true;
                 }
             }
+
             catch (Exception ex)
             {
-                DebugLog.Error(
-                    "Autorun",
-                    ex,
-                    $"{operation} failed.");
-
+                DebugLog.Error("Autorun", ex, $"{operation} failed.");
                 return false;
             }
         }
@@ -212,24 +184,13 @@ namespace EZ2Play.App
 
                 if (!File.Exists(helperPath))
                 {
-                    DebugLog.Write(
-                        "Autorun",
-                        "Helper executable not found.");
-
+                    DebugLog.Write("Autorun", "Helper executable not found.");
                     return false;
                 }
 
-                string startupFolder =
-                    Environment.GetFolderPath(
-                        Environment.SpecialFolder.Startup);
-
-                string shortcutPath =
-                    Path.Combine(
-                        startupFolder,
-                        AutorunShortcutName);
-
-                string workDir =
-                    Path.GetDirectoryName(helperPath);
+                string startupFolder = Environment.GetFolderPath(Environment.SpecialFolder.Startup);
+                string shortcutPath = Path.Combine(startupFolder, AutorunShortcutName);
+                string workDir = Path.GetDirectoryName(helperPath);
 
                 string ps =
                     "$WshShell = New-Object -ComObject WScript.Shell; " +
@@ -245,37 +206,25 @@ namespace EZ2Play.App
                     "$Shortcut.Arguments = ''; " +
                     "$Shortcut.Save();";
 
-                if (!RunAutorunPowerShell(
-                        ps,
-                        "Enable autorun"))
-                {
+                if (!RunAutorunPowerShell(ps, "Enable autorun"))
                     return false;
-                }
 
                 if (!File.Exists(shortcutPath))
                 {
-                    DebugLog.Write(
-                        "Autorun",
-                        "Startup shortcut was not created.");
-
+                    DebugLog.Write("Autorun", "Startup shortcut was not created.");
                     return false;
                 }
 
                 StartHelperProcess("");
 
-                DebugLog.Write(
-                    "Autorun",
-                    "Autorun enabled.");
+                DebugLog.Write("Autorun", "Autorun enabled.");
 
                 return true;
             }
+
             catch (Exception ex)
             {
-                DebugLog.Error(
-                    "Autorun",
-                    ex,
-                    "Failed to enable autorun.");
-
+                DebugLog.Error("Autorun", ex, "Failed to enable autorun.");
                 return false;
             }
         }
@@ -284,47 +233,31 @@ namespace EZ2Play.App
         {
             try
             {
-                string startupFolder =
-                    Environment.GetFolderPath(
-                        Environment.SpecialFolder.Startup);
-
-                string shortcutPath =
-                    Path.Combine(
-                        startupFolder,
-                        AutorunShortcutName);
+                string startupFolder = Environment.GetFolderPath(Environment.SpecialFolder.Startup);
+                string shortcutPath = Path.Combine(startupFolder, AutorunShortcutName);
 
                 if (File.Exists(shortcutPath))
                     File.Delete(shortcutPath);
 
                 if (File.Exists(shortcutPath))
                 {
-                    DebugLog.Write(
-                        "Autorun",
-                        "Startup shortcut still exists after deletion.");
-
+                    DebugLog.Write("Autorun", "Startup shortcut still exists after deletion.");
                     return false;
                 }
 
                 StopHelperProcess();
 
-                DebugLog.Write(
-                    "Autorun",
-                    "Autorun disabled.");
+                DebugLog.Write("Autorun", "Autorun disabled.");
 
                 return true;
             }
+
             catch (Exception ex)
             {
-                DebugLog.Error(
-                    "Autorun",
-                    ex,
-                    "Failed to disable autorun.");
-
+                DebugLog.Error("Autorun", ex, "Failed to disable autorun.");
                 return false;
             }
         }
-
-        // --------------- Аргументы автозапуска ---------------                
 
         public static bool SetAutorunArguments(string args)
         {
@@ -334,33 +267,20 @@ namespace EZ2Play.App
 
                 if (!File.Exists(helperPath))
                 {
-                    DebugLog.Write(
-                        "Autorun",
-                        "Cannot update arguments: Helper executable not found.");
-
+                    DebugLog.Write("Autorun", "Cannot update arguments: Helper executable not found.");
                     return false;
                 }
 
-                string startupFolder =
-                    Environment.GetFolderPath(
-                        Environment.SpecialFolder.Startup);
-
-                string shortcutPath =
-                    Path.Combine(
-                        startupFolder,
-                        AutorunShortcutName);
+                string startupFolder = Environment.GetFolderPath(Environment.SpecialFolder.Startup);
+                string shortcutPath = Path.Combine(startupFolder, AutorunShortcutName);
 
                 if (!File.Exists(shortcutPath))
                 {
-                    DebugLog.Write(
-                        "Autorun",
-                        "Cannot update arguments: startup shortcut does not exist.");
-
+                    DebugLog.Write("Autorun", "Cannot update arguments: startup shortcut does not exist.");
                     return false;
                 }
 
-                string workDir =
-                    Path.GetDirectoryName(helperPath);
+                string workDir = Path.GetDirectoryName(helperPath);
 
                 args = (args ?? string.Empty).Trim();
 
@@ -380,38 +300,26 @@ namespace EZ2Play.App
                     "'; " +
                     "$Shortcut.Save();";
 
-                if (!RunAutorunPowerShell(
-                        ps,
-                        "Update autorun arguments"))
-                {
+                if (!RunAutorunPowerShell(ps, "Update autorun arguments"))
                     return false;
-                }
 
                 if (!File.Exists(shortcutPath))
                 {
-                    DebugLog.Write(
-                        "Autorun",
-                        "Startup shortcut disappeared after arguments update.");
-
+                    DebugLog.Write("Autorun", "Startup shortcut disappeared after arguments update.");
                     return false;
                 }
 
                 StopHelperProcess();
                 StartHelperProcess(args);
 
-                DebugLog.Write(
-                    "Autorun",
-                    $"Arguments updated: [{args}]");
+                DebugLog.Write("Autorun", $"Arguments updated: [{args}]");
 
                 return true;
             }
+
             catch (Exception ex)
             {
-                DebugLog.Error(
-                    "Autorun",
-                    ex,
-                    "Failed to update autorun arguments.");
-
+                DebugLog.Error("Autorun", ex, "Failed to update autorun arguments.");
                 return false;
             }
         }
@@ -431,6 +339,7 @@ namespace EZ2Play.App
                     return string.Empty;
 
                 Type shellType = Type.GetTypeFromProgID("WScript.Shell");
+
                 if (shellType == null)
                     return string.Empty;
 
@@ -441,12 +350,15 @@ namespace EZ2Play.App
                 dynamic dynamicShortcut = shortcut;
 
                 string arguments = dynamicShortcut.Arguments;
+
                 return arguments?.Trim() ?? string.Empty;
             }
+
             catch
             {
                 return string.Empty;
             }
+
             finally
             {
                 if (shortcut != null && Marshal.IsComObject(shortcut))
@@ -461,6 +373,7 @@ namespace EZ2Play.App
         {
             string appDir = AppDomain.CurrentDomain.BaseDirectory;
             string helperPath = Path.Combine(appDir, "EZ2Play Helper.exe");
+
             return helperPath;
         }
 
@@ -469,14 +382,16 @@ namespace EZ2Play.App
             try
             {
                 string helperPath = GetHelperExecutablePath();
+
                 if (string.IsNullOrEmpty(helperPath) || !File.Exists(helperPath))
                     return;
 
-                // Проверяем, не запущен ли уже
+                // Do not start another helper instance if one is already running.
                 if (IsHelperProcessRunning())
                     return;
 
                 var process = new System.Diagnostics.Process();
+
                 process.StartInfo.FileName = helperPath;
                 process.StartInfo.WorkingDirectory = Path.GetDirectoryName(helperPath);
                 process.StartInfo.Arguments = arguments;
@@ -484,7 +399,10 @@ namespace EZ2Play.App
                 process.StartInfo.CreateNoWindow = true;
                 process.Start();
             }
-            catch { }
+
+            catch
+            {
+            }
         }
 
         public static void StopHelperProcess()
@@ -498,10 +416,16 @@ namespace EZ2Play.App
                         process.Kill();
                         process.WaitForExit(3000);
                     }
-                    catch { }
+
+                    catch
+                    {
+                    }
                 }
             }
-            catch { }
+
+            catch
+            {
+            }
         }
 
         public static bool IsHelperProcessRunning()
@@ -511,16 +435,14 @@ namespace EZ2Play.App
                 var processes = System.Diagnostics.Process.GetProcessesByName("EZ2Play Helper");
                 return processes.Length > 0;
             }
+
             catch
             {
                 return false;
             }
         }
 
-        // --------------- FPS Monitor ---------------
-
-        private const string FpsMonitorPath =
-            @"C:\Program Files (x86)\FPS Monitor\FPSMonitor.exe";
+        private const string FpsMonitorPath = @"C:\Program Files (x86)\FPS Monitor\FPSMonitor.exe";
 
         public static bool IsFpsMonitorInstalled()
         {
@@ -533,6 +455,7 @@ namespace EZ2Play.App
             {
                 return System.Diagnostics.Process.GetProcessesByName("FPSMonitor").Length > 0;
             }
+
             catch
             {
                 return false;
@@ -545,19 +468,13 @@ namespace EZ2Play.App
             {
                 if (IsFpsMonitorRunning())
                 {
-                    DebugLog.Write(
-                        "FPS Monitor",
-                        "FPS Monitor is already running.");
-
+                    DebugLog.Write("FPS Monitor", "FPS Monitor is already running.");
                     return true;
                 }
 
                 if (!File.Exists(FpsMonitorPath))
                 {
-                    DebugLog.Write(
-                        "FPS Monitor",
-                        "FPS Monitor executable not found.");
-
+                    DebugLog.Write("FPS Monitor", "FPS Monitor executable not found.");
                     return false;
                 }
 
@@ -570,26 +487,18 @@ namespace EZ2Play.App
 
                 if (process == null)
                 {
-                    DebugLog.Write(
-                        "FPS Monitor",
-                        "FPS Monitor process could not be started.");
-
+                    DebugLog.Write("FPS Monitor", "FPS Monitor process could not be started.");
                     return false;
                 }
 
-                DebugLog.Write(
-                    "FPS Monitor",
-                    "FPS Monitor started.");
+                DebugLog.Write("FPS Monitor", "FPS Monitor started.");
 
                 return true;
             }
+
             catch (Exception ex)
             {
-                DebugLog.Error(
-                    "FPS Monitor",
-                    ex,
-                    "Failed to start FPS Monitor.");
-
+                DebugLog.Error("FPS Monitor", ex, "Failed to start FPS Monitor.");
                 return false;
             }
         }
@@ -601,31 +510,25 @@ namespace EZ2Play.App
                 if (!IsFpsMonitorRunning())
                     return true;
 
-                using (var process =
-                    System.Diagnostics.Process.Start(
-                        new System.Diagnostics.ProcessStartInfo
-                        {
-                            FileName = "taskkill.exe",
-                            Arguments = "/F /IM FPSMonitor.exe",
-                            UseShellExecute = true,
-                            Verb = "runas",
-                            WindowStyle =
-                                System.Diagnostics.ProcessWindowStyle.Hidden
-                        }))
+                using (var process = System.Diagnostics.Process.Start(
+                    new System.Diagnostics.ProcessStartInfo
+                    {
+                        FileName = "taskkill.exe",
+                        Arguments = "/F /IM FPSMonitor.exe",
+                        UseShellExecute = true,
+                        Verb = "runas",
+                        WindowStyle = System.Diagnostics.ProcessWindowStyle.Hidden
+                    }))
                 {
                     if (process == null)
                     {
-                        DebugLog.Write(
-                            "FPS Monitor",
-                            "taskkill process could not be started.");
-
+                        DebugLog.Write("FPS Monitor", "taskkill process could not be started.");
                         return false;
                     }
 
                     process.WaitForExit();
 
-                    // taskkill может завершиться чуть раньше,
-                    // чем FPSMonitor окончательно исчезнет из списка процессов.
+                    // taskkill may exit before FPSMonitor disappears from the process list.
                     const int maxAttempts = 20;
                     const int delayMs = 100;
 
@@ -633,42 +536,31 @@ namespace EZ2Play.App
                     {
                         if (!IsFpsMonitorRunning())
                         {
-                            DebugLog.Write(
-                                "FPS Monitor",
-                                $"FPS Monitor stopped after {attempt * delayMs} ms.");
-
+                            DebugLog.Write("FPS Monitor", $"FPS Monitor stopped after {attempt * delayMs} ms.");
                             return true;
                         }
 
                         System.Threading.Thread.Sleep(delayMs);
                     }
 
-                    DebugLog.Write(
-                        "FPS Monitor",
-                        $"FPS Monitor is still running after taskkill. ExitCode={process.ExitCode}");
+                    DebugLog.Write("FPS Monitor", $"FPS Monitor is still running after taskkill. ExitCode={process.ExitCode}");
 
                     return false;
                 }
             }
+
             catch (Exception ex)
             {
-                DebugLog.Error(
-                    "FPS Monitor",
-                    ex,
-                    "Failed to stop FPS Monitor.");
-
+                DebugLog.Error("FPS Monitor", ex, "Failed to stop FPS Monitor.");
                 return false;
             }
         }
-
-        // --------------- Системный ввод ---------------
 
         public static CultureInfo ForceEnglishInputLanguage()
         {
             try
             {
                 var manager = InputLanguageManager.Current;
-
                 var previousLanguage = manager.CurrentInputLanguage;
 
                 if (previousLanguage != null &&
@@ -688,6 +580,7 @@ namespace EZ2Play.App
 
                 return previousLanguage;
             }
+
             catch
             {
                 return null;
@@ -696,14 +589,13 @@ namespace EZ2Play.App
 
         public static void RestoreInputLanguage(CultureInfo language)
         {
-            if (language == null)
-                return;
+            if (language == null) return;
 
             try
             {
                 InputLanguageManager.Current.CurrentInputLanguage = language;
             }
-            
+
             catch
             {
             }
@@ -715,6 +607,7 @@ namespace EZ2Play.App
             {
                 CoreInputView.GetForCurrentView()?.TryHide();
             }
+
             catch
             {
             }
@@ -726,14 +619,14 @@ namespace EZ2Play.App
             {
                 var inputView = CoreInputView.GetForCurrentView();
 
-                if (inputView == null)
-                    return;
+                if (inputView == null) return;
 
                 var gamepadKeyboard = CoreInputViewKind.Gamepad;
 
                 if (inputView.IsKindSupported(gamepadKeyboard))
                     inputView.TryShow(gamepadKeyboard);
             }
+
             catch
             {
             }
@@ -745,12 +638,11 @@ namespace EZ2Play.App
             {
                 CoreInputView.GetForCurrentView()?.TryHide();
             }
+
             catch
             {
             }
         }
-
-        // --------------- Native imports ---------------
 
         [DllImport("user32.dll")]
         private static extern IntPtr GetForegroundWindow();

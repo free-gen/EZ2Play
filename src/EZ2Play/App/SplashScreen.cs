@@ -21,7 +21,7 @@ namespace EZ2Play.App
             _mainScreenGrid = mainScreenGrid;
         }
 
-        // Запускает последовательность сплеш-экрана: лого → вызов onComplete
+        // Run the splash sequence and invoke onComplete when finished.
         public void RunSequence(Action onComplete)
         {
             if (_logoImage == null)
@@ -38,6 +38,7 @@ namespace EZ2Play.App
                 {
                     EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut }
                 };
+
                 anim.Completed += (s, e) => after?.Invoke();
                 el.BeginAnimation(UIElement.OpacityProperty, anim);
             }
@@ -48,6 +49,7 @@ namespace EZ2Play.App
                 {
                     EasingFunction = new CubicEase { EasingMode = EasingMode.EaseIn }
                 };
+
                 anim.Completed += (s, e) => after?.Invoke();
                 el.BeginAnimation(UIElement.OpacityProperty, anim);
             }
@@ -55,7 +57,13 @@ namespace EZ2Play.App
             void Delay(int ms, Action after)
             {
                 var t = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(ms) };
-                t.Tick += (s, e) => { t.Stop(); after?.Invoke(); };
+
+                t.Tick += (s, e) =>
+                {
+                    t.Stop();
+                    after?.Invoke();
+                };
+
                 t.Start();
             }
 
@@ -66,16 +74,17 @@ namespace EZ2Play.App
                             Delay(1000, () => onComplete?.Invoke())))));
         }
 
-        // Показывает окно с анимацией, опционально пропуская сплеш
+        // Show the window with animation and optionally skip the splash screen.
         public void ShowWithAnimation(bool skipSplash, Action onAfterSplash)
         {
             if (_mainScreenGrid != null)
                 _mainScreenGrid.Visibility = Visibility.Collapsed;
-            
+
             if (_splashOverlay != null)
                 _splashOverlay.Visibility = Visibility.Collapsed;
 
             var window = Application.Current?.MainWindow;
+
             if (window != null)
                 window.Visibility = Visibility.Visible;
 
@@ -83,6 +92,7 @@ namespace EZ2Play.App
             {
                 if (window != null)
                     window.Opacity = 1.0;
+
                 onAfterSplash?.Invoke();
                 return;
             }
@@ -107,6 +117,7 @@ namespace EZ2Play.App
                 {
                     if (_splashOverlay != null)
                         _splashOverlay.Visibility = Visibility.Hidden;
+
                     onAfterSplash?.Invoke();
                 });
             };
@@ -115,7 +126,7 @@ namespace EZ2Play.App
                 window.BeginAnimation(UIElement.OpacityProperty, animation);
         }
 
-        // Пытается загрузить логотип в указанный Image элемент
+        // Load the logo from ui.pack and fall back to the embedded asset.
         private static bool TryLoadLogoInto(Image image)
         {
             if (image == null) return false;
@@ -123,28 +134,38 @@ namespace EZ2Play.App
             try
             {
                 var logoFromPack = PackLoader.LoadFromPack("Logo.png");
+
                 if (logoFromPack != null)
                 {
                     var bitmap = new BitmapImage();
+
                     bitmap.BeginInit();
                     bitmap.StreamSource = logoFromPack;
                     bitmap.CacheOption = BitmapCacheOption.OnLoad;
                     bitmap.EndInit();
+
                     image.Source = bitmap;
                     RenderOptions.SetBitmapScalingMode(image, BitmapScalingMode.HighQuality);
+
                     return true;
                 }
             }
-            catch { }
+
+            catch
+            {
+            }
 
             try
             {
                 var uri = new Uri("pack://application:,,,/Assets/Logo.png", UriKind.Absolute);
                 var bitmap = new BitmapImage(uri);
+
                 RenderOptions.SetBitmapScalingMode(image, BitmapScalingMode.HighQuality);
                 image.Source = bitmap;
+
                 return true;
             }
+
             catch
             {
                 return false;

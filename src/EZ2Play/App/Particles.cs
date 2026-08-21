@@ -6,8 +6,6 @@ namespace EZ2Play.App
 {
     public class ParticlesCanvas : FrameworkElement
     {
-        // ----------------- НАСТРОЙКИ -----------------
-
         public int ParticleCount { get; set; } = 300;
 
         private const int BrushLevels = 64;
@@ -37,8 +35,6 @@ namespace EZ2Play.App
         private const double SparkSizeMin = 2.75;
         private const double SparkSizeMax = 5.75;
 
-        // ----------------- ЧАСТИЦА -----------------
-
         private struct Particle
         {
             public double X;
@@ -61,8 +57,6 @@ namespace EZ2Play.App
             public byte Type;
         }
 
-        // ----------------- ДАННЫЕ -----------------
-
         private Particle[] _particles;
         private readonly Random _random = new Random();
         private SolidColorBrush[] _accentBrushes;
@@ -76,9 +70,7 @@ namespace EZ2Play.App
         private double _lastHeight;
         private double _scale = 1.0;
 
-        // ----------------- ОБЛАСТЬ ЧАСТИЦ -----------------
-
-        // Координаты области в долях экрана: 0.0 = начало, 1.0 = конец.
+        // Particle area coordinates are normalized to the screen size.
         private readonly Point[] _drawAreaNormalized =
         {
             // new Point(0.00, 0.48),
@@ -89,43 +81,33 @@ namespace EZ2Play.App
 
         private Point[] _drawArea;
 
-        // ----------------- ОБЩИЙ FADE -----------------
-
         private double _targetOpacity;
         private double _currentOpacity;
         private double _globalFadeDuration = 0.5;
-
-        // ----------------- КОНСТРУКТОР -----------------
 
         public ParticlesCanvas()
         {
             IsHitTestVisible = false;
 
-            // Частицы должны двигаться по субпиксельным координатам.
+            // Keep particle motion on subpixel coordinates.
             SnapsToDevicePixels = false;
 
             Loaded += (s, e) => InitializeBrushes();
             Unloaded += (s, e) => Stop();
         }
 
-        // ----------------- PUBLIC API -----------------
-
         public void Start()
         {
             if (!_isInitialized)
                 InitializeBrushes();
 
-            if (!_isInitialized)
-                return;
+            if (!_isInitialized) return;
 
             if (_particles == null || _particles.Length != ParticleCount)
                 InitializeParticles();
 
-            if (_particles == null || _particles.Length == 0)
-                return;
-
-            if (_isRunning)
-                return;
+            if (_particles == null || _particles.Length == 0) return;
+            if (_isRunning) return;
 
             _isRunning = true;
             _lastRenderingTime = TimeSpan.Zero;
@@ -164,6 +146,7 @@ namespace EZ2Play.App
                 {
                     Start();
                 }
+
                 else
                 {
                     Stop();
@@ -180,17 +163,13 @@ namespace EZ2Play.App
                 Start();
         }
 
-        // ----------------- КИСТИ -----------------
-
         private void InitializeBrushes()
         {
-            if (_isInitialized)
-                return;
+            if (_isInitialized) return;
 
             var accentBrush = Application.Current?.Resources["AccentFillColorSecondaryBrush"] as SolidColorBrush;
 
-            if (accentBrush == null)
-                return;
+            if (accentBrush == null) return;
 
             Color accent = accentBrush.Color;
             Color bright = MixWithWhite(accent, 0.58);
@@ -209,8 +188,7 @@ namespace EZ2Play.App
             {
                 byte alpha = (byte)Math.Round(255.0 * i / (BrushLevels - 1));
 
-                var brush = new SolidColorBrush(
-                    Color.FromArgb(alpha, color.R, color.G, color.B));
+                var brush = new SolidColorBrush(Color.FromArgb(alpha, color.R, color.G, color.B));
 
                 brush.Freeze();
                 brushes[i] = brush;
@@ -235,21 +213,17 @@ namespace EZ2Play.App
 
             int index = (int)Math.Round(opacity * (BrushLevels - 1));
 
-            if (index <= 0)
-                return null;
+            if (index <= 0) return null;
 
             return brushes[index];
         }
-
-        // ----------------- ИНИЦИАЛИЗАЦИЯ ЧАСТИЦ -----------------
 
         private void InitializeParticles()
         {
             double width = ActualWidth;
             double height = ActualHeight;
 
-            if (width <= 0 || height <= 0)
-                return;
+            if (width <= 0 || height <= 0) return;
 
             _lastWidth = width;
             _lastHeight = height;
@@ -268,7 +242,7 @@ namespace EZ2Play.App
         {
             Point position = GetRandomPointInDrawArea();
 
-            // Большая часть частиц остаётся на дальнем плане.
+            // Keep most particles in the background.
             p.Depth = 0.10 + Math.Pow(_random.NextDouble(), 1.50) * 0.90;
 
             double typeRoll = _random.NextDouble();
@@ -298,10 +272,10 @@ namespace EZ2Play.App
             speed *= 0.85 + _random.NextDouble() * 0.30;
             speed *= _scale;
 
-            // Основное течение направлено вправо.
+            // Main particle flow moves to the right.
             p.SpeedX = speed * (0.92 + _random.NextDouble() * 0.16);
 
-            // Незначительный вертикальный разброс.
+            // Add slight vertical variation.
             p.SpeedY = speed * (-0.08 + (_random.NextDouble() - 0.5) * 0.50);
 
             p.DriftAmplitude = Lerp(2.0, 9.0, p.Depth) * _scale * (0.80 + _random.NextDouble() * 0.40);
@@ -329,17 +303,13 @@ namespace EZ2Play.App
             p.RespawnTimer = RandomRange(RespawnTimeMin, RespawnTimeMax);
         }
 
-        // ----------------- RENDER LOOP -----------------
-
         private void OnRendering(object sender, EventArgs e)
         {
-            if (!_isRunning)
-                return;
+            if (!_isRunning) return;
 
             var renderingArgs = e as RenderingEventArgs;
 
-            if (renderingArgs == null)
-                return;
+            if (renderingArgs == null) return;
 
             TimeSpan renderingTime = renderingArgs.RenderingTime;
 
@@ -353,8 +323,7 @@ namespace EZ2Play.App
             double delta = (renderingTime - _lastRenderingTime).TotalSeconds;
             _lastRenderingTime = renderingTime;
 
-            if (delta <= 0)
-                return;
+            if (delta <= 0) return;
 
             if (delta > MaxDelta)
                 delta = MaxDelta;
@@ -372,8 +341,6 @@ namespace EZ2Play.App
 
             InvalidateVisual();
         }
-
-        // ----------------- ОБЩИЙ FADE -----------------
 
         private void UpdateGlobalOpacity(double delta)
         {
@@ -393,6 +360,7 @@ namespace EZ2Play.App
                 if (_currentOpacity >= _targetOpacity)
                     _currentOpacity = _targetOpacity;
             }
+
             else
             {
                 _currentOpacity -= step;
@@ -409,15 +377,12 @@ namespace EZ2Play.App
             }
         }
 
-        // ----------------- ДВИЖЕНИЕ -----------------
-
         private void UpdateParticles(double delta)
         {
             double width = ActualWidth;
             double height = ActualHeight;
 
-            if (width <= 0 || height <= 0 || _particles == null)
-                return;
+            if (width <= 0 || height <= 0 || _particles == null) return;
 
             if (Math.Abs(width - _lastWidth) > 0.01 || Math.Abs(height - _lastHeight) > 0.01)
             {
@@ -437,10 +402,10 @@ namespace EZ2Play.App
 
                 double normalizedX = width > 0 ? p.X / width : 0;
 
-                // Общая спокойная волна создаёт ощущение единого потока.
+                // A shared wave keeps the particles moving as one calm flow.
                 double fieldWave = Math.Sin(_time * 0.48 + normalizedX * 3.8 + p.Phase);
 
-                // Индивидуальный drift не даёт частицам выглядеть строем.
+                // Individual drift prevents particles from moving in formation.
                 double localWave = Math.Sin(_time * p.DriftFrequency + p.Phase);
                 double secondWave = Math.Cos(_time * p.DriftFrequency * 0.71 + p.Phase * 1.31);
 
@@ -473,6 +438,7 @@ namespace EZ2Play.App
                     {
                         p.FadeDelay -= delta;
                     }
+
                     else
                     {
                         p.Opacity -= fadeOutSpeed;
@@ -481,6 +447,7 @@ namespace EZ2Play.App
                             SpawnParticle(ref p, false);
                     }
                 }
+
                 else if (p.Opacity < 1.0)
                 {
                     p.Opacity += fadeInSpeed;
@@ -493,14 +460,11 @@ namespace EZ2Play.App
             }
         }
 
-        // ----------------- ОТРИСОВКА -----------------
-
         protected override void OnRender(DrawingContext dc)
         {
             base.OnRender(dc);
 
-            if (_particles == null || !_isInitialized || _currentOpacity <= 0.001)
-                return;
+            if (_particles == null || !_isInitialized || _currentOpacity <= 0.001) return;
 
             for (int i = 0; i < _particles.Length; i++)
                 DrawParticle(dc, _particles[i]);
@@ -508,8 +472,7 @@ namespace EZ2Play.App
 
         private void DrawParticle(DrawingContext dc, Particle p)
         {
-            if (p.Opacity <= 0)
-                return;
+            if (p.Opacity <= 0) return;
 
             double pulseWave = 0.5 + 0.5 * Math.Sin(_time * p.PulseSpeed + p.PulsePhase);
 
@@ -525,14 +488,11 @@ namespace EZ2Play.App
             double flash = p.Type == ParticleSpark ? pulseWave * pulseWave : 0;
             double opacity = Clamp01(p.BaseOpacity * p.Opacity * pulse * _currentOpacity);
 
-            if (opacity <= 0.003)
-                return;
+            if (opacity <= 0.003) return;
 
             Point center = new Point(p.X, p.Y);
             double radiusX = p.Radius * p.Aspect;
             double radiusY = p.Radius;
-
-            // ----------------- ПЫЛЬ -----------------
 
             if (p.Type == ParticleDust)
             {
@@ -543,8 +503,6 @@ namespace EZ2Play.App
 
                 return;
             }
-
-            // ----------------- СВЕТЯЩАЯСЯ ЧАСТИЦА -----------------
 
             if (p.Type == ParticleGlow)
             {
@@ -571,8 +529,6 @@ namespace EZ2Play.App
 
                 return;
             }
-
-            // ----------------- РЕДКАЯ ЯРКАЯ ЧАСТИЦА -----------------
 
             double sparkScale = 1.0 + flash * 0.25;
 
@@ -610,14 +566,11 @@ namespace EZ2Play.App
                 dc.DrawEllipse(sparkCore, null, center, radiusX * 0.75, radiusY * 0.75);
         }
 
-        // ----------------- RESIZE -----------------
-
         protected override void OnRenderSizeChanged(SizeChangedInfo sizeInfo)
         {
             base.OnRenderSizeChanged(sizeInfo);
 
-            if (sizeInfo.NewSize.Width <= 0 || sizeInfo.NewSize.Height <= 0)
-                return;
+            if (sizeInfo.NewSize.Width <= 0 || sizeInfo.NewSize.Height <= 0) return;
 
             _lastWidth = sizeInfo.NewSize.Width;
             _lastHeight = sizeInfo.NewSize.Height;
@@ -631,8 +584,6 @@ namespace EZ2Play.App
             InvalidateVisual();
         }
 
-        // ----------------- МАСШТАБ -----------------
-
         private double GetScaleFactor()
         {
             Window window = Window.GetWindow(this);
@@ -643,10 +594,6 @@ namespace EZ2Play.App
 
             return LayoutScaler.GetScaleFactor(height);
         }
-
-        // ----------------- ОБЛАСТЬ ЧАСТИЦ -----------------
-
-        // ----------------- ОБЛАСТЬ ЧАСТИЦ -----------------
 
         private void UpdateDrawArea(double width, double height)
         {
@@ -688,7 +635,7 @@ namespace EZ2Play.App
                     return point;
             }
 
-            // На случай очень узкой области возвращаем её центр.
+            // Fall back to the center if the area is too narrow for random sampling.
             double centerX = 0;
             double centerY = 0;
 
@@ -703,8 +650,7 @@ namespace EZ2Play.App
 
         private bool IsPointInDrawArea(Point point)
         {
-            if (_drawArea == null || _drawArea.Length < 3)
-                return false;
+            if (_drawArea == null || _drawArea.Length < 3) return false;
 
             bool inside = false;
 
@@ -724,8 +670,6 @@ namespace EZ2Play.App
             return inside;
         }
 
-        // ----------------- HELPERS -----------------
-
         private static double Lerp(double a, double b, double t)
         {
             return a + (b - a) * t;
@@ -740,6 +684,7 @@ namespace EZ2Play.App
         {
             if (value < 0) return 0;
             if (value > 1) return 1;
+
             return value;
         }
 

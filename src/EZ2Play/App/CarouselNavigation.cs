@@ -2,20 +2,14 @@ using System;
 
 namespace EZ2Play.App
 {
-    // --------------- Логика навигации карусели ---------------
-
     public class CarouselNavigation
     {
-        // --------------- Поля ---------------
-
         private readonly ShortcutInfo[] _shortcuts;
-        
+
         private int _selectedIndex = 0;
         private int _visibleWindowStart = 0;
         private bool _pendingWindowShiftAnimation;
         private int _pendingMoveDirection;
-
-        // --------------- Свойства ---------------
 
         public int SelectedIndex => _selectedIndex;
         public int VisibleWindowStart => _visibleWindowStart;
@@ -25,14 +19,10 @@ namespace EZ2Play.App
         public ShortcutInfo[] Shortcuts => _shortcuts;
         public bool IsEmpty => _shortcuts.Length == 0;
 
-        // --------------- Конструктор ---------------
-
         public CarouselNavigation(ShortcutInfo[] shortcuts)
         {
             _shortcuts = shortcuts ?? Array.Empty<ShortcutInfo>();
         }
-
-        // --------------- Навигация ---------------
 
         public void ResetView()
         {
@@ -55,22 +45,26 @@ namespace EZ2Play.App
 
             _selectedIndex += direction;
 
-            // Циклическая навигация
+            // Wrap selection when reaching either end.
             if (_selectedIndex >= count)
             {
                 _selectedIndex = 0;
                 _visibleWindowStart = 0;
             }
+
             else if (_selectedIndex < 0)
             {
                 _selectedIndex = count - 1;
                 _visibleWindowStart = Math.Max(0, count - visibleCount);
             }
+
             else
             {
                 int visibleIndex = _selectedIndex - _visibleWindowStart;
+
                 if (direction > 0 && visibleIndex >= visibleCount)
                     _visibleWindowStart++;
+
                 if (direction < 0 && visibleIndex < 0)
                     _visibleWindowStart--;
             }
@@ -86,8 +80,6 @@ namespace EZ2Play.App
             int absoluteIndex = (_visibleWindowStart - leftOffset) + visibleIndex;
             _selectedIndex = Math.Max(0, Math.Min(absoluteIndex, _shortcuts.Length - 1));
         }
-
-        // --------------- Видимое окно ---------------
 
         public int GetSelectedVisibleIndex()
         {
@@ -109,10 +101,9 @@ namespace EZ2Play.App
 
             var slice = new ShortcutInfo[totalCount];
             Array.Copy(_shortcuts, start, slice, 0, totalCount);
+
             return slice;
         }
-
-        // --------------- Геометрические расчеты ---------------
 
         public int GetCenterVisibleCount()
         {
@@ -122,7 +113,9 @@ namespace EZ2Play.App
         private bool GetHasRightOverflow()
         {
             int centerCount = GetCenterVisibleCount();
+
             if (_shortcuts.Length == 0 || centerCount <= 0) return false;
+
             return _visibleWindowStart + centerCount < _shortcuts.Length;
         }
 
@@ -132,21 +125,23 @@ namespace EZ2Play.App
             return Math.Max(0, Math.Min(start, maxStart));
         }
 
-        public int GetFallbackPreviousIndex(int currentVisibleIndex, int previousAbsoluteIndex, 
-                                             int currentAbsoluteIndex, int itemsCount)
+        // Resolve the previous visible item for selection animation.
+        public int GetFallbackPreviousIndex(int currentVisibleIndex, int previousAbsoluteIndex, int currentAbsoluteIndex, int itemsCount)
         {
             int delta = currentAbsoluteIndex - previousAbsoluteIndex;
             if (delta > 1 || delta < -1) delta = 0;
 
             int fallbackPreviousIndex = -1;
-            if (delta > 0) fallbackPreviousIndex = currentVisibleIndex - 1;
-            else if (delta < 0) fallbackPreviousIndex = currentVisibleIndex + 1;
 
-            return (fallbackPreviousIndex >= 0 && fallbackPreviousIndex < itemsCount) 
-                ? fallbackPreviousIndex : -1;
+            if (delta > 0)
+                fallbackPreviousIndex = currentVisibleIndex - 1;
+            else if (delta < 0)
+                fallbackPreviousIndex = currentVisibleIndex + 1;
+
+            return fallbackPreviousIndex >= 0 && fallbackPreviousIndex < itemsCount
+                ? fallbackPreviousIndex
+                : -1;
         }
-
-        // --------------- Управление флагами анимации ---------------
 
         public bool ConsumePendingWindowShiftAnimation()
         {
