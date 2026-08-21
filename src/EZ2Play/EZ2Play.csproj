@@ -11,8 +11,8 @@
     <Product>EZ2Play Game Launcher</Product>
     <AppName>EZ2Play</AppName>
     <AppDescription>EZ2Play Game Launcher</AppDescription>
-    <FileVersion>0.9.28</FileVersion>
-    <InformationalVersion>0.9.28</InformationalVersion>
+    <FileVersion>0.9.29</FileVersion>
+    <InformationalVersion>0.9.29</InformationalVersion>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -35,7 +35,6 @@
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Management" />
     <Reference Include="System.Windows.Forms" />
-    <PackageReference Include="SharpDX.DirectInput" Version="4.2.0" />
     <PackageReference Include="SharpDX.XInput" Version="4.2.0" />
     <PackageReference Include="WPF-UI" Version="4.2.0" />
     <PackageReference Include="Fody" Version="6.8.2">

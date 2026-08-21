@@ -15,7 +15,6 @@ namespace EZ2Play.App
         private AppConfig _config;
         private double fadeDuration = 0.1;
         private bool _exitConfirmationMode = false;
-        private string _cachedArgs = " ";
 
         // Замороженные кисти для производительности
         private static readonly Brush SelectedBorderBrush;
@@ -581,7 +580,6 @@ namespace EZ2Play.App
         private void LoadSubOptionsStates()
         {
             string args = SystemProvider.GetAutorunArguments();
-            _cachedArgs = args;
 
             NoSplashToggle.IsChecked = args.Contains("--nosplash");
             NoMusicToggle.IsChecked = args.Contains("--nomusic");

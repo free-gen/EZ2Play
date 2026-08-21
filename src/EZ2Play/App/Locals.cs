@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Reflection;
 using System.Windows;
+using System.Diagnostics;
 
 namespace EZ2Play.App
 {
@@ -104,6 +105,8 @@ namespace EZ2Play.App
 
         public static void Init()
         {
+            ValidateTranslations();
+
             if (_forceLang.HasValue)
             {
                 _currentLang = _forceLang.Value;
@@ -118,10 +121,36 @@ namespace EZ2Play.App
                 _currentLang = 2;
             else if (lang == "fr")
                 _currentLang = 3;
-            else if (lang == "zh" || lang == "zh-CN" || lang == "zh-Hans")
+            else if (lang == "zh")
                 _currentLang = 4;
             else
                 _currentLang = 0;
+        }
+
+        [Conditional("DEBUG")]
+        private static void ValidateTranslations()
+        {
+            const int expectedLanguages = 5;
+
+            foreach (var pair in Translations)
+            {
+                var values = pair.Value;
+
+                if (values == null || values.Length != expectedLanguages)
+                {
+                    DebugLog.Write("Localization", $"Key '{pair.Key}' has {values?.Length ?? 0} translations; expected {expectedLanguages}.");
+
+                    continue;
+                }
+
+                for (int i = 0; i < values.Length; i++)
+                {
+                    if (string.IsNullOrWhiteSpace(values[i]))
+                    {
+                        DebugLog.Write("Localization", $"Key '{pair.Key}' has an empty translation at index {i}.");
+                    }
+                }
+            }
         }
 
         // --------------- API ---------------

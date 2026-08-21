@@ -77,25 +77,46 @@ namespace EZ2Play.App
         {
             SHFILEINFO shinfo = new SHFILEINFO();
 
-            SHGetFileInfo(path, 0, out shinfo,
-                (uint)Marshal.SizeOf(shinfo),
-                SHGFI_SYSICONINDEX);
+            if (SHGetFileInfo(path, 0, out shinfo, (uint)Marshal.SizeOf(shinfo), SHGFI_SYSICONINDEX) == IntPtr.Zero)
+                return null;
 
             Guid iidImageList = new Guid("46EB5926-582E-4017-9FDF-E8998DAA0950");
-            IntPtr hImageList;
+            IntPtr imageListPtr = IntPtr.Zero;
+            IntPtr hIcon = IntPtr.Zero;
 
-            SHGetImageList(SHIL_JUMBO, ref iidImageList, out hImageList);
-
-            IntPtr hIcon = ImageList_GetIcon(hImageList, shinfo.iIcon, 0);
-
-            if (hIcon != IntPtr.Zero)
+            try
             {
-                var bitmap = ConvertIconToBitmapSource(hIcon);
-                DestroyIcon(hIcon);
-                return bitmap;
-            }
+                int hr = SHGetImageList(SHIL_JUMBO, ref iidImageList, out imageListPtr);
 
-            return null;
+                if (hr != 0 || imageListPtr == IntPtr.Zero)
+                    return null;
+
+                hIcon = ImageList_GetIcon(imageListPtr, shinfo.iIcon, 0);
+
+                return hIcon != IntPtr.Zero
+                    ? ConvertIconToBitmapSource(hIcon)
+                    : null;
+            }
+            catch
+            {
+                return null;
+            }
+            finally
+            {
+                if (hIcon != IntPtr.Zero)
+                    DestroyIcon(hIcon);
+
+                if (imageListPtr != IntPtr.Zero)
+                {
+                    try
+                    {
+                        Marshal.Release(imageListPtr);
+                    }
+                    catch
+                    {
+                    }
+                }
+            }
         }
 
         // Получение пути к иконке из .lnk ярлыка

@@ -41,7 +41,6 @@ namespace EZ2Play.App
         private bool _lastBState;
         private bool _enterKeyPressed;
         private bool _escapeKeyPressed;
-        private bool _lastStartState;
         private bool _lastBackState;
 
         // События (нейтральные, без логики)
@@ -56,8 +55,6 @@ namespace EZ2Play.App
         public event Action OnStart;
         public event Action OnBack;
         public event Action<bool, string> OnGamepadConnectionChanged;
-
-        public event Action OnStartReleased;
 
         public bool IsGamepadConnected { get; private set; }
 
@@ -423,14 +420,6 @@ namespace EZ2Play.App
                 _lastGamepadButtonInput = now;
                 OnStart?.Invoke();
             }
-
-            bool currentStart =
-                (gamepad.Buttons & GamepadButtonFlags.Start) != 0;
-
-            if (_lastStartState && !currentStart)
-                OnStartReleased?.Invoke();
-
-            _lastStartState = currentStart;
         }
 
         public void Dispose()

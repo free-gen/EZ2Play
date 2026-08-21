@@ -274,17 +274,6 @@ namespace EZ2Play.App
             {
                 _particlesCanvas?.SetParticlesVisible(visible, true, 0.2);
             }
-            
-            // Добавить управление видимостью BottomHintPanel
-            if (BottomHintPanel != null)
-            {
-                var panelAnim = new DoubleAnimation
-                {
-                    To = visible ? 1 : 0,
-                    Duration = TimeSpan.FromSeconds(0.2),
-                    EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut }
-                };
-            }
         }
 
         public void SetParticlesCanvas(ParticlesCanvas canvas)
