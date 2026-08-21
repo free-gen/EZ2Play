@@ -9,7 +9,7 @@ EZ2Play is a minimalistic portable game launcher for Windows focused on gamepad 
 Instead of scanning installed games or maintaining its own library database, EZ2Play uses standard Windows `.lnk` and `.url` shortcuts. Put the shortcuts you want into the `shortcuts` folder and the launcher builds the library from them.
 
 ![Screenshot](res/ez2play01.jpg)
-![Screenshot](res/ez2play02.jpg)
+![Screenshot](res/ez2play05.jpg)
 
 ## Features
 
@@ -74,6 +74,10 @@ shortcuts/covers/
 ```
 
 ## Built-in Artwork Search
+
+![Screenshot](res/ez2play02.jpg)
+![Screenshot](res/ez2play03.jpg)
+![Screenshot](res/ez2play04.jpg)
 
 EZ2Play includes an integrated SteamGridDB artwork browser.
 
