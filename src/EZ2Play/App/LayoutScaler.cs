@@ -56,8 +56,8 @@ namespace EZ2Play.App
             target[UiScaleKeys.SettingsOverlayLabelTreeMargin] = new Thickness(0, 0, 0, s(4));
             target[UiScaleKeys.SettingsOverlayTreeItemsContainerMargin] = new Thickness(0, s(-8), 0, 0);
             target[UiScaleKeys.SettingsOverlayTreeItemsContainerPadding] = new Thickness(s(16), 0, s(16), s(8));
-            target[UiScaleKeys.SettingsOverlayTreeItemsItemMargin] = new Thickness(0, s(8), 0, s(8));
-            target[UiScaleKeys.SettingsOverlayTreeItemsItemPadding] = new Thickness(s(16));
+            target[UiScaleKeys.SettingsOverlayTreeItemPadding] = new Thickness(0, s(8), 0, s(8));
+            target[UiScaleKeys.SettingsOverlayTreeItemMargin] = new Thickness(s(16));
 
             target[UiScaleKeys.OverlaySelectionBorderMargin] = new Thickness(s(8));
             target[UiScaleKeys.OverlaySelectionBorderThickness] = new Thickness(s(4));
@@ -170,8 +170,8 @@ namespace EZ2Play.App
         public const string OverlaySecondaryFontSize = "OverlaySecondaryFontSize";
         public const string SettingsOverlayTreeItemsContainerMargin = "SettingsOverlayTreeItemsContainerMargin";
         public const string SettingsOverlayTreeItemsContainerPadding = "SettingsOverlayTreeItemsContainerPadding";
-        public const string SettingsOverlayTreeItemsItemMargin = "SettingsOverlayTreeItemsItemMargin";
-        public const string SettingsOverlayTreeItemsItemPadding = "SettingsOverlayTreeItemsItemPadding";
+        public const string SettingsOverlayTreeItemPadding = "SettingsOverlayTreeItemPadding";
+        public const string SettingsOverlayTreeItemMargin = "SettingsOverlayTreeItemMargin";
         public const string SettingsOverlayLabelMargin = "SettingsOverlayLabelMargin";
         public const string SettingsOverlayLabelTreeMargin = "SettingsOverlayLabelTreeMargin";
         public const string SettingsOverlayDescFontSize = "SettingsOverlayDescFontSize";

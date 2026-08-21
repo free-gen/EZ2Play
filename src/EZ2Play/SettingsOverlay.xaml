@@ -13,6 +13,34 @@
                 </Setter.Value>
             </Setter>
         </Style>
+
+        <Style x:Key="SettingsItemLabelStyle" TargetType="TextBlock" BasedOn="{StaticResource {x:Type TextBlock}}">
+            <Setter Property="Margin" Value="{DynamicResource {x:Static app:UiScaleKeys.SettingsOverlayLabelMargin}}"/>
+        </Style>
+
+        <Style x:Key="SettingsItemDescriptionStyle" TargetType="TextBlock" BasedOn="{StaticResource {x:Type TextBlock}}">
+            <Setter Property="Foreground" Value="{DynamicResource TextFillColorTertiaryBrush}"/>
+            <Setter Property="FontSize" Value="{DynamicResource {x:Static app:UiScaleKeys.SettingsOverlayDescFontSize}}"/>
+        </Style>
+
+        <Style x:Key="SettingsToggleViewboxStyle" TargetType="Viewbox">
+            <Setter Property="Width" Value="{DynamicResource {x:Static app:UiScaleKeys.ToggleSwitchWidth}}"/>
+            <Setter Property="Height" Value="{DynamicResource {x:Static app:UiScaleKeys.ToggleSwitchHeight}}"/>
+            <Setter Property="Stretch" Value="Uniform"/>
+            <Setter Property="HorizontalAlignment" Value="Right"/>
+        </Style>
+
+        <Style x:Key="SettingsTreeLabelStyle" TargetType="TextBlock" BasedOn="{StaticResource {x:Type TextBlock}}">
+            <Setter Property="Margin" Value="{DynamicResource {x:Static app:UiScaleKeys.SettingsOverlayLabelTreeMargin}}"/>
+            <Setter Property="FontSize" Value="{DynamicResource {x:Static app:UiScaleKeys.OverlaySecondaryFontSize}}"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+        </Style>
+
+        <Style x:Key="SettingsCheckBoxViewboxStyle" TargetType="Viewbox">
+            <Setter Property="Width" Value="{DynamicResource {x:Static app:UiScaleKeys.CheckBox}}"/>
+            <Setter Property="Height" Value="{DynamicResource {x:Static app:UiScaleKeys.CheckBox}}"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+        </Style>
     </UserControl.Resources>
 
     <Border Style="{StaticResource OverlaySurfaceStyle}"
@@ -105,18 +133,17 @@
                             <ColumnDefinition Width="0.05*"/>
                         </Grid.ColumnDefinitions>
 
-                        <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="{DynamicResource {x:Static app:UiScaleKeys.SettingsOverlayLabelMargin}}">
-                            <TextBlock x:Name="SettingsAutorunAppLabel" 
-                            Margin="{DynamicResource {x:Static app:UiScaleKeys.SettingsOverlayLabelMargin}}"/>
+                        <StackPanel Grid.Column="1"
+                                    VerticalAlignment="Center"
+                                    Margin="{DynamicResource {x:Static app:UiScaleKeys.SettingsOverlayLabelMargin}}">
+                            <TextBlock x:Name="SettingsAutorunAppLabel"
+                                    Style="{StaticResource SettingsItemLabelStyle}"/>
                             <TextBlock x:Name="SettingsAutorunAppDesc"
-                                        Foreground="{DynamicResource TextFillColorTertiaryBrush}"
-                                        FontSize="{DynamicResource {x:Static app:UiScaleKeys.SettingsOverlayDescFontSize}}"/>
+                                    Style="{StaticResource SettingsItemDescriptionStyle}"/>
                         </StackPanel>
 
-                        <Viewbox Grid.Column="2" 
-                                Width="{DynamicResource {x:Static app:UiScaleKeys.ToggleSwitchWidth}}" 
-                                Height="{DynamicResource {x:Static app:UiScaleKeys.ToggleSwitchHeight}}" 
-                                Stretch="Uniform" HorizontalAlignment="Right">
+                        <Viewbox Grid.Column="2"
+                                Style="{StaticResource SettingsToggleViewboxStyle}">
                             <ui:ToggleSwitch x:Name="AutorunToggle"/>
                         </Viewbox>
                     </Grid>
@@ -169,8 +196,8 @@
 
                                                     <!-- TreeItemStyle -->
                                                     <Border x:Name="ItemBorder"
-                                                            Padding="{DynamicResource {x:Static app:UiScaleKeys.SettingsOverlayTreeItemsItemMargin}}"
-                                                            Margin="{DynamicResource {x:Static app:UiScaleKeys.SettingsOverlayTreeItemsItemPadding}}"
+                                                            Padding="{DynamicResource {x:Static app:UiScaleKeys.SettingsOverlayTreeItemPadding}}"
+                                                            Margin="{DynamicResource {x:Static app:UiScaleKeys.SettingsOverlayTreeItemMargin}}"
                                                             CornerRadius="{DynamicResource {x:Static app:UiScaleKeys.OverlaySelectionBackgroundCornerRadius}}"
                                                             BorderThickness="{DynamicResource {x:Static app:UiScaleKeys.OverlayBorderThickness}}"
                                                             BorderBrush="{DynamicResource ControlElevationBorderBrush}"
@@ -195,15 +222,11 @@
                                     </Grid.ColumnDefinitions>
 
                                     <TextBlock Grid.Column="1"
-                                    x:Name="SettingsTreeNoSplash"
-                                    Margin="{DynamicResource {x:Static app:UiScaleKeys.SettingsOverlayLabelTreeMargin}}"
-                                    FontSize="{DynamicResource {x:Static app:UiScaleKeys.OverlaySecondaryFontSize}}"
-                                    VerticalAlignment="Center"/>
+                                            x:Name="SettingsTreeNoSplash"
+                                            Style="{StaticResource SettingsTreeLabelStyle}"/>
 
-                                    <Viewbox Grid.Column="2" 
-                                    Width="{DynamicResource {x:Static app:UiScaleKeys.CheckBox}}" 
-                                    Height="{DynamicResource {x:Static app:UiScaleKeys.CheckBox}}" 
-                                    VerticalAlignment="Center">
+                                    <Viewbox Grid.Column="2"
+                                            Style="{StaticResource SettingsCheckBoxViewboxStyle}">
                                         <CheckBox x:Name="NoSplashToggle"/>
                                     </Viewbox>
                                 </Grid>
@@ -220,15 +243,11 @@
                                     </Grid.ColumnDefinitions>
 
                                     <TextBlock Grid.Column="1"
-                                    x:Name="SettingsTreeNoMusic"
-                                    Margin="{DynamicResource {x:Static app:UiScaleKeys.SettingsOverlayLabelTreeMargin}}"
-                                    FontSize="{DynamicResource {x:Static app:UiScaleKeys.OverlaySecondaryFontSize}}"
-                                    VerticalAlignment="Center"/>
+                                            x:Name="SettingsTreeNoMusic"
+                                            Style="{StaticResource SettingsTreeLabelStyle}"/>
 
-                                    <Viewbox Grid.Column="2" 
-                                    Width="{DynamicResource {x:Static app:UiScaleKeys.CheckBox}}" 
-                                    Height="{DynamicResource {x:Static app:UiScaleKeys.CheckBox}}" 
-                                    VerticalAlignment="Center">
+                                    <Viewbox Grid.Column="2"
+                                            Style="{StaticResource SettingsCheckBoxViewboxStyle}">
                                         <CheckBox x:Name="NoMusicToggle"/>
                                     </Viewbox>
                                 </Grid>
@@ -245,15 +264,11 @@
                                     </Grid.ColumnDefinitions>
 
                                     <TextBlock Grid.Column="1"
-                                    x:Name="SettingsTreeHotSwap"
-                                    Margin="{DynamicResource {x:Static app:UiScaleKeys.SettingsOverlayLabelTreeMargin}}"
-                                    FontSize="{DynamicResource {x:Static app:UiScaleKeys.OverlaySecondaryFontSize}}"
-                                    VerticalAlignment="Center"/>
+                                            x:Name="SettingsTreeHotSwap"
+                                            Style="{StaticResource SettingsTreeLabelStyle}"/>
 
-                                    <Viewbox Grid.Column="2" 
-                                    Width="{DynamicResource {x:Static app:UiScaleKeys.CheckBox}}" 
-                                    Height="{DynamicResource {x:Static app:UiScaleKeys.CheckBox}}" 
-                                    VerticalAlignment="Center">
+                                    <Viewbox Grid.Column="2"
+                                            Style="{StaticResource SettingsCheckBoxViewboxStyle}">
                                         <CheckBox x:Name="HotSwapToggle"/>
                                     </Viewbox>
                                 </Grid>
@@ -276,20 +291,14 @@
                         <StackPanel Grid.Column="1"
                                     VerticalAlignment="Center"
                                     Margin="{DynamicResource {x:Static app:UiScaleKeys.SettingsOverlayLabelMargin}}">
-
                             <TextBlock x:Name="SettingsFpsMonitorLabel"
-                                    Margin="{DynamicResource {x:Static app:UiScaleKeys.SettingsOverlayLabelMargin}}"/>
-
+                                    Style="{StaticResource SettingsItemLabelStyle}"/>
                             <TextBlock x:Name="SettingsFpsMonitorDesc"
-                                    Foreground="{DynamicResource TextFillColorTertiaryBrush}"
-                                    FontSize="{DynamicResource {x:Static app:UiScaleKeys.SettingsOverlayDescFontSize}}"/>
+                                    Style="{StaticResource SettingsItemDescriptionStyle}"/>
                         </StackPanel>
 
                         <Viewbox Grid.Column="2"
-                                Width="{DynamicResource {x:Static app:UiScaleKeys.ToggleSwitchWidth}}"
-                                Height="{DynamicResource {x:Static app:UiScaleKeys.ToggleSwitchHeight}}"
-                                Stretch="Uniform"
-                                HorizontalAlignment="Right">
+                                Style="{StaticResource SettingsToggleViewboxStyle}">
                             <ui:ToggleSwitch x:Name="FpsMonitorToggle"/>
                         </Viewbox>
                     </Grid>
@@ -305,12 +314,13 @@
                             <ColumnDefinition Width="0.05*"/>
                         </Grid.ColumnDefinitions>
 
-                        <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="{DynamicResource {x:Static app:UiScaleKeys.SettingsOverlayLabelMargin}}">
-                            <TextBlock x:Name="SettingsSourceDisplayLabel" 
-                            Margin="{DynamicResource {x:Static app:UiScaleKeys.SettingsOverlayLabelMargin}}"/>
+                        <StackPanel Grid.Column="1"
+                                    VerticalAlignment="Center"
+                                    Margin="{DynamicResource {x:Static app:UiScaleKeys.SettingsOverlayLabelMargin}}">
+                            <TextBlock x:Name="SettingsSourceDisplayLabel"
+                                    Style="{StaticResource SettingsItemLabelStyle}"/>
                             <TextBlock x:Name="SettingsSourceDisplayDesc"
-                                        Foreground="{DynamicResource TextFillColorTertiaryBrush}"
-                                        FontSize="{DynamicResource {x:Static app:UiScaleKeys.SettingsOverlayDescFontSize}}"/>
+                                    Style="{StaticResource SettingsItemDescriptionStyle}"/>
                         </StackPanel>
 
                         <TextBlock Grid.Column="2" 
