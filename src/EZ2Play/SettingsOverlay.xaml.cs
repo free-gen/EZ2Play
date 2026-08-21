@@ -15,20 +15,7 @@ namespace EZ2Play.App
         private AppConfig _config;
         private double fadeDuration = 0.1;
         private bool _exitConfirmationMode = false;
-
-        // Frozen brushes used by the custom selection visuals.
-        private static readonly Brush SelectedBorderBrush;
-        private static readonly Brush SelectedBackgroundBrush;
-        private static readonly Brush TransparentBrush = Brushes.Transparent;
-
-        static SettingsOverlay()
-        {
-            SelectedBorderBrush = new SolidColorBrush(Color.FromArgb(0xC0, 0xFF, 0xFF, 0xFF));
-            SelectedBorderBrush.Freeze();
-
-            SelectedBackgroundBrush = new SolidColorBrush(Color.FromArgb(0x10, 0xFF, 0xFF, 0xFF));
-            SelectedBackgroundBrush.Freeze();
-        }
+        private int _subOptionsSelectedIndex = 0;
 
         public SettingsOverlay(InputHandler inputHandler, MainWindow mainWindow)
         {
@@ -64,7 +51,7 @@ namespace EZ2Play.App
                 AutorunToggle.Checked += (sender, args) => ScheduleUpdateTreeHeaderDivider();
                 AutorunToggle.Unchecked += (sender, args) => ScheduleUpdateTreeHeaderDivider();
 
-                ScheduleUpdateSelectionVisuals();
+                UpdateSelectionState();
                 ScheduleUpdateTreeHeaderDivider();
             };
 
@@ -76,13 +63,32 @@ namespace EZ2Play.App
 
         private void OnSelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            ScheduleUpdateSelectionVisuals();
+            UpdateSelectionState();
         }
 
-        // Defer visual updates until item containers are generated.
-        private void ScheduleUpdateSelectionVisuals()
+        private void UpdateSelectionState()
         {
-            Dispatcher.BeginInvoke(DispatcherPriority.Loaded, new Action(UpdateSelectionVisuals));
+            bool isSubOptionsActive =
+                !_exitConfirmationMode &&
+                SettingsListBox.SelectedItem == TreeItemsContainer &&
+                TreeItemsContainer.Visibility == Visibility.Visible;
+
+            if (isSubOptionsActive)
+            {
+                if (SubOptionsListBox.SelectedIndex == -1 && SubOptionsListBox.Items.Count > 0)
+                {
+                    int index = Math.Max(0, Math.Min(_subOptionsSelectedIndex, SubOptionsListBox.Items.Count - 1));
+                    SubOptionsListBox.SelectedIndex = index;
+                }
+
+                return;
+            }
+
+            if (SubOptionsListBox.SelectedIndex >= 0)
+            {
+                _subOptionsSelectedIndex = SubOptionsListBox.SelectedIndex;
+                SubOptionsListBox.SelectedIndex = -1;
+            }
         }
 
         private void ScheduleUpdateTreeHeaderDivider()
@@ -106,84 +112,6 @@ namespace EZ2Play.App
                     ? Visibility.Collapsed
                     : Visibility.Visible;
             }
-        }
-
-        // Keep the custom selector visible only in the currently active list.
-        private void UpdateSelectionVisuals()
-        {
-            if (_exitConfirmationMode)
-            {
-                for (int i = 0; i < SettingsListBox.Items.Count; i++)
-                {
-                    var container = SettingsListBox.ItemContainerGenerator.ContainerFromIndex(i) as ListBoxItem;
-
-                    if (container != null)
-                        ApplySelectionVisual(container, false);
-                }
-
-                for (int i = 0; i < SubOptionsListBox.Items.Count; i++)
-                {
-                    var container = SubOptionsListBox.ItemContainerGenerator.ContainerFromIndex(i) as ListBoxItem;
-
-                    if (container != null)
-                        ApplySelectionVisual(container, false);
-                }
-
-                for (int i = 0; i < ExitConfirmationListBox.Items.Count; i++)
-                {
-                    var container = ExitConfirmationListBox.ItemContainerGenerator.ContainerFromIndex(i) as ListBoxItem;
-
-                    if (container == null) continue;
-
-                    ApplySelectionVisual(container, container.IsSelected);
-                }
-
-                return;
-            }
-
-            bool isSubOptionsActive = SettingsListBox.SelectedItem == TreeItemsContainer;
-
-            for (int i = 0; i < SettingsListBox.Items.Count; i++)
-            {
-                var container = SettingsListBox.ItemContainerGenerator.ContainerFromIndex(i) as ListBoxItem;
-
-                if (container == null) continue;
-
-                bool shouldBeSelected = !isSubOptionsActive && container.IsSelected;
-
-                ApplySelectionVisual(container, shouldBeSelected);
-            }
-
-            for (int i = 0; i < SubOptionsListBox.Items.Count; i++)
-            {
-                var container = SubOptionsListBox.ItemContainerGenerator.ContainerFromIndex(i) as ListBoxItem;
-
-                if (container == null) continue;
-
-                bool shouldBeSelected = isSubOptionsActive && container.IsSelected;
-
-                ApplySelectionVisual(container, shouldBeSelected);
-            }
-
-            for (int i = 0; i < ExitConfirmationListBox.Items.Count; i++)
-            {
-                var container = ExitConfirmationListBox.ItemContainerGenerator.ContainerFromIndex(i) as ListBoxItem;
-
-                if (container != null)
-                    ApplySelectionVisual(container, false);
-            }
-        }
-
-        private void ApplySelectionVisual(ListBoxItem container, bool isSelected)
-        {
-            var border = FindVisualChild<Border>(container, "SelectionBorder");
-            var bgBorder = FindVisualChild<Border>(container, "SelectionBackground");
-
-            if (border != null)
-                border.BorderBrush = isSelected ? SelectedBorderBrush : TransparentBrush;
-
-            if (bgBorder != null)
-                bgBorder.Background = isSelected ? SelectedBackgroundBrush : TransparentBrush;
         }
 
         public void Open()
@@ -218,7 +146,7 @@ namespace EZ2Play.App
             fadeIn.Completed += (s, e) => SettingsListBox.Focus();
             BeginAnimation(OpacityProperty, fadeIn);
 
-            ScheduleUpdateSelectionVisuals();
+            UpdateSelectionState();
         }
 
         public void Close()
@@ -309,7 +237,7 @@ namespace EZ2Play.App
             UpdateSubOptionsVisibility(registryState);
             LoadSubOptionsStates();
 
-            ScheduleUpdateSelectionVisuals();
+            UpdateSelectionState();
         }
 
         private void UpdateSubOptionsVisibility(bool enabled)
@@ -330,7 +258,7 @@ namespace EZ2Play.App
                 HotSwap.Visibility = Visibility.Collapsed;
             }
 
-            ScheduleUpdateSelectionVisuals();
+            UpdateSelectionState();
         }
 
         public void Navigate(int direction, bool isHorizontal = true)
@@ -596,7 +524,7 @@ namespace EZ2Play.App
 
             ExitConfirmationListBox.Focus();
 
-            ScheduleUpdateSelectionVisuals();
+            UpdateSelectionState();
         }
 
         private void HideExitDisplayConfirmation(bool focusSettings = true)
@@ -611,7 +539,7 @@ namespace EZ2Play.App
             if (focusSettings && Visibility == Visibility.Visible)
                 SettingsListBox.Focus();
 
-            ScheduleUpdateSelectionVisuals();
+            UpdateSelectionState();
         }
 
         // Recursively find a named child in the visual tree.

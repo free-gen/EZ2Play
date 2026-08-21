@@ -101,8 +101,13 @@
                                                 SnapsToDevicePixels="True"/>
                                     </Grid>
 
-                                    <ControlTemplate.Triggers>                                        
-                                        
+                                    <ControlTemplate.Triggers>
+
+                                        <Trigger Property="IsSelected" Value="True">
+                                            <Setter TargetName="SelectionBorder" Property="BorderBrush" Value="{DynamicResource OverlaySelectionBorderBrush}"/>
+                                            <Setter TargetName="SelectionBackground" Property="Background" Value="{DynamicResource OverlaySelectionBackgroundBrush}"/>
+                                        </Trigger>
+
                                         <!-- Gradient BG -->
                                         <Trigger Property="Tag" Value="TreeContainer">
                                             <Setter TargetName="ItemBorder" Property="Background">
@@ -113,6 +118,8 @@
                                                     </LinearGradientBrush>
                                                 </Setter.Value>
                                             </Setter>
+                                            <Setter TargetName="SelectionBorder" Property="BorderBrush" Value="Transparent"/>
+                                            <Setter TargetName="SelectionBackground" Property="Background" Value="Transparent"/>
                                         </Trigger>
 
                                     </ControlTemplate.Triggers>
@@ -156,18 +163,14 @@
                             Margin="{DynamicResource {x:Static app:UiScaleKeys.SettingsOverlayTreeItemsContainerMargin}}" 
                             Padding="{DynamicResource {x:Static app:UiScaleKeys.SettingsOverlayTreeItemsContainerPadding}}">
                     <Grid>
-                        <!-- <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                        </Grid.RowDefinitions> -->
 
                         <ListBox x:Name="SubOptionsListBox"
-                                 Background="Transparent"
-                                 BorderThickness="0"
-                                 Padding="0"
-                                 ScrollViewer.HorizontalScrollBarVisibility="Disabled"
-                                 ScrollViewer.VerticalScrollBarVisibility="Disabled"
-                                 Focusable="False">
+                                Background="Transparent"
+                                BorderThickness="0"
+                                Padding="0"
+                                ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                                ScrollViewer.VerticalScrollBarVisibility="Disabled"
+                                Focusable="False">
                             
                             <ListBox.ItemsPanel>
                                 <ItemsPanelTemplate>
@@ -205,6 +208,13 @@
                                                         <ContentPresenter/>
                                                     </Border>
                                                 </Grid>
+
+                                                <ControlTemplate.Triggers>
+                                                    <Trigger Property="IsSelected" Value="True">
+                                                        <Setter TargetName="SelectionBorder" Property="BorderBrush" Value="{DynamicResource OverlaySelectionBorderBrush}"/>
+                                                        <Setter TargetName="SelectionBackground" Property="Background" Value="{DynamicResource OverlaySelectionBackgroundBrush}"/>
+                                                    </Trigger>
+                                                </ControlTemplate.Triggers>
                                             </ControlTemplate>
                                         </Setter.Value>
                                     </Setter>
@@ -383,6 +393,13 @@
                                             <ContentPresenter VerticalAlignment="Center"/>
                                         </Border>
                                     </Grid>
+
+                                    <ControlTemplate.Triggers>
+                                        <Trigger Property="IsSelected" Value="True">
+                                            <Setter TargetName="SelectionBorder" Property="BorderBrush" Value="{DynamicResource OverlaySelectionBorderBrush}"/>
+                                            <Setter TargetName="SelectionBackground" Property="Background" Value="{DynamicResource OverlaySelectionBackgroundBrush}"/>
+                                        </Trigger>
+                                    </ControlTemplate.Triggers>
                                 </ControlTemplate>
                             </Setter.Value>
                         </Setter>
