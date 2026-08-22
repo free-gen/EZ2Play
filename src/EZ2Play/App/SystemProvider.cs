@@ -215,7 +215,11 @@ namespace EZ2Play.App
                     return false;
                 }
 
-                StartHelperProcess("");
+                if (!StartHelperProcess(""))
+                {
+                    DebugLog.Write("Autorun", "Helper process could not be started.");
+                    return false;
+                }
 
                 DebugLog.Write("Autorun", "Autorun enabled.");
 
@@ -377,31 +381,38 @@ namespace EZ2Play.App
             return helperPath;
         }
 
-        public static void StartHelperProcess(string arguments = "")
+        public static bool StartHelperProcess(string arguments = "")
         {
             try
             {
                 string helperPath = GetHelperExecutablePath();
 
                 if (string.IsNullOrEmpty(helperPath) || !File.Exists(helperPath))
-                    return;
+                    return false;
 
                 // Do not start another helper instance if one is already running.
                 if (IsHelperProcessRunning())
-                    return;
+                    return true;
 
-                var process = new System.Diagnostics.Process();
+                using (var process = new System.Diagnostics.Process())
+                {
+                    process.StartInfo.FileName = helperPath;
+                    process.StartInfo.WorkingDirectory = Path.GetDirectoryName(helperPath);
+                    process.StartInfo.Arguments = arguments;
+                    process.StartInfo.UseShellExecute = false;
+                    process.StartInfo.CreateNoWindow = true;
 
-                process.StartInfo.FileName = helperPath;
-                process.StartInfo.WorkingDirectory = Path.GetDirectoryName(helperPath);
-                process.StartInfo.Arguments = arguments;
-                process.StartInfo.UseShellExecute = false;
-                process.StartInfo.CreateNoWindow = true;
-                process.Start();
+                    if (!process.Start())
+                        return false;
+
+                    return !process.HasExited;
+                }
             }
 
-            catch
+            catch (Exception ex)
             {
+                DebugLog.Error("Helper", ex, "Failed to start Helper.");
+                return false;
             }
         }
 

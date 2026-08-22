@@ -13,7 +13,19 @@ class Program
     private struct XInputStateEx
     {
         public uint dwPacketNumber;
+        public XInputGamepadEx Gamepad;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    private struct XInputGamepadEx
+    {
         public ushort wButtons;
+        public byte bLeftTrigger;
+        public byte bRightTrigger;
+        public short sThumbLX;
+        public short sThumbLY;
+        public short sThumbRX;
+        public short sThumbRY;
     }
 
     [DllImport("xinput1_4.dll", EntryPoint = "#100")]
@@ -181,7 +193,7 @@ class Program
                 XInputGetStateEx(userIndex, ref state);
 
             if (result == ERROR_SUCCESS &&
-                (state.wButtons & XINPUT_GAMEPAD_GUIDE) != 0)
+                (state.Gamepad.wButtons & XINPUT_GAMEPAD_GUIDE) != 0)
             {
                 return true;
             }
@@ -253,7 +265,7 @@ class Program
                 }
                 finally
                 {
-                    // Отсоединяем в обратном порядке.
+                    // Detach in reverse order.
                     if (appAttached)
                     {
                         AttachThreadInput(

@@ -223,18 +223,24 @@ namespace EZ2Play.App
 
         private void RefreshAutorunState()
         {
-            bool registryState = SystemProvider.IsAutorunEnabled();
+            bool autorunEnabled = SystemProvider.IsAutorunEnabled();
+            bool helperRunning = SystemProvider.IsHelperProcessRunning();
+
+            if (autorunEnabled && !helperRunning)
+                helperRunning = SystemProvider.StartHelperProcess(SystemProvider.GetAutorunArguments());
+
+            bool effectiveState = autorunEnabled && helperRunning;
             bool configState = _config.AutorunEnabled;
 
-            if (registryState != configState)
+            if (effectiveState != configState)
             {
-                _config.AutorunEnabled = registryState;
+                _config.AutorunEnabled = effectiveState;
                 _config.Save();
             }
 
-            AutorunToggle.IsChecked = registryState;
+            AutorunToggle.IsChecked = effectiveState;
             UpdateTreeHeaderDivider();
-            UpdateSubOptionsVisibility(registryState);
+            UpdateSubOptionsVisibility(effectiveState);
             LoadSubOptionsStates();
 
             UpdateSelectionState();
