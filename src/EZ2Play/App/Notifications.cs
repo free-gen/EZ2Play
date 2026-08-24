@@ -130,9 +130,10 @@ namespace EZ2Play.App
             delay.Start();
         }
 
+        [System.Diagnostics.Conditional("DEBUG")]
         public void Debug(double delaySeconds, double displaySeconds)
         {
-            Enqueue(() => Show(Locals.GetString("MessageTest"), delaySeconds, displaySeconds, Done));
+            Enqueue(() => Show(Locals.GetString("MessageDebugBuild"), delaySeconds, displaySeconds, Done));
         }
 
         public void HotSwap(double delaySeconds, double displaySeconds)

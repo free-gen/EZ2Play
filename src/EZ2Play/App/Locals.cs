@@ -298,13 +298,13 @@ namespace EZ2Play.App
                 "未检测到 Xbox Game Bar。\n游戏和显示控制由应用程序处理。"
             },
 
-            ["MessageTest"] = new[]
+            ["MessageDebugBuild"] = new[]
             {
-                "Debug notification:\nUsed for configuration and testing. Does not affect anything.",
-                "Отладочное уведомление:\nИспользуется для настройки и тестирования. Ни на что не влияет.",
-                "Debug-Benachrichtigung:\nWird für Konfiguration und Tests verwendet. Beeinflusst nichts.",
-                "Notification de débogage :\nUtilisé pour la configuration et les tests. N'affecte rien.",
-                "调试通知：\n用于配置和测试。不影响任何内容。"
+                "Debug build is running.\nDiagnostic logging is enabled.",
+                "Запущена отладочная сборка.\nДиагностическое логирование включено.",
+                "Debug-Build wird ausgeführt.\nDie Diagnoseprotokollierung ist aktiviert.",
+                "La version de débogage est en cours d'exécution.\nLa journalisation de diagnostic est activée.",
+                "正在运行调试版本。\n诊断日志记录已启用。"
             },
 
             // Tabs

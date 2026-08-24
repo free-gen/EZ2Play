@@ -427,8 +427,8 @@ namespace EZ2Play
 
         private void ShowStartupNotifications()
         {
-            // Debug notification
-            // _uiRegistry.Notifications.Debug(0, 30);
+            // Debug build notification
+            _uiRegistry.Notifications.Debug(0, 5);
 
             // Xbox Game Bar notification
             bool gamebarInstalled = SystemProvider.IsXboxGameBarInstalled();
