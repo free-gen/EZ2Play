@@ -156,7 +156,7 @@
                     </Grid>
                 </ListBoxItem>
 
-                <!-- Контейнер для горизонтальных субопций -->
+                <!-- TreeItemsContainer -->
                 <ListBoxItem x:Name="TreeItemsContainer" 
                             Background="Transparent"
                             Tag="TreeContainer" 

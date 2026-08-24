@@ -125,7 +125,7 @@ namespace EZ2Play
                 SplashOverlay = FindName("SplashOverlay") as System.Windows.Controls.Grid,
                 MainScreenGrid = FindName("MainScreenGrid") as System.Windows.Controls.Grid,
                 ExitMessageText = FindName("ExitMessageText") as System.Windows.Controls.TextBlock,
-                BottomHintPanel = FindName("BottomPanel") as HintPanel,
+                BottomHintPanel = FindName("HintPanel") as HintPanel,
                 NotificationPanel = FindName("NotificationPanel") as System.Windows.Controls.Border,
                 NotificationText = FindName("NotificationText") as System.Windows.Controls.TextBlock,
                 BackgroundImage = FindName("BackgroundImage") as System.Windows.Controls.Image,
@@ -153,7 +153,7 @@ namespace EZ2Play
 
         public void SetHintsMode(HintPanel.HintMode mode)
         {
-            BottomPanel.Mode = mode;
+            HintPanel.Mode = mode;
         }
 
         private void InitializeTimers()
@@ -452,6 +452,8 @@ namespace EZ2Play
 
         private void StartApplication()
         {
+            SystemProvider.SetDisplaySleepBlocked(true);
+
             _activityTimer.Start();
             SetupInputEvents();
 
@@ -533,6 +535,7 @@ namespace EZ2Play
             _uiRegistry?.Dispose();
             _display?.Dispose();
 
+            SystemProvider.SetDisplaySleepBlocked(false);
             SystemProvider.ShowCursor();
 
             base.OnClosed(e);

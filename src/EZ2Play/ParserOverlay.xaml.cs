@@ -35,7 +35,7 @@ namespace EZ2Play.App
         private const int MaxGames = 15;
         private const int MaxCovers = 30;
         private const double FadeDuration = 0.1;
-        private const double ManualSearchKeyboardGap = 32.0;
+        private const double ManualSearchKeyboardGap = 32;
 
         private readonly InputHandler _inputHandler;
         private readonly MainWindow _mainWindow;

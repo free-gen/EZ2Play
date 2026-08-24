@@ -655,6 +655,18 @@ namespace EZ2Play.App
             }
         }
 
+        // Prevent Windows from turning off the display while EZ2Play is running.
+        public static void SetDisplaySleepBlocked(bool blocked)
+        {
+            SetThreadExecutionState(blocked ? ES_CONTINUOUS | ES_DISPLAY_REQUIRED : ES_CONTINUOUS);
+        }
+
+        [DllImport("kernel32.dll")]
+        private static extern uint SetThreadExecutionState(uint esFlags);
+
+        private const uint ES_CONTINUOUS = 0x80000000;
+        private const uint ES_DISPLAY_REQUIRED = 0x00000002;
+
         [DllImport("user32.dll")]
         private static extern IntPtr GetForegroundWindow();
     }

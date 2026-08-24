@@ -191,21 +191,19 @@
                                 Margin="{DynamicResource {x:Static app:UiScaleKeys.GameTitleMargin}}"
                                 HorizontalAlignment="Stretch"
                                 VerticalAlignment="Center">
-                        <StackPanel Orientation="Horizontal">
-                            <!-- TextBlock -->
-                            <TextBlock x:Name="SelectedGameTitle"
-                                    FontSize="{DynamicResource {x:Static app:UiScaleKeys.SelectedGameTitleFontSize}}"
-                                    FontWeight="Medium"
-                                    TextAlignment="Left"
-                                    TextWrapping="Wrap"
-                                    HorizontalAlignment="Stretch">
-                            </TextBlock>
 
-                        </StackPanel>
+                        <TextBlock x:Name="SelectedGameTitle"
+                                FontSize="{DynamicResource {x:Static app:UiScaleKeys.SelectedGameTitleFontSize}}"
+                                FontWeight="Medium"
+                                TextAlignment="Left"
+                                TextWrapping="Wrap"
+                                HorizontalAlignment="Stretch">
+                        </TextBlock>
 
-                        <!-- GameSourceCard -->
                         <StackPanel Orientation="Horizontal" 
                                     Margin="{DynamicResource {x:Static app:UiScaleKeys.SourceCardMargin}}">
+                            
+                            <!-- GameSourceCard -->
                             <Border x:Name="GameSourceCard"
                                     Style="{StaticResource BasicCardStyle}"
                                     CornerRadius="{DynamicResource {x:Static app:UiScaleKeys.BaseCornerRadius}}"
@@ -258,17 +256,17 @@
                 </Grid>
             </Grid>
 
-            <!-- BottomPanel -->
-            <app:HintPanel x:Name="BottomPanel"
+            <!-- HintPanel -->
+            <app:HintPanel x:Name="HintPanel"
             Grid.Row="3"
             Panel.ZIndex="105"
             Mode="Main"
             Device="Keyboard"
             Visibility="Collapsed"
-            Margin="{DynamicResource {x:Static app:UiScaleKeys.BottomPanelMargin}}"
+            Margin="{DynamicResource {x:Static app:UiScaleKeys.HintPanelMargin}}"
             CornerRadius="{DynamicResource {x:Static app:UiScaleKeys.BaseCornerRadius}}"
-            Height="{DynamicResource {x:Static app:UiScaleKeys.BottomPanelHeight}}"
-            Padding="{DynamicResource {x:Static app:UiScaleKeys.BottomPanelPadding}}" />
+            Height="{DynamicResource {x:Static app:UiScaleKeys.HintPanelHeight}}"
+            Padding="{DynamicResource {x:Static app:UiScaleKeys.HintPanelPadding}}" />
 
         </Grid>
     </Border>

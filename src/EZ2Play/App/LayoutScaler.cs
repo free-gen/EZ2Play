@@ -154,9 +154,9 @@ namespace EZ2Play.App
             target[UiScaleKeys.NotificationPanelIconSize] = fs(32);
 
             // Hints
-            target[UiScaleKeys.BottomPanelHeight] = s(64);
-            target[UiScaleKeys.BottomPanelMargin] = new Thickness(0, 0, s(96), s(64));
-            target[UiScaleKeys.BottomPanelPadding] = new Thickness(s(8), 0, s(8), 0);
+            target[UiScaleKeys.HintPanelHeight] = s(64);
+            target[UiScaleKeys.HintPanelMargin] = new Thickness(0, 0, s(96), s(64));
+            target[UiScaleKeys.HintPanelPadding] = new Thickness(s(8), 0, s(8), 0);
 
             target[UiScaleKeys.HintBlockMargin] = new Thickness(s(16), 0, s(16), 0);
             target[UiScaleKeys.HintTextMargin] = new Thickness(s(16), 0, 0, 0);
@@ -275,9 +275,9 @@ namespace EZ2Play.App
         public const string NotificationPanelIconSize = "NotificationPanelIconSize";
 
         // Hints
-        public const string BottomPanelHeight = "BottomPanelHeight";
-        public const string BottomPanelMargin = "BottomPanelMargin";
-        public const string BottomPanelPadding = "BottomPanelPadding";
+        public const string HintPanelHeight = "HintPanelHeight";
+        public const string HintPanelMargin = "HintPanelMargin";
+        public const string HintPanelPadding = "HintPanelPadding";
 
         public const string HintBlockMargin = "HintBlockMargin";
         public const string HintTextMargin = "HintTextMargin";

@@ -24,92 +24,58 @@ namespace EZ2Play.App
             // Hints
             ["Launch"] = new[]
             {
-                "Launch",
-                "Запуск",
-                "Starten",
-                "Lancer",
-                "启动"
+                "Launch", "Запуск", "Starten", "Lancer", "启动"
             },
 
             ["Select"] = new[]
             {
-                "Select",
-                "Выбрать",
-                "Auswählen",
-                "Sélectionner",
-                "选择"
+                "Select", "Выбрать", "Auswählen", "Sélectionner", "选择"
             },
 
             ["SwitchTabs"] = new[]
             {
-                "Switch tabs",
-                "Переключение вкладок",
-                "Tabs wechseln",
-                "Changer d’onglet",
+                "Switch tabs", "Переключение вкладок",
+                "Tabs wechseln", "Changer d’onglet",
                 "切换标签页"
             },
 
             ["Back"] = new[]
             {
-                "Back",
-                "Назад",
-                "Zurück",
-                "Retour",
-                "返回"
+                "Back", "Назад", "Zurück", "Retour", "返回"
             },
 
             ["Exit"] = new[]
             {
-                "Exit",
-                "Выход",
-                "Beenden",
-                "Quitter",
-                "退出"
+                "Exit", "Выход", "Beenden", "Quitter", "退出"
             },
 
             ["SettingsOverlay"] = new[]
             {
-                "Settings",
-                "Настройки",
-                "Einstellungen",
-                "Paramètres",
-                "设置"
+                "Settings", "Настройки", "Einstellungen", "Paramètres", "设置"
             },
 
             ["ParserOverlay"] = new[]
             {
-                "Artwork",
-                "Оформление",
-                "Grafik",
-                "Illustration",
-                "美术"
+                "Artwork", "Оформление", "Grafik", "Illustration", "美术"
             },
 
             ["Search"] = new[]
             {
-                "Search",
-                "Поиск",
-                "Suche",
-                "Recherche",
-                "搜索"
+                "Search", "Поиск", "Suche", "Recherche", "搜索"
             },
 
             // Parser
             ["SearchCovers"] = new[]
             {
-                "Searching SteamGridDB",
-                "Поиск в базе SteamGridDB",
-                "Suche in der SteamGridDB-Datenbank",
-                "Recherche dans la base SteamGridDB",
+                "Searching SteamGridDB", "Поиск в базе SteamGridDB",
+                "Suche in der SteamGridDB-Datenbank", "Recherche dans la base SteamGridDB",
                 "正在 SteamGridDB 数据库中搜索"
             },
 
             ["NoGamesFound"] = new[]
             {
-                "No matches found",
-                "Совпадения не найдены",
-                "Keine Übereinstimmungen gefunden",
-                "Aucune correspondance trouvée",
+                "No matches found",  "Совпадения не найдены",
+                "Keine Übereinstimmungen gefunden", "Aucune correspondance trouvée",
                 "未找到匹配项"
             },
 
@@ -124,10 +90,8 @@ namespace EZ2Play.App
 
             ["ErrorGridDB"] = new[]
             {
-                "Error connecting to SteamGridDB",
-                "Ошибка подключения к SteamGridDB",
-                "Fehler bei der Verbindung zu SteamGridDB",
-                "Erreur de connexion à SteamGridDB",
+                "Error connecting to SteamGridDB", "Ошибка подключения к SteamGridDB",
+                "Fehler bei der Verbindung zu SteamGridDB", "Erreur de connexion à SteamGridDB",
                 "连接 SteamGridDB 时出错"
             },
 
@@ -151,47 +115,37 @@ namespace EZ2Play.App
 
             ["LoadingCovers"] = new[]
             {
-                "Loading covers",
-                "Загрузка обложек",
-                "Cover werden geladen",
-                "Chargement des couvertures",
+                "Loading covers", "Загрузка обложек",
+                "Cover werden geladen", "Chargement des couvertures",
                 "正在加载封面"
             },
 
             ["NoCoversFound"] = new[]
             {
-                "No covers found",
-                "Обложки не найдены",
-                "Keine Cover gefunden",
-                "Aucune couverture trouvée",
+                "No covers found", "Обложки не найдены",
+                "Keine Cover gefunden", "Aucune couverture trouvée",
                 "未找到封面"
             },
 
             ["LoadingCoversError"] = new[]
             {
-                "Loading error",
-                "Ошибка загрузки",
-                "Fehler beim Laden",
-                "Erreur de chargement",
+                "Loading error", "Ошибка загрузки",
+                "Fehler beim Laden", "Erreur de chargement",
                 "加载出错"
             },
 
             ["SavingCover"] = new[]
             {
-                "Saving cover",
-                "Сохранение обложки",
-                "Cover wird gespeichert",
-                "Enregistrement de la couverture",
+                "Saving cover", "Сохранение обложки",
+                "Cover wird gespeichert", "Enregistrement de la couverture",
                 "正在保存封面"
             },
 
             // Settings
             ["SettingsSourceDisplayLabel"] = new[]
             {
-                "Switch display",
-                "Переключить дисплей",
-                "Anzeige wechseln",
-                "Changer d’affichage",
+                "Switch display", "Переключить дисплей",
+                "Anzeige wechseln", "Changer d’affichage",
                 "切换显示器"
             },
 
@@ -242,57 +196,41 @@ namespace EZ2Play.App
 
             ["SettingsExitAppLabel"] = new[]
             {
-                "Exit to desktop",
-                "Выход на рабочий стол",
-                "Zum Desktop",
-                "Retour au bureau",
+                "Exit to desktop", "Выход на рабочий стол",
+                "Zum Desktop", "Retour au bureau",
                 "返回桌面"
             },
 
             ["SettingsTreeNoSplash"] = new[]
             {
-                "Skip splash",
-                "Без заставки",
-                "Splash überspringen",
-                "Ignorer l’écran",
+                "Skip splash", "Без заставки",
+                "Splash überspringen", "Ignorer l’écran",
                 "跳过启动画面"
             },
 
             ["SettingsTreeNoMusic"] = new[]
             {
-                "No music",
-                "Без музыки",
-                "Ohne Musik",
-                "Sans musique",
+                "No music", "Без музыки",
+                "Ohne Musik", "Sans musique",
                 "无音乐"
             },
 
             ["SettingsTreeHotSwap"] = new[]
             {
-                "External display",
-                "Внешний дисплей",
-                "Externer Bildschirm",
-                "Écran externe",
+                "External display", "Внешний дисплей",
+                "Externer Bildschirm", "Écran externe",
                 "外接显示器"
             },
 
             // Confirmation
             ["ConfirmYes"] = new[]
             {
-                "Yes",
-                "Да",
-                "Ja",
-                "Oui",
-                "是"
+                "Yes", "Да", "Ja", "Oui", "是"
             },
 
             ["ConfirmNo"] = new[]
             {
-                "No",
-                "Нет",
-                "Nein",
-                "Non",
-                "否"
+                "No", "Нет", "Nein", "Non", "否"
             },
 
             ["ExitConfirmText"] = new[]
@@ -372,39 +310,23 @@ namespace EZ2Play.App
             // Tabs
             ["TabGamelistText"] = new[]
             {
-                "Library",
-                "Библиотека",
-                "Bibliothek",
-                "Bibliothèque",
-                "游戏库"
+                "Library", "Библиотека", "Bibliothek", "Bibliothèque", "游戏库"
             },
 
             ["TabLastPlayedText"] = new[]
             {
-                "Recent games",
-                "Недавние игры",
-                "Letzte Spiele",
-                "Jeux récents",
-                "最近的游戏"
+                "Recent games", "Недавние игры", "Letzte Spiele", "Jeux récents", "最近的游戏"
             },
 
             // Time
             ["HoursShort"] = new[]
             {
-                "h",
-                "ч",
-                "h",
-                "h",
-                "时"
+                "h", "ч", "h", "h", "时"
             },
 
             ["MinutesShort"] = new[]
             {
-                "m",
-                "м",
-                "m",
-                "m",
-                "分"
+                "m", "м", "m", "m", "分"
             }
         };
 
