@@ -10,7 +10,11 @@ namespace EZ2Play.App
     public class Notifications
     {
         private readonly UIRegistry _ui;
+
+        private const string DefaultIcon = "\uE686";
+
         private Border _NotificationPanel;
+        private TextBlock _NotificationIcon;
         private TextBlock _NotificationText;
 
         private readonly Queue<Action> _queue = new Queue<Action>();
@@ -22,9 +26,10 @@ namespace EZ2Play.App
         }
 
         // Initialize UI elements after they are resolved by UIRegistry.
-        public void Initialize(Border NotificationPanel, TextBlock NotificationText)
+        public void Initialize(Border NotificationPanel, TextBlock NotificationIcon, TextBlock NotificationText)
         {
             _NotificationPanel = NotificationPanel;
+            _NotificationIcon = NotificationIcon;
             _NotificationText = NotificationText;
         }
 
@@ -56,14 +61,15 @@ namespace EZ2Play.App
         }
 
         // Show a notification with delayed fade-in and fade-out animation.
-        private void Show(string text, double delaySeconds, double displaySeconds, Action onComplete = null)
+        private void Show(string text, double delaySeconds, double displaySeconds, string icon = null, Action onComplete = null)
         {
-            if (_NotificationPanel == null || _NotificationText == null)
+            if (_NotificationPanel == null || _NotificationIcon == null || _NotificationText == null)
             {
                 onComplete?.Invoke();
                 return;
             }
 
+            _NotificationIcon.Text = string.IsNullOrEmpty(icon) ? DefaultIcon : icon;
             _NotificationText.Text = text;
             _NotificationPanel.Visibility = Visibility.Visible;
             _NotificationPanel.Opacity = 0;
@@ -133,12 +139,12 @@ namespace EZ2Play.App
         [System.Diagnostics.Conditional("DEBUG")]
         public void Debug(double delaySeconds, double displaySeconds)
         {
-            Enqueue(() => Show(Locals.GetString("MessageDebugBuild"), delaySeconds, displaySeconds, Done));
+            Enqueue(() => Show(Locals.GetString("MessageDebugBuild"), delaySeconds, displaySeconds, "\uE91A", Done));
         }
 
         public void HotSwap(double delaySeconds, double displaySeconds)
         {
-            Enqueue(() => Show(Locals.GetString("MessageHotSwap"), delaySeconds, displaySeconds, Done));
+            Enqueue(() => Show(Locals.GetString("MessageHotSwap"), delaySeconds, displaySeconds, "\uE5A2", Done));
         }
 
         public void HotPlug(double delaySeconds, double displaySeconds, string deviceName)
@@ -146,7 +152,7 @@ namespace EZ2Play.App
             Enqueue(() =>
             {
                 string msg = $"{Locals.GetString("MessagePlugGamepad")}\n{deviceName}";
-                Show(msg, delaySeconds, displaySeconds, Done);
+                Show(msg, delaySeconds, displaySeconds, "\uE314", Done);
             });
         }
 
@@ -155,7 +161,7 @@ namespace EZ2Play.App
             Enqueue(() =>
             {
                 string msg = Locals.GetString(gameBarInstalled ? "MessageGameBarDetected" : "MessageGameBarNotDetected");
-                Show(msg, delaySeconds, displaySeconds, Done);
+                Show(msg, delaySeconds, displaySeconds, "\uE927", Done);
             });
         }
     }

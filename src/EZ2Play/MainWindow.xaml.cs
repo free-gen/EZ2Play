@@ -128,6 +128,7 @@ namespace EZ2Play
                 ExitMessageText = FindName("ExitMessageText") as System.Windows.Controls.TextBlock,
                 BottomHintPanel = FindName("HintPanel") as HintPanel,
                 NotificationPanel = FindName("NotificationPanel") as System.Windows.Controls.Border,
+                NotificationIcon = FindName("NotificationIcon") as System.Windows.Controls.TextBlock,
                 NotificationText = FindName("NotificationText") as System.Windows.Controls.TextBlock,
                 BackgroundImage = FindName("BackgroundImage") as System.Windows.Controls.Image,
                 GameCounterText = FindName("GameCounterText") as System.Windows.Controls.TextBlock,
@@ -136,7 +137,7 @@ namespace EZ2Play
             };
 
             _uiRegistry.InitializeSplash(SplashLogo, SplashOverlay, MainScreenGrid);
-            _uiRegistry.InitializeNotifications(NotificationPanel, NotificationText);
+            _uiRegistry.InitializeNotifications(NotificationPanel, NotificationIcon, NotificationText);
             _uiRegistry.CarouselWrapper = FindName("CarouselWrapper") as System.Windows.Controls.Grid;
             _uiRegistry.LoadBackgroundImage();
             _uiRegistry.SetParticlesCanvas(_particlesCanvas);
@@ -270,6 +271,7 @@ namespace EZ2Play
         {
             if (_isTabSwitching || _currentTab == TabType.Gamelist) return;
 
+            _sound?.PlayMoveSound();
             _isTabSwitching = true;
 
             try
@@ -297,6 +299,7 @@ namespace EZ2Play
         {
             if (_isTabSwitching || _currentTab == TabType.LastPlayed) return;
 
+            _sound?.PlayMoveSound();
             _isTabSwitching = true;
 
             try

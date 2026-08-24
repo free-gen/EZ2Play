@@ -171,6 +171,8 @@ namespace EZ2Play.App
         {
             if (_disposed || Visibility == Visibility.Visible) return;
 
+            _mainWindow.GetSound()?.PlayLaunchSound();
+
             var launcher = _mainWindow.GetLauncher();
 
             if (launcher == null || launcher.SelectedIndex < 0 || launcher.SelectedIndex >= launcher.Shortcuts.Length)
@@ -224,6 +226,7 @@ namespace EZ2Play.App
         {
             if (Visibility != Visibility.Visible) return;
 
+            _mainWindow.GetSound()?.PlayBackSound();
             CancelSession();
             CancelCoverLoading();
 
@@ -345,7 +348,7 @@ namespace EZ2Play.App
 
                 if (game != null)
                 {
-                    _mainWindow.GetSound()?.PlayMoveSound();
+                    _mainWindow.GetSound()?.PlayLaunchSound();
                     await LoadCoversAsync(game, _sessionCts.Token);
                 }
 

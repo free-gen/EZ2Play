@@ -118,6 +118,7 @@ namespace EZ2Play.App
         {
             if (Visibility == Visibility.Visible) return;
 
+            _mainWindow.GetSound()?.PlayLaunchSound();
             HideExitDisplayConfirmation(false);
 
             _mainWindow.SetHintsMode(HintPanel.HintMode.Settings);
@@ -152,6 +153,8 @@ namespace EZ2Play.App
         public void Close()
         {
             if (Visibility != Visibility.Visible) return;
+
+            _mainWindow.GetSound()?.PlayBackSound();
 
             var fadeOut = new DoubleAnimation
             {

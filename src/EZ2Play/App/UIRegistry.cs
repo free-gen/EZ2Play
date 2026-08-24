@@ -18,11 +18,15 @@ namespace EZ2Play.App
         public TextBlock ExitMessageText { get; set; }
 
         public Grid TopPanel { get; set; }
+
         public TextBlock TabGamelistText { get; set; }
         public TextBlock TabLastPlayedText { get; set; }
+
         public Border NotificationPanel { get; set; }
+        public TextBlock NotificationIcon { get; set; }
         public TextBlock NotificationText { get; set; }
         public Notifications Notifications { get; private set; }
+
         public Image UserAvatar { get; set; }
         public TextBlock TimeLabel { get; set; }
 
@@ -52,9 +56,9 @@ namespace EZ2Play.App
             _splash = new SplashScreen(logo, overlay, mainScreen);
         }
 
-        public void InitializeNotifications(Border NotificationPanel, TextBlock NotificationText)
+        public void InitializeNotifications(Border NotificationPanel, TextBlock NotificationIcon, TextBlock NotificationText)
         {
-            Notifications.Initialize(NotificationPanel, NotificationText);
+            Notifications.Initialize(NotificationPanel, NotificationIcon, NotificationText);
         }
 
         public void InitializeClock()
