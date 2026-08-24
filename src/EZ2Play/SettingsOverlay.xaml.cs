@@ -279,6 +279,7 @@ namespace EZ2Play.App
                 {
                     ExitConfirmationListBox.SelectedIndex = newIndex;
                     ExitConfirmationListBox.ScrollIntoView(ExitConfirmationListBox.SelectedItem);
+                    _mainWindow.GetSound()?.PlayMoveSound();
                 }
 
                 return;
@@ -297,6 +298,7 @@ namespace EZ2Play.App
                         if (targetItem != null && targetItem.Visibility == Visibility.Visible)
                         {
                             SubOptionsListBox.SelectedIndex = newIndex;
+                            _mainWindow.GetSound()?.PlayMoveSound();
                             return;
                         }
 
@@ -317,6 +319,7 @@ namespace EZ2Play.App
                 {
                     SettingsListBox.SelectedIndex = newIndexVert;
                     SettingsListBox.ScrollIntoView(SettingsListBox.SelectedItem);
+                    _mainWindow.GetSound()?.PlayMoveSound();
 
                     if (item == TreeItemsContainer)
                     {

@@ -265,6 +265,7 @@ namespace EZ2Play.App
         {
             if (_mode == ParserMode.Covers)
             {
+                _mainWindow.GetSound()?.PlayBackSound();
                 CancelCoverLoading();
 
                 _mode = ParserMode.Games;
@@ -343,7 +344,10 @@ namespace EZ2Play.App
                 var game = GamesListBox.SelectedItem as ParserGameResult;
 
                 if (game != null)
+                {
+                    _mainWindow.GetSound()?.PlayMoveSound();
                     await LoadCoversAsync(game, _sessionCts.Token);
+                }
 
                 return;
             }
@@ -351,7 +355,10 @@ namespace EZ2Play.App
             var cover = CoversListBox.SelectedItem as ParserGridResult;
 
             if (cover != null)
+            {
+                _mainWindow.GetSound()?.PlayLaunchSound();
                 await DownloadCoverAsync(cover, _sessionCts.Token);
+            }
         }
 
         private void MoveSelection(ListBox listBox, int targetIndex)
@@ -364,6 +371,7 @@ namespace EZ2Play.App
 
             listBox.SelectedIndex = targetIndex;
             listBox.ScrollIntoView(listBox.SelectedItem);
+            _mainWindow.GetSound()?.PlayMoveSound();
         }
 
         private async void ShowManualSearch(bool showHint, CancellationToken cancellationToken)
@@ -595,6 +603,7 @@ namespace EZ2Play.App
 
             if (_sessionCts == null) return;
 
+            _mainWindow.GetSound()?.PlayLaunchSound();
             await SearchCurrentGameAsync(query, _sessionCts.Token);
         }
 

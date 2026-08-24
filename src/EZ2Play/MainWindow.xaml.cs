@@ -48,6 +48,7 @@ namespace EZ2Play
         public Display GetDisplay() => _display;
         public AppConfig GetConfig() => _config;
         public Launcher GetLauncher() => _launcher;
+        public Sound GetSound() => _sound;
 
         public void ShowLoadingUI(bool show)
         {
