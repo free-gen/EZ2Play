@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using System.Threading;
@@ -102,17 +103,14 @@ namespace EZ2Play.App
         private const string ResBack = "EZ2Play.Assets.Back.mp3";
         private const string ResMenu = "EZ2Play.Assets.Ambient.mp3";
 
-        private Mp3FileReader _moveReader;
-        private Mp3FileReader _launchReader;
-        private Mp3FileReader _backReader;
+        private const int MaxSfxVoices = 3;
 
-        private MemoryStream _moveStream;
-        private MemoryStream _launchStream;
-        private MemoryStream _backStream;
+        private byte[] _moveData;
+        private byte[] _launchData;
+        private byte[] _backData;
 
-        private WaveOutEvent _movePlayer;
-        private WaveOutEvent _launchPlayer;
-        private WaveOutEvent _backPlayer;
+        private readonly object _sfxLock = new object();
+        private readonly List<SfxVoice> _sfxVoices = new List<SfxVoice>();
 
         private WaveOutEvent _backgroundPlayer;
         private Mp3FileReader _backgroundReader;
@@ -136,31 +134,9 @@ namespace EZ2Play.App
         {
             try
             {
-                _movePlayer = new WaveOutEvent();
-                _launchPlayer = new WaveOutEvent();
-                _backPlayer = new WaveOutEvent();
-
-                _moveStream = LoadSound(ResMove, "Focus.mp3");
-                _launchStream = LoadSound(ResLaunch, "Invoke.mp3");
-                _backStream = LoadSound(ResBack, "Back.mp3");
-
-                if (_moveStream != null)
-                {
-                    _moveReader = new Mp3FileReader(_moveStream);
-                    _movePlayer.Init(new VolumeWaveProvider(_moveReader, SfxVolume));
-                }
-
-                if (_launchStream != null)
-                {
-                    _launchReader = new Mp3FileReader(_launchStream);
-                    _launchPlayer.Init(new VolumeWaveProvider(_launchReader, SfxVolume));
-                }
-
-                if (_backStream != null)
-                {
-                    _backReader = new Mp3FileReader(_backStream);
-                    _backPlayer.Init(new VolumeWaveProvider(_backReader, SfxVolume));
-                }
+                _moveData = LoadSoundBytes(ResMove, "Focus.mp3");
+                _launchData = LoadSoundBytes(ResLaunch, "Invoke.mp3");
+                _backData = LoadSoundBytes(ResBack, "Back.mp3");
             }
 
             catch
@@ -198,6 +174,14 @@ namespace EZ2Play.App
             return PackLoader.LoadFromPack(fileName) ?? LoadEmbeddedToMemory(resourceName);
         }
 
+        private static byte[] LoadSoundBytes(string resourceName, string fileName)
+        {
+            using (var stream = LoadSound(resourceName, fileName))
+            {
+                return stream?.ToArray();
+            }
+        }
+
         private static MemoryStream LoadEmbeddedToMemory(string resourceName)
         {
             var assembly = Assembly.GetExecutingAssembly();
@@ -214,24 +198,53 @@ namespace EZ2Play.App
             }
         }
 
-        public void PlayMoveSound() => PlaySfx(_movePlayer, _moveReader);
-        public void PlayLaunchSound() => PlaySfx(_launchPlayer, _launchReader);
-        public void PlayBackSound() => PlaySfx(_backPlayer, _backReader);
+        public void PlayMoveSound() => PlaySfx(_moveData);
+        public void PlayLaunchSound() => PlaySfx(_launchData);
+        public void PlayBackSound() => PlaySfx(_backData);
 
-        private void PlaySfx(WaveOutEvent player, Mp3FileReader reader)
+        private void PlaySfx(byte[] data)
         {
-            if (player == null || reader == null) return;
+            if (data == null || data.Length == 0) return;
+
+            SfxVoice voice = null;
+            SfxVoice oldestVoice = null;
 
             try
             {
-                player.Stop();
-                reader.Position = 0;
-                player.Play();
+                voice = new SfxVoice(data);
+                voice.Player.PlaybackStopped += (s, e) => ReleaseSfxVoice(voice);
+
+                lock (_sfxLock)
+                {
+                    if (_sfxVoices.Count >= MaxSfxVoices)
+                    {
+                        oldestVoice = _sfxVoices[0];
+                        _sfxVoices.RemoveAt(0);
+                    }
+
+                    _sfxVoices.Add(voice);
+                }
+
+                oldestVoice?.Dispose();
+                voice.Player.Play();
             }
 
             catch
             {
+                ReleaseSfxVoice(voice);
             }
+        }
+
+        private void ReleaseSfxVoice(SfxVoice voice)
+        {
+            if (voice == null) return;
+
+            lock (_sfxLock)
+            {
+                _sfxVoices.Remove(voice);
+            }
+
+            voice.Dispose();
         }
 
         private void CancelPendingMusicStop()
@@ -304,6 +317,37 @@ namespace EZ2Play.App
                     stopCts.Dispose();
                 }
             });
+        }
+
+        private sealed class SfxVoice : IDisposable
+        {
+            private readonly MemoryStream _stream;
+            private readonly Mp3FileReader _reader;
+            private bool _disposed;
+
+            public WaveOutEvent Player { get; }
+
+            public SfxVoice(byte[] data)
+            {
+                _stream = new MemoryStream(data, false);
+                _reader = new Mp3FileReader(_stream);
+
+                Player = new WaveOutEvent();
+                Player.Init(new VolumeWaveProvider(_reader, SfxVolume));
+                Player.Volume = 1f;
+            }
+
+            public void Dispose()
+            {
+                if (_disposed) return;
+
+                _disposed = true;
+
+                Player?.Stop();
+                Player?.Dispose();
+                _reader?.Dispose();
+                _stream?.Dispose();
+            }
         }
 
         // Apply smooth fade-in and fade-out volume changes.
@@ -426,25 +470,20 @@ namespace EZ2Play.App
 
             _isBackgroundPlaying = false;
 
-            _movePlayer?.Stop();
-            _movePlayer?.Dispose();
-            _movePlayer = null;
+            List<SfxVoice> voices;
 
-            _launchPlayer?.Stop();
-            _launchPlayer?.Dispose();
-            _launchPlayer = null;
+            lock (_sfxLock)
+            {
+                voices = new List<SfxVoice>(_sfxVoices);
+                _sfxVoices.Clear();
+            }
 
-            _backPlayer?.Stop();
-            _backPlayer?.Dispose();
-            _backPlayer = null;
+            foreach (var voice in voices)
+                voice.Dispose();
 
-            _moveReader?.Dispose();
-            _launchReader?.Dispose();
-            _backReader?.Dispose();
-
-            _moveStream?.Dispose();
-            _launchStream?.Dispose();
-            _backStream?.Dispose();
+            _moveData = null;
+            _launchData = null;
+            _backData = null;
 
             _backgroundPlayer?.Stop();
             _backgroundPlayer?.Dispose();
