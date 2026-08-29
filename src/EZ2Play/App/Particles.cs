@@ -11,8 +11,7 @@ namespace EZ2Play.App
         private const int BrushLevels = 64;
         private const double MaxDelta = 0.05;
 
-        private static readonly TimeSpan ParticleFrameInterval =
-            TimeSpan.FromSeconds(1.0 / 60.0);
+        private static readonly TimeSpan ParticleFrameInterval = TimeSpan.FromSeconds(1.0 / 60.0);
 
         private const double MinSpeed = 4.0;
         private const double MaxSpeed = 16.0;

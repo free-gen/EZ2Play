@@ -110,7 +110,9 @@ namespace EZ2Play.App
         private MemoryStream _launchStream;
         private MemoryStream _backStream;
 
-        private WaveOutEvent _sfxPlayer;
+        private WaveOutEvent _movePlayer;
+        private WaveOutEvent _launchPlayer;
+        private WaveOutEvent _backPlayer;
 
         private WaveOutEvent _backgroundPlayer;
         private Mp3FileReader _backgroundReader;
@@ -134,15 +136,31 @@ namespace EZ2Play.App
         {
             try
             {
-                _sfxPlayer = new WaveOutEvent();
+                _movePlayer = new WaveOutEvent();
+                _launchPlayer = new WaveOutEvent();
+                _backPlayer = new WaveOutEvent();
 
                 _moveStream = LoadSound(ResMove, "Focus.mp3");
                 _launchStream = LoadSound(ResLaunch, "Invoke.mp3");
                 _backStream = LoadSound(ResBack, "Back.mp3");
 
-                if (_moveStream != null) _moveReader = new Mp3FileReader(_moveStream);
-                if (_launchStream != null) _launchReader = new Mp3FileReader(_launchStream);
-                if (_backStream != null) _backReader = new Mp3FileReader(_backStream);
+                if (_moveStream != null)
+                {
+                    _moveReader = new Mp3FileReader(_moveStream);
+                    _movePlayer.Init(new VolumeWaveProvider(_moveReader, SfxVolume));
+                }
+
+                if (_launchStream != null)
+                {
+                    _launchReader = new Mp3FileReader(_launchStream);
+                    _launchPlayer.Init(new VolumeWaveProvider(_launchReader, SfxVolume));
+                }
+
+                if (_backStream != null)
+                {
+                    _backReader = new Mp3FileReader(_backStream);
+                    _backPlayer.Init(new VolumeWaveProvider(_backReader, SfxVolume));
+                }
             }
 
             catch
@@ -196,24 +214,19 @@ namespace EZ2Play.App
             }
         }
 
-        public void PlayMoveSound() => PlaySfx(_moveReader);
-        public void PlayLaunchSound() => PlaySfx(_launchReader);
-        public void PlayBackSound() => PlaySfx(_backReader);
+        public void PlayMoveSound() => PlaySfx(_movePlayer, _moveReader);
+        public void PlayLaunchSound() => PlaySfx(_launchPlayer, _launchReader);
+        public void PlayBackSound() => PlaySfx(_backPlayer, _backReader);
 
-        private void PlaySfx(Mp3FileReader reader)
+        private void PlaySfx(WaveOutEvent player, Mp3FileReader reader)
         {
-            if (reader == null || _sfxPlayer == null) return;
+            if (player == null || reader == null) return;
 
             try
             {
-                _sfxPlayer.Stop();
+                player.Stop();
                 reader.Position = 0;
-
-                var sfxWithVolume = new VolumeWaveProvider(reader, SfxVolume);
-
-                _sfxPlayer.Init(sfxWithVolume);
-                _sfxPlayer.Volume = 1f;
-                _sfxPlayer.Play();
+                player.Play();
             }
 
             catch
@@ -413,9 +426,17 @@ namespace EZ2Play.App
 
             _isBackgroundPlaying = false;
 
-            _sfxPlayer?.Stop();
-            _sfxPlayer?.Dispose();
-            _sfxPlayer = null;
+            _movePlayer?.Stop();
+            _movePlayer?.Dispose();
+            _movePlayer = null;
+
+            _launchPlayer?.Stop();
+            _launchPlayer?.Dispose();
+            _launchPlayer = null;
+
+            _backPlayer?.Stop();
+            _backPlayer?.Dispose();
+            _backPlayer = null;
 
             _moveReader?.Dispose();
             _launchReader?.Dispose();

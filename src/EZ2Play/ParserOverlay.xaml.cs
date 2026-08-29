@@ -28,7 +28,7 @@ namespace EZ2Play.App
 {
     public partial class ParserOverlay : UserControl, IDisposable
     {
-        private const string ApiKey = "";
+        private const string ApiKey = "1a3c71cbf451d97cd5659e036d88b431";
         private const string BaseUrl = "https://www.steamgriddb.com/api/v2";
 
         private const int GridColumns = 4;

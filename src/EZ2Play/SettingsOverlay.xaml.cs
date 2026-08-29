@@ -16,6 +16,7 @@ namespace EZ2Play.App
         private double fadeDuration = 0.1;
         private bool _exitConfirmationMode = false;
         private int _subOptionsSelectedIndex = 0;
+        private bool _inputLocked = false;
 
         public SettingsOverlay(InputHandler inputHandler, MainWindow mainWindow)
         {
@@ -114,10 +115,11 @@ namespace EZ2Play.App
             }
         }
 
-        public void Open()
+        public async void Open()
         {
             if (Visibility == Visibility.Visible) return;
 
+            _inputLocked = true;
             _mainWindow.GetSound()?.PlayLaunchSound();
             HideExitDisplayConfirmation(false);
 
@@ -148,12 +150,16 @@ namespace EZ2Play.App
             BeginAnimation(OpacityProperty, fadeIn);
 
             UpdateSelectionState();
+
+            await System.Threading.Tasks.Task.Delay(500);
+            _inputLocked = false;
         }
 
         public void Close()
         {
             if (Visibility != Visibility.Visible) return;
 
+            _inputLocked = false;
             _mainWindow.GetSound()?.PlayBackSound();
 
             var fadeOut = new DoubleAnimation
@@ -178,6 +184,8 @@ namespace EZ2Play.App
 
         public void Back()
         {
+            if (_inputLocked) return;
+
             if (_exitConfirmationMode)
             {
                 HideExitDisplayConfirmation();
@@ -272,6 +280,8 @@ namespace EZ2Play.App
 
         public void Navigate(int direction, bool isHorizontal = true)
         {
+            if (_inputLocked) return;
+            
             if (_exitConfirmationMode)
             {
                 if (isHorizontal) return;
@@ -348,6 +358,8 @@ namespace EZ2Play.App
 
         public void Confirm()
         {
+            if (_inputLocked) return;
+
             if (_exitConfirmationMode)
             {
                 if (ExitConfirmationListBox.SelectedItem == ConfirmYesItem)
