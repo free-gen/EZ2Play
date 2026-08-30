@@ -28,6 +28,7 @@ namespace EZ2Play
         private AppConfig _config;
 
         private DispatcherTimer _activityTimer;
+        private DispatcherTimer _backgroundRefreshTimer;
         private bool _isMainScreenActive = false;
         private bool _wasActive;
         private bool _isEmptyState;
@@ -57,10 +58,15 @@ namespace EZ2Play
 
             var shortcut = _launcher.Shortcuts[_launcher.SelectedIndex];
 
-            _uiRegistry.LoadBackgroundForShortcut(shortcut.FullPath);
+            if (_isMainScreenActive && SystemProvider.IsForeground())
+            {
+                _uiRegistry.TransitionBackgroundForShortcut(shortcut.FullPath);
+            }
 
-            if (_isMainScreenActive)
-                _uiRegistry.ShowBackground(true);
+            else
+            {
+                _uiRegistry.LoadBackgroundForShortcut(shortcut.FullPath);
+            }
         }
 
         public void ShowLoadingUI(bool show)
@@ -144,6 +150,7 @@ namespace EZ2Play
                 NotificationIcon = FindName("NotificationIcon") as System.Windows.Controls.TextBlock,
                 NotificationText = FindName("NotificationText") as System.Windows.Controls.TextBlock,
                 BackgroundViewport = FindName("BackgroundViewport") as System.Windows.Controls.Grid,
+                BackgroundPreviousImage = FindName("BackgroundPreviousImage") as System.Windows.Controls.Image,
                 BackgroundImage = FindName("BackgroundImage") as System.Windows.Controls.Image,
                 GameCounterText = FindName("GameCounterText") as System.Windows.Controls.TextBlock,
                 GameCounterCard = FindName("GameCounterCard") as System.Windows.Controls.Border,
@@ -163,6 +170,8 @@ namespace EZ2Play
             _metadata = _launcher.Playtime;
             // _config = new AppConfig();
 
+            _launcher.SelectionChanged += _ => ScheduleBackgroundRefresh();
+
             InitializeCarouselSelectedItem();
         }
 
@@ -176,7 +185,27 @@ namespace EZ2Play
             _activityTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(300) };
             _activityTimer.Tick += CheckAppActivity;
 
+            _backgroundRefreshTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(500) };
+            _backgroundRefreshTimer.Tick += BackgroundRefreshTimer_Tick;
+
             ItemsListBox.ItemContainerGenerator.StatusChanged += ItemContainerGenerator_StatusChanged;
+        }
+
+        private void ScheduleBackgroundRefresh()
+        {
+            if (!_isMainScreenActive || _isEmptyState) return;
+
+            _backgroundRefreshTimer.Stop();
+            _backgroundRefreshTimer.Start();
+        }
+
+        private void BackgroundRefreshTimer_Tick(object sender, EventArgs e)
+        {
+            _backgroundRefreshTimer.Stop();
+
+            if (!_isMainScreenActive || _isEmptyState) return;
+
+            RefreshSelectedBackground();
         }
 
         private void InitializeUI()
@@ -547,6 +576,8 @@ namespace EZ2Play
         protected override void OnClosed(EventArgs e)
         {
             _isExiting = false;
+
+            _backgroundRefreshTimer?.Stop();
 
             _parserOverlay?.Dispose();
             _input?.Dispose();

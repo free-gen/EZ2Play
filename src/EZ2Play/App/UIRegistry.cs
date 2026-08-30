@@ -38,6 +38,7 @@ namespace EZ2Play.App
         public ListBox ItemsListBox { get; set; }
         public Grid CarouselWrapper { get; set; }
         public Grid BackgroundViewport { get; set; }
+        public Image BackgroundPreviousImage { get; set; }
         public Image BackgroundImage { get; set; }
 
         public HintPanel BottomHintPanel { get; set; }
@@ -50,6 +51,7 @@ namespace EZ2Play.App
         private const double BackgroundStartPosition = 0.15;
         private const double BackgroundPanSpeed = 5.0;
         private const double BackgroundPanEdgeZone = 60.0;
+        private const double BackgroundTransitionDuration = 0.25;
 
         private double _backgroundPanOverflow;
         private double _backgroundPanPosition;
@@ -57,6 +59,7 @@ namespace EZ2Play.App
         private TimeSpan _backgroundPanLastRenderTime;
 
         private TranslateTransform BackgroundTranslate => BackgroundImage?.RenderTransform as TranslateTransform;
+        private TranslateTransform BackgroundPreviousTranslate => BackgroundPreviousImage?.RenderTransform as TranslateTransform;
 
         public UIRegistry()
         {
@@ -208,12 +211,30 @@ namespace EZ2Play.App
             BackgroundImage.Visibility = Visibility.Collapsed;
             BackgroundImage.Opacity = 0;
 
+            ClearPreviousBackground();
+
+            var bitmap = LoadBackgroundBitmap(shortcutPath);
+
+            if (bitmap == null)
+                return false;
+
+            BackgroundImage.Source = bitmap;
+
+            RenderOptions.SetBitmapScalingMode(BackgroundImage, BitmapScalingMode.HighQuality);
+
+            RefreshBackgroundPan();
+
+            return true;
+        }
+
+        private BitmapImage LoadBackgroundBitmap(string shortcutPath)
+        {
             try
             {
                 string backgroundPath = IconExtractor.GetCustomBackgroundPath(shortcutPath);
 
                 if (string.IsNullOrWhiteSpace(backgroundPath) || !File.Exists(backgroundPath))
-                    return false;
+                    return null;
 
                 var bitmap = new BitmapImage();
 
@@ -227,20 +248,184 @@ namespace EZ2Play.App
 
                 bitmap.Freeze();
 
-                BackgroundImage.Source = bitmap;
-
-                RenderOptions.SetBitmapScalingMode(BackgroundImage, BitmapScalingMode.HighQuality);
-
-                RefreshBackgroundPan();
-
-                return true;
+                return bitmap;
             }
 
             catch
             {
-                BackgroundImage.Source = null;
-                return false;
+                return null;
             }
+        }
+
+        public void TransitionBackgroundForShortcut(string shortcutPath)
+        {
+            if (BackgroundImage == null) return;
+
+            var nextBitmap = LoadBackgroundBitmap(shortcutPath);
+
+            bool hasCurrentBackground = BackgroundImage.Source != null;
+            bool hasNextBackground = nextBitmap != null;
+
+            if (hasCurrentBackground && hasNextBackground)
+            {
+                CrossfadeBackground(nextBitmap);
+                return;
+            }
+
+            if (hasCurrentBackground)
+            {
+                FadeBackgroundToParticles();
+                return;
+            }
+
+            if (hasNextBackground)
+            {
+                FadeParticlesToBackground(nextBitmap);
+                return;
+            }
+
+            ClearPreviousBackground();
+            _particlesCanvas?.SetParticlesVisible(true, true, BackgroundTransitionDuration);
+        }
+
+        private void CrossfadeBackground(BitmapImage nextBitmap)
+        {
+            if (BackgroundPreviousImage == null)
+            {
+                LoadBackgroundForShortcutFromBitmap(nextBitmap);
+                ShowBackground(true);
+                return;
+            }
+
+            double previousOpacity = BackgroundImage.Opacity;
+            double previousX = BackgroundTranslate?.X ?? 0;
+
+            BackgroundImage.BeginAnimation(UIElement.OpacityProperty, null);
+
+            BackgroundPreviousImage.BeginAnimation(UIElement.OpacityProperty, null);
+            BackgroundPreviousImage.Source = BackgroundImage.Source;
+            BackgroundPreviousImage.Width = BackgroundImage.Width;
+            BackgroundPreviousImage.Height = BackgroundImage.Height;
+            BackgroundPreviousImage.Visibility = Visibility.Visible;
+            BackgroundPreviousImage.Opacity = previousOpacity > 0 ? previousOpacity : 0.7;
+
+            if (BackgroundPreviousTranslate != null)
+                BackgroundPreviousTranslate.X = previousX;
+
+            StopBackgroundPan();
+
+            BackgroundImage.Source = nextBitmap;
+            BackgroundImage.Visibility = Visibility.Visible;
+            BackgroundImage.Opacity = 0;
+
+            RenderOptions.SetBitmapScalingMode(BackgroundImage, BitmapScalingMode.HighQuality);
+
+            RefreshBackgroundPan();
+
+            _particlesCanvas?.SetParticlesVisible(false, true, BackgroundTransitionDuration);
+
+            var fadeOut = new DoubleAnimation
+            {
+                To = 0,
+                Duration = TimeSpan.FromSeconds(BackgroundTransitionDuration),
+                EasingFunction = new CubicEase { EasingMode = EasingMode.EaseInOut }
+            };
+
+            var fadeIn = new DoubleAnimation
+            {
+                From = 0,
+                To = 0.7,
+                Duration = TimeSpan.FromSeconds(BackgroundTransitionDuration),
+                EasingFunction = new CubicEase { EasingMode = EasingMode.EaseInOut }
+            };
+
+            fadeOut.Completed += (s, e) => ClearPreviousBackground();
+
+            BackgroundPreviousImage.BeginAnimation(UIElement.OpacityProperty, fadeOut);
+            BackgroundImage.BeginAnimation(UIElement.OpacityProperty, fadeIn);
+        }
+
+        private void FadeBackgroundToParticles()
+        {
+            double currentOpacity = BackgroundImage.Opacity;
+
+            BackgroundImage.BeginAnimation(UIElement.OpacityProperty, null);
+            BackgroundImage.Opacity = currentOpacity > 0 ? currentOpacity : 0.7;
+
+            _particlesCanvas?.SetParticlesVisible(true, true, BackgroundTransitionDuration);
+
+            var fadeOut = new DoubleAnimation
+            {
+                To = 0,
+                Duration = TimeSpan.FromSeconds(BackgroundTransitionDuration),
+                EasingFunction = new CubicEase { EasingMode = EasingMode.EaseInOut }
+            };
+
+            fadeOut.Completed += (s, e) =>
+            {
+                StopBackgroundPan();
+
+                BackgroundImage.BeginAnimation(UIElement.OpacityProperty, null);
+                BackgroundImage.Source = null;
+                BackgroundImage.Visibility = Visibility.Collapsed;
+                BackgroundImage.Opacity = 0;
+            };
+
+            BackgroundImage.BeginAnimation(UIElement.OpacityProperty, fadeOut);
+        }
+
+        private void FadeParticlesToBackground(BitmapImage nextBitmap)
+        {
+            StopBackgroundPan();
+            ClearPreviousBackground();
+
+            BackgroundImage.BeginAnimation(UIElement.OpacityProperty, null);
+            BackgroundImage.Source = nextBitmap;
+            BackgroundImage.Visibility = Visibility.Visible;
+            BackgroundImage.Opacity = 0;
+
+            RenderOptions.SetBitmapScalingMode(BackgroundImage, BitmapScalingMode.HighQuality);
+
+            RefreshBackgroundPan();
+
+            _particlesCanvas?.SetParticlesVisible(false, true, BackgroundTransitionDuration);
+
+            var fadeIn = new DoubleAnimation
+            {
+                From = 0,
+                To = 0.7,
+                Duration = TimeSpan.FromSeconds(BackgroundTransitionDuration),
+                EasingFunction = new CubicEase { EasingMode = EasingMode.EaseInOut }
+            };
+
+            BackgroundImage.BeginAnimation(UIElement.OpacityProperty, fadeIn);
+        }
+
+        private void LoadBackgroundForShortcutFromBitmap(BitmapImage bitmap)
+        {
+            StopBackgroundPan();
+
+            BackgroundImage.BeginAnimation(UIElement.OpacityProperty, null);
+            BackgroundImage.Source = bitmap;
+            BackgroundImage.Visibility = Visibility.Collapsed;
+            BackgroundImage.Opacity = 0;
+
+            RenderOptions.SetBitmapScalingMode(BackgroundImage, BitmapScalingMode.HighQuality);
+
+            RefreshBackgroundPan();
+        }
+
+        private void ClearPreviousBackground()
+        {
+            if (BackgroundPreviousImage == null) return;
+
+            BackgroundPreviousImage.BeginAnimation(UIElement.OpacityProperty, null);
+            BackgroundPreviousImage.Source = null;
+            BackgroundPreviousImage.Visibility = Visibility.Collapsed;
+            BackgroundPreviousImage.Opacity = 0;
+
+            if (BackgroundPreviousTranslate != null)
+                BackgroundPreviousTranslate.X = 0;
         }
 
         public void RefreshBackgroundPan()

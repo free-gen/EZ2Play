@@ -35,6 +35,19 @@
                 ClipToBounds="True">
 
                 <Canvas>
+                    <Image x:Name="BackgroundPreviousImage"
+                        Stretch="Fill"
+                        Opacity="0"
+                        Visibility="Collapsed"
+                        RenderOptions.BitmapScalingMode="HighQuality"
+                        CacheMode="BitmapCache">
+
+                        <Image.RenderTransform>
+                            <TranslateTransform x:Name="BackgroundPreviousTranslate"/>
+                        </Image.RenderTransform>
+
+                    </Image>
+
                     <Image x:Name="BackgroundImage"
                         Stretch="Fill"
                         Opacity="0"
