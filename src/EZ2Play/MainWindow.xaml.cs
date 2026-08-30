@@ -168,7 +168,6 @@ namespace EZ2Play
         {
             _launcher = new Launcher(ItemsListBox, _uiRegistry.SelectedGameTitle, this, _sound);
             _metadata = _launcher.Playtime;
-            // _config = new AppConfig();
 
             _launcher.SelectionChanged += _ => ScheduleBackgroundRefresh();
 
@@ -270,7 +269,6 @@ namespace EZ2Play
         private void SetupInputEvents()
         {
             _inputHandler.OnMoveSelection += _launcher.MoveSelection;
-            // _inputHandler.OnLaunchSelected += _launcher.LaunchSelected;
 
             _inputHandler.OnLaunchSelected += () =>
             {
@@ -282,7 +280,7 @@ namespace EZ2Play
             _inputHandler.OnSwitchToGamelist += SwitchToGamelist;
             _inputHandler.OnSwitchToLastPlayed += SwitchToLastPlayed;
 
-            _inputHandler.OnOpenSettings += async () =>
+            _inputHandler.OnOpenSettings += () =>
             {
                 if (_isExiting || !_isMainScreenActive || _isEmptyState) return;
 

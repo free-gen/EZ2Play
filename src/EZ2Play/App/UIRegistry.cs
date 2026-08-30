@@ -64,7 +64,7 @@ namespace EZ2Play.App
 
         public UIRegistry()
         {
-            Notifications = new Notifications(this);
+            Notifications = new Notifications();
         }
 
         public void InitializeSplash(Image logo, Grid overlay, Grid mainScreen)

@@ -114,7 +114,7 @@ namespace EZ2Play.App
             }
         }
 
-        public async void Open()
+        public void Open()
         {
             if (Visibility == Visibility.Visible) return;
 
@@ -148,8 +148,6 @@ namespace EZ2Play.App
             BeginAnimation(OpacityProperty, fadeIn);
 
             UpdateSelectionState();
-
-            await System.Threading.Tasks.Task.Delay(500);
         }
 
         public void Close()
