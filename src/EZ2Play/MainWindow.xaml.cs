@@ -55,6 +55,26 @@ namespace EZ2Play
         public Launcher GetLauncher() => _launcher;
         public Sound GetSound() => _sound;
 
+        public void RefreshSelectedBackground()
+        {
+            if (_launcher == null || _launcher.Shortcuts.Length == 0 || _launcher.SelectedIndex < 0)
+                return;
+
+            var shortcut = _launcher.Shortcuts[_launcher.SelectedIndex];
+
+            CompositionTarget.Rendering -= BackgroundPan_Rendering;
+            BackgroundTranslate.X = 0;
+            _backgroundPanOverflow = 0;
+
+            bool hasBackground = _uiRegistry.LoadBackgroundForShortcut(shortcut.FullPath);
+
+            if (hasBackground)
+                TestBackgroundPan();
+
+            if (_isMainScreenActive)
+                _uiRegistry.ShowBackground(true);
+        }
+
         public void ShowLoadingUI(bool show)
         {
             _uiRegistry.ShowLoading(show);
@@ -144,8 +164,6 @@ namespace EZ2Play
             _uiRegistry.InitializeSplash(SplashLogo, SplashOverlay, MainScreenGrid);
             _uiRegistry.InitializeNotifications(NotificationPanel, NotificationIcon, NotificationText);
             _uiRegistry.CarouselWrapper = FindName("CarouselWrapper") as System.Windows.Controls.Grid;
-            _uiRegistry.LoadBackgroundImage();
-            Dispatcher.BeginInvoke(new Action(TestBackgroundPan), DispatcherPriority.Loaded);
             _uiRegistry.SetParticlesCanvas(_particlesCanvas);
             _uiRegistry.InitializeLoadingRing(FindName("LoadingProgress") as Wpf.Ui.Controls.ProgressRing);
         }
@@ -408,6 +426,7 @@ namespace EZ2Play
 
             if (!_isEmptyState)
             {
+                RefreshSelectedBackground();
                 ShowMainScreenWithAnimation();
                 ShowStartupNotifications();
             }

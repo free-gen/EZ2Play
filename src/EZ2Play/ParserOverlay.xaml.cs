@@ -1354,6 +1354,8 @@ namespace EZ2Play.App
 
                 if (!IsSessionActive(cancellationToken)) return;
 
+                _mainWindow.RefreshSelectedBackground();
+
                 Close();
             }
 

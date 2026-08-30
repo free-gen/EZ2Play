@@ -185,49 +185,55 @@ namespace EZ2Play.App
             }
         }
 
-        public bool LoadBackgroundImage()
+        public bool LoadBackgroundForShortcut(string shortcutPath)
         {
             if (BackgroundImage == null) return false;
 
+            BackgroundImage.BeginAnimation(UIElement.OpacityProperty, null);
+            BackgroundImage.Source = null;
+            BackgroundImage.Visibility = Visibility.Collapsed;
+            BackgroundImage.Opacity = 0;
+
             try
             {
-                var bgFromPack = PackLoader.LoadFromPack("Bg.jpg") ?? PackLoader.LoadFromPack("Bg.png");
+                string backgroundPath = IconExtractor.GetCustomBackgroundPath(shortcutPath);
 
-                if (bgFromPack != null)
+                if (string.IsNullOrWhiteSpace(backgroundPath) || !File.Exists(backgroundPath))
+                    return false;
+
+                var bitmap = new BitmapImage();
+
+                using (var stream = new FileStream(backgroundPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
                 {
-                    var decoder = BitmapDecoder.Create(
-                        bgFromPack,
-                        BitmapCreateOptions.PreservePixelFormat,
-                        BitmapCacheOption.OnLoad);
-
-                    var frame = decoder.Frames[0];
-
-                    frame.Freeze();
-
-                    BackgroundImage.Source = frame;
-                    BackgroundImage.Visibility = Visibility.Collapsed;
-                    BackgroundImage.Opacity = 0;
-
-                    RenderOptions.SetBitmapScalingMode(BackgroundImage, BitmapScalingMode.HighQuality);
-
-                    return true;
+                    bitmap.BeginInit();
+                    bitmap.CacheOption = BitmapCacheOption.OnLoad;
+                    bitmap.StreamSource = stream;
+                    bitmap.EndInit();
                 }
+
+                bitmap.Freeze();
+
+                BackgroundImage.Source = bitmap;
+
+                RenderOptions.SetBitmapScalingMode(BackgroundImage, BitmapScalingMode.HighQuality);
+
+                return true;
             }
 
             catch
             {
+                BackgroundImage.Source = null;
+                return false;
             }
-
-            BackgroundImage.Source = null;
-            BackgroundImage.Visibility = Visibility.Collapsed;
-
-            return false;
         }
 
         public void ShowBackground(bool visible)
         {
             if (UseImageBackground)
             {
+                if (visible)
+                    _particlesCanvas?.SetParticlesVisible(false, true, 0.2);
+
                 var bgAnim = new DoubleAnimation
                 {
                     To = visible ? 0.7 : 0,
@@ -247,6 +253,13 @@ namespace EZ2Play.App
 
             else
             {
+                if (BackgroundImage != null)
+                {
+                    BackgroundImage.BeginAnimation(UIElement.OpacityProperty, null);
+                    BackgroundImage.Visibility = Visibility.Collapsed;
+                    BackgroundImage.Opacity = 0;
+                }
+
                 _particlesCanvas?.SetParticlesVisible(visible, true, 0.2);
             }
         }
