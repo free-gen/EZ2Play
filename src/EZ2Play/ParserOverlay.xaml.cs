@@ -34,6 +34,7 @@ namespace EZ2Play.App
         private const int GridColumns = 4;
         private const int MaxGames = 15;
         private const int MaxCovers = 30;
+        private const int MaxBackgrounds = 30;
         private const double FadeDuration = 0.1;
         private const double ManualSearchKeyboardGap = 32;
 
@@ -52,6 +53,7 @@ namespace EZ2Play.App
 
         private readonly ObservableCollection<ParserGameResult> _gameResults = new ObservableCollection<ParserGameResult>();
         private readonly ObservableCollection<ParserGridResult> _gridResults = new ObservableCollection<ParserGridResult>();
+        private readonly ObservableCollection<ParserGridResult> _heroResults = new ObservableCollection<ParserGridResult>();
 
         private ShortcutInfo _shortcut;
         private ParserMode _mode = ParserMode.Games;
@@ -832,6 +834,45 @@ namespace EZ2Play.App
             }
         }
 
+        private async Task<List<ParserGridResult>> GetHeroesAsync(int gameId, CancellationToken cancellationToken)
+        {
+            string url = $"{BaseUrl}/heroes/game/{gameId}?dimensions=3840x1240&mimes=image/png,image/jpeg&nsfw=false&types=static";
+
+            using (var response = await _httpClient.GetAsync(url, cancellationToken))
+            {
+                if (response.StatusCode == HttpStatusCode.Unauthorized || response.StatusCode == HttpStatusCode.Forbidden)
+                    throw new SteamGridDbAuthException($"HTTP {(int)response.StatusCode}");
+
+                if (!response.IsSuccessStatusCode)
+                    throw new HttpRequestException("SteamGridDB returned HTTP " + $"{(int)response.StatusCode}.");
+
+                string content = await response.Content.ReadAsStringAsync();
+                cancellationToken.ThrowIfCancellationRequested();
+
+                var json = JObject.Parse(content);
+                var data = json["data"] as JArray;
+
+                if (json["success"]?.ToObject<bool>() != true)
+                    throw new InvalidOperationException("SteamGridDB returned success=false.");
+
+                if (data == null)
+                    return new List<ParserGridResult>();
+
+                return data
+                    .Where(item => item["url"] != null && (item["width"]?.ToObject<int>() ?? 0) >= 3840)
+                    .Take(MaxBackgrounds)
+                    .Select(item => new ParserGridResult
+                    {
+                        Id = item["id"]?.ToObject<int>() ?? 0,
+                        Url = item["url"].ToString(),
+                        Thumb = item["thumb"]?.ToString() ?? item["url"].ToString(),
+                        Width = item["width"]?.ToObject<int>() ?? 0,
+                        Height = item["height"]?.ToObject<int>() ?? 0
+                    })
+                    .ToList();
+            }
+        }
+
         private async Task LoadThumbnailAsync(ParserGridResult result, CancellationToken cancellationToken)
         {
             try
@@ -1032,6 +1073,8 @@ namespace EZ2Play.App
         public int Id { get; set; }
         public string Url { get; set; }
         public string Thumb { get; set; }
+        public int Width { get; set; }
+        public int Height { get; set; }
 
         public ImageSource ImageSource
         {

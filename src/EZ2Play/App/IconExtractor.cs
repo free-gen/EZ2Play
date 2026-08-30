@@ -13,6 +13,7 @@ namespace EZ2Play.App
     {
         private const string ShortcutsDirectory = "shortcuts";
         private const string CoversDirectory = "covers";
+        private const string BackgroundsDirectory = "backgrounds";
         private const int IconSize = 256;
 
         private const int SHIL_JUMBO = 0x4;
@@ -236,6 +237,36 @@ namespace EZ2Play.App
                     bitmap.Freeze();
 
                     return bitmap;
+                }
+            }
+
+            catch
+            {
+            }
+
+            return null;
+        }
+
+        // Find a custom background matching the shortcut name.
+        public static string GetCustomBackgroundPath(string shortcutPath)
+        {
+            try
+            {
+                string shortcutsDir = Path.GetDirectoryName(shortcutPath);
+                string backgroundsDir = Path.Combine(shortcutsDir, BackgroundsDirectory);
+
+                if (!Directory.Exists(backgroundsDir))
+                    return null;
+
+                string name = Path.GetFileNameWithoutExtension(shortcutPath);
+                string[] extensions = { ".png", ".jpg", ".jpeg" };
+
+                foreach (string extension in extensions)
+                {
+                    string backgroundPath = Path.Combine(backgroundsDir, name + extension);
+
+                    if (File.Exists(backgroundPath))
+                        return backgroundPath;
                 }
             }
 
