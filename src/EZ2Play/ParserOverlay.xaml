@@ -111,12 +111,12 @@
 
                     <TextBlock x:Name="ParserCoversTabText"
                             Style="{StaticResource OverlayPrimaryTextStyle}"
-                            FontWeight="900"
+                            FontWeight="700"
                             Margin="{DynamicResource {x:Static app:UiScaleKeys.ParserTabMargin}}"/>
 
                     <TextBlock x:Name="ParserBackgroundsTabText"
                             Style="{StaticResource OverlayPrimaryTextStyle}"
-                            FontWeight="900"
+                            FontWeight="700"
                             Margin="{DynamicResource {x:Static app:UiScaleKeys.ParserTabMargin}}"/>
 
                 </StackPanel>
@@ -158,6 +158,7 @@
                     <!-- Covers -->
                     <ListBox x:Name="CoversListBox"
                             Visibility="Collapsed"
+                            Margin="{DynamicResource {x:Static app:UiScaleKeys.ParserAssetsMargin}}"
                             ItemContainerStyle="{StaticResource ParserCoverItemStyle}"
                             Background="Transparent"
                             BorderThickness="0"
@@ -198,6 +199,7 @@
                     <!-- Backgrounds -->
                     <ListBox x:Name="BackgroundsListBox"
                             Visibility="Collapsed"
+                            Margin="{DynamicResource {x:Static app:UiScaleKeys.ParserAssetsMargin}}"
                             ItemContainerStyle="{StaticResource ParserCoverItemStyle}"
                             Background="Transparent"
                             BorderThickness="0"
@@ -239,6 +241,7 @@
                     <TextBlock x:Name="StatusText"
                                 Visibility="Collapsed"
                                 Style="{StaticResource OverlaySecondaryTextStyle}"
+                                Margin="{DynamicResource {x:Static app:UiScaleKeys.ParserStatusMargin}}"
                                 HorizontalAlignment="Center"
                                 VerticalAlignment="Center"/>
 

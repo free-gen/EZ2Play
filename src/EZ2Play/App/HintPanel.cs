@@ -7,7 +7,7 @@ namespace EZ2Play.App
 {
     public class HintPanel : Border
     {
-        public enum HintMode { Main, Settings, ParserGames }
+        public enum HintMode { Main, Settings, ParserGames, ParserAssets }
         public enum InputDevice { Keyboard, Gamepad }
 
         private StackPanel _container;
@@ -84,6 +84,16 @@ namespace EZ2Play.App
                 _container.Children.Add(CreateHintBlock("BtnB", Locals.GetString("Back")));
             }
 
+            else if (Mode == HintMode.ParserAssets)
+            {
+                _container.Children.Add(CreateHintBlock("BtnA", Locals.GetString("Select")));
+
+                // if (Device == InputDevice.Gamepad)
+                //     _container.Children.Add(CreateHintBlock("BtnLb", Locals.GetString("SwitchTabs"), "BtnRb"));
+
+                _container.Children.Add(CreateHintBlock("BtnB", Locals.GetString("Back")));
+            }
+
             else
             {
                 _container.Children.Add(CreateHintBlock("BtnA", Locals.GetString("Select")));
@@ -91,7 +101,7 @@ namespace EZ2Play.App
             }
         }
 
-        private FrameworkElement CreateHintBlock(string buttonKey, string text)
+        private FrameworkElement CreateHintBlock(string buttonKey, string text, string secondButtonKey = null)
         {
             var stack = new StackPanel
             {
@@ -101,6 +111,39 @@ namespace EZ2Play.App
 
             stack.SetResourceReference(StackPanel.MarginProperty, UiScaleKeys.HintBlockMargin);
 
+            var firstIcon = CreateHintIcon(buttonKey);
+
+            if (firstIcon != null)
+                stack.Children.Add(firstIcon);
+
+            if (!string.IsNullOrEmpty(secondButtonKey))
+            {
+                var secondIcon = CreateHintIcon(secondButtonKey);
+
+                if (secondIcon != null)
+                {
+                    secondIcon.SetResourceReference(FrameworkElement.MarginProperty, UiScaleKeys.HintTextMargin);
+                    stack.Children.Add(secondIcon);
+                }
+            }
+
+            var textBlock = new TextBlock
+            {
+                Text = text,
+                Style = Application.Current.FindResource("HintTextStyle") as Style,
+                VerticalAlignment = VerticalAlignment.Center
+            };
+
+            textBlock.SetResourceReference(TextBlock.MarginProperty, UiScaleKeys.HintTextMargin);
+            textBlock.SetResourceReference(TextBlock.FontSizeProperty, UiScaleKeys.HintTextFontSize);
+
+            stack.Children.Add(textBlock);
+
+            return stack;
+        }
+
+        private FrameworkElement CreateHintIcon(string buttonKey)
+        {
             var icon = _buttonIcons[buttonKey];
 
             if (Device == InputDevice.Gamepad && icon.glyph != null)
@@ -117,10 +160,10 @@ namespace EZ2Play.App
                     Foreground = icon.color
                 };
 
-                stack.Children.Add(viewbox);
+                return viewbox;
             }
 
-            else if (Device == InputDevice.Keyboard && icon.pathKey != null)
+            if (Device == InputDevice.Keyboard && icon.pathKey != null)
             {
                 var viewbox = new Viewbox();
                 viewbox.SetResourceReference(Viewbox.HeightProperty, UiScaleKeys.HintIconHeightKeyboard);
@@ -132,22 +175,10 @@ namespace EZ2Play.App
                     Content = Application.Current.FindResource(icon.pathKey)
                 };
 
-                stack.Children.Add(viewbox);
+                return viewbox;
             }
 
-            var textBlock = new TextBlock
-            {
-                Text = text,
-                Style = Application.Current.FindResource("HintTextStyle") as Style,
-                VerticalAlignment = VerticalAlignment.Center
-            };
-
-            textBlock.SetResourceReference(TextBlock.MarginProperty, UiScaleKeys.HintTextMargin);
-            textBlock.SetResourceReference(TextBlock.FontSizeProperty, UiScaleKeys.HintTextFontSize);
-
-            stack.Children.Add(textBlock);
-
-            return stack;
+            return null;
         }
 
         private static void OnModeChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)

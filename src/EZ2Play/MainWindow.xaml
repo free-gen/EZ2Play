@@ -17,6 +17,13 @@
                  ResizeMode="NoResize"
                  MinWidth="1024"
                  MinHeight="576">
+
+    <Window.Resources>
+        <DropShadowEffect x:Key="TextShadowEffect"
+                        Color="Black"
+                        Opacity="0.35"
+                        BlurRadius="32"/>
+    </Window.Resources>
     
 
     <!-- Window Background {DynamicResource LayerOnAcrylicFillColorDefaultBrush} -->
@@ -138,11 +145,13 @@
                     <StackPanel Orientation="Horizontal" Grid.Column="1">
                         <TextBlock x:Name="TabGamelistText"
                                 Opacity="1"
+                                Effect="{StaticResource TextShadowEffect}"
                                 FontSize="{DynamicResource {x:Static app:UiScaleKeys.TopInfoPrimalyFontSize}}"
                                 FontWeight="ExtraBold"/>
                         <TextBlock x:Name="TabLastPlayedText"
                                 Margin="{DynamicResource {x:Static app:UiScaleKeys.TopInfoTabsMargin}}"
                                 Opacity="0.8"
+                                Effect="{StaticResource TextShadowEffect}"
                                 FontSize="{DynamicResource {x:Static app:UiScaleKeys.TopInfoSecondaryFontSize}}"/>
                     </StackPanel>
 
@@ -184,6 +193,7 @@
                     <TextBlock x:Name="TimeLabelText" Grid.Column="4"
                                HorizontalAlignment="Right"
                                VerticalAlignment="Center"
+                               Effect="{StaticResource TextShadowEffect}"
                                FontSize="{DynamicResource {x:Static app:UiScaleKeys.TopInfoPrimalyFontSize}}"
                                FontWeight="SemiBold"/>
 
@@ -223,20 +233,20 @@
                                 VerticalAlignment="Center">
 
                         <TextBlock x:Name="SelectedGameTitle"
-                                FontSize="{DynamicResource {x:Static app:UiScaleKeys.SelectedGameTitleFontSize}}"
-                                FontWeight="Medium"
-                                TextAlignment="Left"
-                                TextWrapping="Wrap"
-                                HorizontalAlignment="Stretch">
-                        </TextBlock>
+                                    FontSize="{DynamicResource {x:Static app:UiScaleKeys.SelectedGameTitleFontSize}}"
+                                    FontWeight="Medium"
+                                    TextAlignment="Left"
+                                    TextWrapping="Wrap"
+                                    HorizontalAlignment="Stretch"
+                                    Effect="{StaticResource TextShadowEffect}"/>
 
                         <StackPanel Orientation="Horizontal" 
                                     Margin="{DynamicResource {x:Static app:UiScaleKeys.SourceCardMargin}}">
                             
                             <!-- GameSourceCard -->
                             <Border x:Name="GameSourceCard"
-                                    Background="#EEFFFFFF"
-                                    CornerRadius="{DynamicResource {x:Static app:UiScaleKeys.SourceCardRadius}}"
+                                    Background="#F0F2F2F2"
+                                    CornerRadius="{DynamicResource {x:Static app:UiScaleKeys.PillCardRadius}}"
                                     Width="{DynamicResource {x:Static app:UiScaleKeys.SourceCardWidth}}"
                                     Height="{DynamicResource {x:Static app:UiScaleKeys.SourceCardHeight}}"
                                     VerticalAlignment="Center"
@@ -251,11 +261,11 @@
 
                             <!-- GameCounterCard -->
                             <Border x:Name="GameCounterCard"
-                                    Background="#EE000000"
+                                    Background="#F0121212"
                                     Padding="{DynamicResource {x:Static app:UiScaleKeys.CounterCardPadding}}"
                                     Margin="{DynamicResource {x:Static app:UiScaleKeys.CounterCardMargin}}"
                                     Height="{DynamicResource {x:Static app:UiScaleKeys.CounterCardHeight}}"
-                                    CornerRadius="{DynamicResource {x:Static app:UiScaleKeys.SourceCardRadius}}"
+                                    CornerRadius="{DynamicResource {x:Static app:UiScaleKeys.PillCardRadius}}"
                                     VerticalAlignment="Center"
                                     HorizontalAlignment="Right">
 
@@ -263,12 +273,16 @@
                                     <TextBlock  FontSize="{DynamicResource {x:Static app:UiScaleKeys.CounterCardIconSize}}"
                                                 VerticalAlignment="Center" 
                                                 Margin="{DynamicResource {x:Static app:UiScaleKeys.CounterCardIconMargin}}"
-                                                FontFamily="/Assets/#Xbox Fluent">&#xE35F;</TextBlock><!-- E7FB -->
+                                                FontFamily="/Assets/#Xbox Fluent">&#xE7FB;</TextBlock><!-- E7FB -->
                                     
-                                    <TextBlock  x:Name="GameCounterText"
-                                                FontSize="{DynamicResource {x:Static app:UiScaleKeys.CounterCardFontSize}}"
-                                                FontWeight="ExtraBold"
-                                                TextAlignment="Center"/>
+                                    <TextBlock x:Name="GameCounterText"
+                                            FontSize="{DynamicResource {x:Static app:UiScaleKeys.CounterCardFontSize}}"
+                                            FontWeight="ExtraBold"
+                                            TextAlignment="Center">
+                                        <TextBlock.RenderTransform>
+                                            <TranslateTransform X="5" Y="-1"/>
+                                        </TextBlock.RenderTransform>
+                                    </TextBlock>
                                 </StackPanel>
                             </Border>
 
@@ -286,15 +300,15 @@
 
             <!-- HintPanel -->
             <app:HintPanel x:Name="HintPanel"
-            Grid.Row="3"
-            Panel.ZIndex="105"
-            Mode="Main"
-            Device="Keyboard"
-            Visibility="Collapsed"
-            Margin="{DynamicResource {x:Static app:UiScaleKeys.HintPanelMargin}}"
-            CornerRadius="{DynamicResource {x:Static app:UiScaleKeys.BaseCornerRadius}}"
-            Height="{DynamicResource {x:Static app:UiScaleKeys.HintPanelHeight}}"
-            Padding="{DynamicResource {x:Static app:UiScaleKeys.HintPanelPadding}}" />
+                        Grid.Row="3"
+                        Panel.ZIndex="105"
+                        Mode="Main"
+                        Device="Keyboard"
+                        Visibility="Collapsed"
+                        Margin="{DynamicResource {x:Static app:UiScaleKeys.HintPanelMargin}}"
+                        CornerRadius="{DynamicResource {x:Static app:UiScaleKeys.PillCardRadius}}"
+                        Height="{DynamicResource {x:Static app:UiScaleKeys.HintPanelHeight}}"
+                        Padding="{DynamicResource {x:Static app:UiScaleKeys.HintPanelPadding}}" />
 
         </Grid>
     </Border>

@@ -46,7 +46,7 @@ namespace EZ2Play.App
             target[UiScaleKeys.OverlayWidth] = s(1280);
             target[UiScaleKeys.OverlayBorderThickness] = new Thickness(s(2));
             target[UiScaleKeys.OverlayCornerRadius] = new CornerRadius(s(16));
-            target[UiScaleKeys.OverlayPadding] = new Thickness(s(16));
+            target[UiScaleKeys.OverlayPadding] = new Thickness(s(8));
             target[UiScaleKeys.OverlayPrimaryFontSize] = fs(32);
             target[UiScaleKeys.OverlaySecondaryFontSize] = fs(24);
 
@@ -82,8 +82,8 @@ namespace EZ2Play.App
             const double parserBackgroundWidth = 584;
             const double parserBackgroundHeight = 189;
 
-            const double parserCoversViewportHeight = 555;
-            const double parserBackgroundsViewportHeight = 630;
+            const double parserCoversViewportHeight = 601;
+            const double parserBackgroundsViewportHeight = 678;
 
             const int parserVisibleGameRows = 5;
 
@@ -100,7 +100,7 @@ namespace EZ2Play.App
             target[UiScaleKeys.ParserCoversViewportHeight] = s(parserCoversViewportHeight);
             target[UiScaleKeys.ParserBackgroundsViewportHeight] = s(parserBackgroundsViewportHeight);
 
-            target[UiScaleKeys.ParserTabsMargin] = new Thickness(0, s(16), 0, s(16));
+            target[UiScaleKeys.ParserTabsMargin] = new Thickness(0, s(32), 0, s(32));
             target[UiScaleKeys.ParserTabsDividerHeight] = s(2);
             target[UiScaleKeys.ParserTabMargin] = new Thickness(s(24), 0, s(24), 0);
 
@@ -111,7 +111,10 @@ namespace EZ2Play.App
 
             target[UiScaleKeys.ParserInputHeight] = s(72);
             target[UiScaleKeys.ParserInputFontSize] = fs(40);
-            target[UiScaleKeys.ParserManualSearchHintMargin] = new Thickness(0, s(8), 0, s(24));
+            target[UiScaleKeys.ParserManualSearchHintMargin] = new Thickness(0, s(16), 0, s(24));
+
+            target[UiScaleKeys.ParserAssetsMargin] = new Thickness(0, s(24), 0, s(24));
+            target[UiScaleKeys.ParserStatusMargin] = new Thickness(0, s(8), 0, s(8));
 
             // Main
             target[UiScaleKeys.SplashLogoMaxHeight] = s(256);
@@ -136,12 +139,12 @@ namespace EZ2Play.App
 
             target[UiScaleKeys.GameTitleMargin] = new Thickness(s(224), 0, 0, 0);
             target[UiScaleKeys.SelectedGameTitleFontSize] = fs(72);
-            target[UiScaleKeys.LoadingProgressScale] = fs(42);
+            target[UiScaleKeys.LoadingProgressScale] = fs(48);
 
             // Cards
             target[UiScaleKeys.SourceCardWidth] = s(320);
             target[UiScaleKeys.SourceCardHeight] = s(64);
-            target[UiScaleKeys.SourceCardRadius] = new CornerRadius(s(32));
+            target[UiScaleKeys.PillCardRadius] = new CornerRadius(s(32));
             target[UiScaleKeys.BaseCardThickness] = new Thickness(s(2));
             target[UiScaleKeys.SourceCardMargin] = new Thickness(0, s(72), 0, 0);
             target[UiScaleKeys.SourceCardFontSize] = fs(28);
@@ -151,7 +154,7 @@ namespace EZ2Play.App
             target[UiScaleKeys.CounterCardThickness] = new Thickness(s(2));
             target[UiScaleKeys.CounterCardMargin] = new Thickness(s(48), 0, 0, 0);
             target[UiScaleKeys.CounterCardIconMargin] = new Thickness(0, 0, s(8), 0);
-            target[UiScaleKeys.CounterCardFontSize] = fs(20);
+            target[UiScaleKeys.CounterCardFontSize] = fs(22);
             target[UiScaleKeys.CounterCardIconSize] = fs(22);
 
             // Notifications
@@ -166,7 +169,7 @@ namespace EZ2Play.App
             // Hints
             target[UiScaleKeys.HintPanelHeight] = s(64);
             target[UiScaleKeys.HintPanelMargin] = new Thickness(0, 0, s(96), s(64));
-            target[UiScaleKeys.HintPanelPadding] = new Thickness(s(8), 0, s(8), 0);
+            target[UiScaleKeys.HintPanelPadding] = new Thickness(s(32), 0, s(32), 0);
 
             target[UiScaleKeys.HintBlockMargin] = new Thickness(s(16), 0, s(16), 0);
             target[UiScaleKeys.HintTextMargin] = new Thickness(s(16), 0, 0, 0);
@@ -243,6 +246,9 @@ namespace EZ2Play.App
         public const string ParserInputFontSize = "ParserInputFontSize";
         public const string ParserManualSearchHintMargin = "ParserManualSearchHintMargin";
 
+        public const string ParserAssetsMargin = "ParserAssetsMargin";
+        public const string ParserStatusMargin = "ParserStatusMargin";
+
         // Main
         public const string SplashLogoMaxHeight = "SplashLogoMaxHeight";
 
@@ -271,7 +277,7 @@ namespace EZ2Play.App
         // Cards
         public const string SourceCardWidth = "SourceCardWidth";
         public const string SourceCardHeight = "SourceCardHeight";
-        public const string SourceCardRadius = "SourceCardRadius";
+        public const string PillCardRadius = "PillCardRadius";
         public const string BaseCardThickness = "BaseCardThickness";
         public const string SourceCardMargin = "SourceCardMargin";
         public const string SourceCardFontSize = "SourceCardFontSize";

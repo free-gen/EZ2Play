@@ -23,7 +23,7 @@ namespace EZ2Play.App
 {
     public partial class ParserOverlay : UserControl, IDisposable
     {
-        private const string ApiKey = "1a3c71cbf451d97cd5659e036d88b431";
+        private const string ApiKey = "";
 
         private const int GridColumns = 4;
         private const int BackgroundColumns = 2;
@@ -353,8 +353,8 @@ namespace EZ2Play.App
         {
             AssetTabsPanel.Visibility = _mode == ParserMode.Games ? Visibility.Collapsed : Visibility.Visible;
 
-            ParserCoversTabText.Opacity = _mode == ParserMode.Covers ? 1.0 : 0.45;
-            ParserBackgroundsTabText.Opacity = _mode == ParserMode.Backgrounds ? 1.0 : 0.45;
+            ParserCoversTabText.Opacity = _mode == ParserMode.Covers ? 1.0 : 0.5;
+            ParserBackgroundsTabText.Opacity = _mode == ParserMode.Backgrounds ? 1.0 : 0.5;
         }
 
         private void ShowCoversTab()
@@ -727,7 +727,7 @@ namespace EZ2Play.App
             BackgroundsListBox.Visibility = Visibility.Collapsed;
             UpdateAssetTabs();
 
-            _mainWindow.SetHintsMode(HintPanel.HintMode.Settings);
+            _mainWindow.SetHintsMode(HintPanel.HintMode.ParserAssets);
 
             GamesListBox.Visibility = Visibility.Collapsed;
             CoversListBox.Visibility = Visibility.Collapsed;
