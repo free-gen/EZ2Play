@@ -37,6 +37,7 @@ namespace EZ2Play.App
         public TextBlock GameCounterText { get; set; }
         public ListBox ItemsListBox { get; set; }
         public Grid CarouselWrapper { get; set; }
+        public Grid BackgroundViewport { get; set; }
         public Image BackgroundImage { get; set; }
 
         public HintPanel BottomHintPanel { get; set; }
@@ -45,6 +46,17 @@ namespace EZ2Play.App
         private SplashScreen _splash;
         private ParticlesCanvas _particlesCanvas;
         private Wpf.Ui.Controls.ProgressRing _loadingRing;
+
+        private const double BackgroundStartPosition = 0.15;
+        private const double BackgroundPanSpeed = 5.0;
+        private const double BackgroundPanEdgeZone = 60.0;
+
+        private double _backgroundPanOverflow;
+        private double _backgroundPanPosition;
+        private double _backgroundPanDirection = 1;
+        private TimeSpan _backgroundPanLastRenderTime;
+
+        private TranslateTransform BackgroundTranslate => BackgroundImage?.RenderTransform as TranslateTransform;
 
         public UIRegistry()
         {
@@ -189,6 +201,8 @@ namespace EZ2Play.App
         {
             if (BackgroundImage == null) return false;
 
+            StopBackgroundPan();
+
             BackgroundImage.BeginAnimation(UIElement.OpacityProperty, null);
             BackgroundImage.Source = null;
             BackgroundImage.Visibility = Visibility.Collapsed;
@@ -217,6 +231,8 @@ namespace EZ2Play.App
 
                 RenderOptions.SetBitmapScalingMode(BackgroundImage, BitmapScalingMode.HighQuality);
 
+                RefreshBackgroundPan();
+
                 return true;
             }
 
@@ -225,6 +241,96 @@ namespace EZ2Play.App
                 BackgroundImage.Source = null;
                 return false;
             }
+        }
+
+        public void RefreshBackgroundPan()
+        {
+            StopBackgroundPan();
+
+            if (!(BackgroundImage?.Source is BitmapSource source) || BackgroundViewport == null || BackgroundTranslate == null)
+                return;
+
+            BackgroundViewport.UpdateLayout();
+
+            double viewportWidth = BackgroundViewport.ActualWidth;
+            double viewportHeight = BackgroundViewport.ActualHeight;
+
+            if (viewportWidth <= 0 || viewportHeight <= 0 || source.PixelWidth <= 0 || source.PixelHeight <= 0)
+                return;
+
+            double aspect = (double)source.PixelWidth / source.PixelHeight;
+            double renderedHeight = viewportHeight;
+            double renderedWidth = renderedHeight * aspect;
+
+            BackgroundImage.Width = renderedWidth;
+            BackgroundImage.Height = renderedHeight;
+
+            _backgroundPanOverflow = Math.Max(0, renderedWidth - viewportWidth);
+
+            if (_backgroundPanOverflow <= 0)
+            {
+                BackgroundTranslate.X = 0;
+                return;
+            }
+
+            _backgroundPanPosition = _backgroundPanOverflow * BackgroundStartPosition;
+            _backgroundPanDirection = 1;
+            _backgroundPanLastRenderTime = TimeSpan.Zero;
+
+            BackgroundTranslate.X = -_backgroundPanPosition;
+
+            CompositionTarget.Rendering += BackgroundPan_Rendering;
+        }
+
+        private void StopBackgroundPan()
+        {
+            CompositionTarget.Rendering -= BackgroundPan_Rendering;
+
+            _backgroundPanOverflow = 0;
+            _backgroundPanLastRenderTime = TimeSpan.Zero;
+
+            if (BackgroundTranslate != null)
+                BackgroundTranslate.X = 0;
+        }
+
+        private void BackgroundPan_Rendering(object sender, EventArgs e)
+        {
+            if (_backgroundPanOverflow <= 0 || BackgroundTranslate == null) return;
+            if (!(e is RenderingEventArgs renderingArgs)) return;
+
+            TimeSpan renderTime = renderingArgs.RenderingTime;
+
+            if (_backgroundPanLastRenderTime == TimeSpan.Zero)
+            {
+                _backgroundPanLastRenderTime = renderTime;
+                return;
+            }
+
+            double delta = (renderTime - _backgroundPanLastRenderTime).TotalSeconds;
+            _backgroundPanLastRenderTime = renderTime;
+
+            if (delta <= 0 || delta > 0.1) return;
+
+            double distanceToEdge = _backgroundPanDirection > 0
+                ? _backgroundPanOverflow - _backgroundPanPosition
+                : _backgroundPanPosition;
+
+            double edgeFactor = Math.Min(1.0, Math.Max(0.08, distanceToEdge / BackgroundPanEdgeZone));
+
+            _backgroundPanPosition += BackgroundPanSpeed * edgeFactor * _backgroundPanDirection * delta;
+
+            if (_backgroundPanPosition >= _backgroundPanOverflow)
+            {
+                _backgroundPanPosition = _backgroundPanOverflow;
+                _backgroundPanDirection = -1;
+            }
+            else if (_backgroundPanPosition <= 0)
+            {
+                _backgroundPanPosition = 0;
+                _backgroundPanDirection = 1;
+            }
+
+            BackgroundTranslate.X = -_backgroundPanPosition;
         }
 
         public void ShowBackground(bool visible)
@@ -271,6 +377,7 @@ namespace EZ2Play.App
 
         public void Dispose()
         {
+            StopBackgroundPan();
             SystemProvider.StopClock();
         }
     }
