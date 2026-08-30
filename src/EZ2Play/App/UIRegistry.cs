@@ -48,10 +48,11 @@ namespace EZ2Play.App
         private ParticlesCanvas _particlesCanvas;
         private Wpf.Ui.Controls.ProgressRing _loadingRing;
 
-        private const double BackgroundStartPosition = 0.15;
-        private const double BackgroundPanSpeed = 5.0;
-        private const double BackgroundPanEdgeZone = 60.0;
-        private const double BackgroundTransitionDuration = 0.25;
+        private const double BackgroundOpacity = 0.9;
+        private const double BackgroundStartPosition = 0.25;
+        private const double BackgroundPanSpeed = 5;
+        private const double BackgroundPanEdgeZone = 50;
+        private const double BackgroundTransitionDuration = 0.5;
 
         private double _backgroundPanOverflow;
         private double _backgroundPanPosition;
@@ -307,7 +308,7 @@ namespace EZ2Play.App
             BackgroundPreviousImage.Width = BackgroundImage.Width;
             BackgroundPreviousImage.Height = BackgroundImage.Height;
             BackgroundPreviousImage.Visibility = Visibility.Visible;
-            BackgroundPreviousImage.Opacity = previousOpacity > 0 ? previousOpacity : 0.7;
+            BackgroundPreviousImage.Opacity = previousOpacity > 0 ? previousOpacity : BackgroundOpacity;
 
             if (BackgroundPreviousTranslate != null)
                 BackgroundPreviousTranslate.X = previousX;
@@ -334,7 +335,7 @@ namespace EZ2Play.App
             var fadeIn = new DoubleAnimation
             {
                 From = 0,
-                To = 0.7,
+                To = BackgroundOpacity,
                 Duration = TimeSpan.FromSeconds(BackgroundTransitionDuration),
                 EasingFunction = new CubicEase { EasingMode = EasingMode.EaseInOut }
             };
@@ -350,7 +351,7 @@ namespace EZ2Play.App
             double currentOpacity = BackgroundImage.Opacity;
 
             BackgroundImage.BeginAnimation(UIElement.OpacityProperty, null);
-            BackgroundImage.Opacity = currentOpacity > 0 ? currentOpacity : 0.7;
+            BackgroundImage.Opacity = currentOpacity > 0 ? currentOpacity : BackgroundOpacity;
 
             _particlesCanvas?.SetParticlesVisible(true, true, BackgroundTransitionDuration);
 
@@ -393,7 +394,7 @@ namespace EZ2Play.App
             var fadeIn = new DoubleAnimation
             {
                 From = 0,
-                To = 0.7,
+                To = BackgroundOpacity,
                 Duration = TimeSpan.FromSeconds(BackgroundTransitionDuration),
                 EasingFunction = new CubicEase { EasingMode = EasingMode.EaseInOut }
             };
@@ -527,7 +528,7 @@ namespace EZ2Play.App
 
                 var bgAnim = new DoubleAnimation
                 {
-                    To = visible ? 0.7 : 0,
+                    To = visible ? BackgroundOpacity : 0,
                     Duration = TimeSpan.FromSeconds(0.2),
                     EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut }
                 };
