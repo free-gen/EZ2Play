@@ -464,7 +464,17 @@ namespace EZ2Play.App
             }
 
             if (_mode == ParserMode.Backgrounds)
+            {
+                var background = BackgroundsListBox.SelectedItem as ParserGridResult;
+
+                if (background != null)
+                {
+                    _mainWindow.GetSound()?.PlayLaunchSound();
+                    await DownloadBackgroundAsync(background, _sessionCts.Token);
+                }
+
                 return;
+            }
 
             var cover = CoversListBox.SelectedItem as ParserGridResult;
 
@@ -1274,6 +1284,110 @@ namespace EZ2Play.App
 
             finally
             {
+                if (IsCurrentSession(cancellationToken))
+                    _isBusy = false;
+            }
+        }
+
+        private async Task DownloadBackgroundAsync(ParserGridResult background, CancellationToken cancellationToken)
+        {
+            _isBusy = true;
+
+            BackgroundsListBox.Visibility = Visibility.Collapsed;
+            ShowStatus(Locals.GetString("SavingBackground"));
+
+            string tempPath = null;
+
+            try
+            {
+                byte[] bytes;
+
+                using (var response = await _imageHttpClient.GetAsync(background.Url, cancellationToken))
+                {
+                    response.EnsureSuccessStatusCode();
+                    bytes = await response.Content.ReadAsByteArrayAsync();
+                }
+
+                cancellationToken.ThrowIfCancellationRequested();
+
+                if (!IsSessionActive(cancellationToken)) return;
+
+                string extension;
+
+                using (var input = new MemoryStream(bytes))
+                using (var sourceImage = Drawing.Image.FromStream(input, true, true))
+                {
+                    if (sourceImage.Width < 3840)
+                        throw new InvalidDataException($"Background width is only {sourceImage.Width}px. Minimum required width is 3840px.");
+
+                    extension = sourceImage.RawFormat.Guid == DrawingImaging.ImageFormat.Png.Guid ? ".png" : ".jpg";
+                }
+
+                string backgroundsDirectory = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "shortcuts", "backgrounds");
+
+                Directory.CreateDirectory(backgroundsDirectory);
+
+                string backgroundPath = Path.Combine(backgroundsDirectory, _shortcut.Name + extension);
+                tempPath = Path.Combine(backgroundsDirectory, _shortcut.Name + ".tmp");
+
+                if (File.Exists(tempPath))
+                    File.Delete(tempPath);
+
+                File.WriteAllBytes(tempPath, bytes);
+
+                cancellationToken.ThrowIfCancellationRequested();
+
+                string[] extensions = { ".png", ".jpg", ".jpeg" };
+
+                foreach (string oldExtension in extensions)
+                {
+                    string oldPath = Path.Combine(backgroundsDirectory, _shortcut.Name + oldExtension);
+
+                    if (File.Exists(oldPath))
+                        File.Delete(oldPath);
+                }
+
+                File.Move(tempPath, backgroundPath);
+                tempPath = null;
+
+                cancellationToken.ThrowIfCancellationRequested();
+
+                if (!IsSessionActive(cancellationToken)) return;
+
+                Close();
+            }
+
+            catch (OperationCanceledException)
+            {
+                // Expected when the parser is closed during download.
+            }
+
+            catch (Exception ex)
+            {
+                DebugLog.Error("Parser", ex, "Failed to download or save background.");
+
+                if (IsSessionActive(cancellationToken))
+                {
+                    BackgroundsListBox.Visibility = Visibility.Visible;
+                    ShowStatus(Locals.GetString("SavingBackgroundError") + ": " + ex.Message);
+                }
+            }
+
+            finally
+            {
+                if (tempPath != null)
+                {
+                    try
+                    {
+                        if (File.Exists(tempPath))
+                            File.Delete(tempPath);
+                    }
+
+                    catch
+                    {
+                    }
+                }
+
                 if (IsCurrentSession(cancellationToken))
                     _isBusy = false;
             }

@@ -165,6 +165,20 @@ namespace EZ2Play.App
                 "正在保存封面"
             },
 
+            ["SavingBackground"] = new[]
+            {
+                "Saving background", "Сохранение фона",
+                "Hintergrund wird gespeichert", "Enregistrement de l’arrière-plan",
+                "正在保存背景"
+            },
+
+            ["SavingBackgroundError"] = new[]
+            {
+                "Failed to save background", "Не удалось сохранить фон",
+                "Hintergrund konnte nicht gespeichert werden", "Impossible d’enregistrer l’arrière-plan",
+                "保存背景失败"
+            },
+
             // Settings
             ["SettingsSourceDisplayLabel"] = new[]
             {
