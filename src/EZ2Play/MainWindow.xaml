@@ -142,7 +142,7 @@
                                 FontWeight="ExtraBold"/>
                         <TextBlock x:Name="TabLastPlayedText"
                                 Margin="{DynamicResource {x:Static app:UiScaleKeys.TopInfoTabsMargin}}"
-                                Opacity="0.5"
+                                Opacity="0.8"
                                 FontSize="{DynamicResource {x:Static app:UiScaleKeys.TopInfoSecondaryFontSize}}"/>
                     </StackPanel>
 
@@ -151,7 +151,8 @@
                             Grid.Column="2"
                             Visibility="Collapsed"
                             Style="{StaticResource BasicCardStyle}"
-                            CornerRadius="{DynamicResource {x:Static app:UiScaleKeys.BaseCornerRadius}}"
+                            SizeChanged="NotificationPanel_SizeChanged"
+                            CornerRadius="{DynamicResource {x:Static app:UiScaleKeys.OverlayCornerRadius}}"
                             Height="{DynamicResource {x:Static app:UiScaleKeys.NotificationPanelHeight}}"
                             Padding="{DynamicResource {x:Static app:UiScaleKeys.NotificationPanelPadding}}"
                             Margin="{DynamicResource {x:Static app:UiScaleKeys.NotificationPanelOuterMargin}}"
@@ -235,15 +236,15 @@
                             
                             <!-- GameSourceCard -->
                             <Border x:Name="GameSourceCard"
-                                    Style="{StaticResource BasicCardStyle}"
-                                    CornerRadius="{DynamicResource {x:Static app:UiScaleKeys.BaseCornerRadius}}"
+                                    Background="#EEFFFFFF"
+                                    CornerRadius="{DynamicResource {x:Static app:UiScaleKeys.SourceCardRadius}}"
                                     Width="{DynamicResource {x:Static app:UiScaleKeys.SourceCardWidth}}"
                                     Height="{DynamicResource {x:Static app:UiScaleKeys.SourceCardHeight}}"
                                     VerticalAlignment="Center"
                                     HorizontalAlignment="Left">
 
                                 <TextBlock Text="{Binding ElementName=ItemsListBox, Path=SelectedItem.SourceType}"
-                                        Style="{StaticResource BasicCardTextStyle}"
+                                        Foreground="{DynamicResource SolidBackgroundFillColorBaseAltBrush}"
                                         FontSize="{DynamicResource {x:Static app:UiScaleKeys.SourceCardFontSize}}"
                                         FontWeight="Bold"
                                         TextAlignment="Center"/>
@@ -251,13 +252,11 @@
 
                             <!-- GameCounterCard -->
                             <Border x:Name="GameCounterCard"
-                                    Background="{DynamicResource ControlFillColorInputActiveBrush}"
-                                    BorderBrush="{DynamicResource LayerFillColorAltBrush}"
-                                    BorderThickness="{DynamicResource {x:Static app:UiScaleKeys.CounterCardThickness}}"
+                                    Background="#EE000000"
                                     Padding="{DynamicResource {x:Static app:UiScaleKeys.CounterCardPadding}}"
                                     Margin="{DynamicResource {x:Static app:UiScaleKeys.CounterCardMargin}}"
                                     Height="{DynamicResource {x:Static app:UiScaleKeys.CounterCardHeight}}"
-                                    CornerRadius="{DynamicResource {x:Static app:UiScaleKeys.BaseCornerRadius}}"
+                                    CornerRadius="{DynamicResource {x:Static app:UiScaleKeys.SourceCardRadius}}"
                                     VerticalAlignment="Center"
                                     HorizontalAlignment="Right">
 

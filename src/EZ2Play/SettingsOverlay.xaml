@@ -43,7 +43,8 @@
         </Style>
     </UserControl.Resources>
 
-    <Border Style="{StaticResource OverlaySurfaceStyle}"
+    <Border x:Name="SettingsSurface"
+            Style="{StaticResource OverlaySurfaceStyle}"
             Height="Auto">
         <Grid>
             <Grid.RowDefinitions>

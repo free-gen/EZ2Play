@@ -17,9 +17,14 @@ namespace EZ2Play.App
         private bool _exitConfirmationMode = false;
         private int _subOptionsSelectedIndex = 0;
 
+        private int _gradientPixelWidth;
+        private int _gradientPixelHeight;
+
         public SettingsOverlay(InputHandler inputHandler, MainWindow mainWindow)
         {
             InitializeComponent();
+
+            SettingsSurface.SizeChanged += SettingsSurface_SizeChanged;
 
             _inputHandler = inputHandler;
             _mainWindow = mainWindow;
@@ -59,6 +64,31 @@ namespace EZ2Play.App
             SubOptionsListBox.SelectedIndex = 0;
             Opacity = 0;
             Visibility = Visibility.Collapsed;
+        }
+
+        private void SettingsSurface_SizeChanged(object sender, SizeChangedEventArgs e)
+        {
+            if (SettingsSurface.ActualWidth <= 0 || SettingsSurface.ActualHeight <= 0)
+                return;
+
+            var dpi = VisualTreeHelper.GetDpi(SettingsSurface);
+
+            int pixelWidth = Math.Max(1, (int)Math.Ceiling(SettingsSurface.ActualWidth * dpi.DpiScaleX));
+            int pixelHeight = Math.Max(1, (int)Math.Ceiling(SettingsSurface.ActualHeight * dpi.DpiScaleY));
+
+            if (pixelWidth == _gradientPixelWidth && pixelHeight == _gradientPixelHeight)
+                return;
+
+            _gradientPixelWidth = pixelWidth;
+            _gradientPixelHeight = pixelHeight;
+
+            SettingsSurface.Background = DitheredGradientBrush.Create(
+                pixelWidth,
+                pixelHeight,
+                96.0 * dpi.DpiScaleX,
+                96.0 * dpi.DpiScaleY,
+                Color.FromRgb(0x26, 0x2A, 0x2D),
+                Color.FromRgb(0x17, 0x1B, 0x1D));
         }
 
         private void OnSelectionChanged(object sender, SelectionChangedEventArgs e)

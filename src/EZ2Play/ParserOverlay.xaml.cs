@@ -66,6 +66,9 @@ namespace EZ2Play.App
         private CoreInputView _manualSearchInputView;
         private bool _manualSearchFromNoMatches;
 
+        private int _gradientPixelWidth;
+        private int _gradientPixelHeight;
+
         private enum ParserMode
         {
             Games,
@@ -76,6 +79,7 @@ namespace EZ2Play.App
         public ParserOverlay(InputHandler inputHandler, MainWindow mainWindow)
         {
             InitializeComponent();
+            Locals.ApplyLocalization(this);
 
             _inputHandler = inputHandler;
             _mainWindow = mainWindow;
@@ -91,8 +95,41 @@ namespace EZ2Play.App
             CoversListBox.ItemsSource = _gridResults;
             BackgroundsListBox.ItemsSource = _heroResults;
 
+            ParserSurface.SizeChanged += ParserSurface_SizeChanged;
+
             Opacity = 0;
             Visibility = Visibility.Collapsed;
+        }
+
+        private void ParserSurface_SizeChanged(object sender, SizeChangedEventArgs e)
+        {
+            if (ParserSurface.ActualWidth <= 0 || ParserSurface.ActualHeight <= 0)
+                return;
+
+            var dpi = VisualTreeHelper.GetDpi(ParserSurface);
+
+            int pixelWidth = Math.Max(
+                1,
+                (int)Math.Ceiling(ParserSurface.ActualWidth * dpi.DpiScaleX));
+
+            int pixelHeight = Math.Max(
+                1,
+                (int)Math.Ceiling(ParserSurface.ActualHeight * dpi.DpiScaleY));
+
+            if (pixelWidth == _gradientPixelWidth &&
+                pixelHeight == _gradientPixelHeight)
+                return;
+
+            _gradientPixelWidth = pixelWidth;
+            _gradientPixelHeight = pixelHeight;
+
+            ParserSurface.Background = DitheredGradientBrush.Create(
+                pixelWidth,
+                pixelHeight,
+                96.0 * dpi.DpiScaleX,
+                96.0 * dpi.DpiScaleY,
+                Color.FromRgb(0x26, 0x2A, 0x2D),
+                Color.FromRgb(0x17, 0x1B, 0x1D));
         }
 
         private string ResolveApiKey()
@@ -193,6 +230,7 @@ namespace EZ2Play.App
 
             _shortcut = launcher.Shortcuts[launcher.SelectedIndex];
             _mode = ParserMode.Games;
+            ParserContentGrid.Height = double.NaN;
             _isBusy = false;
             _manualSearchFromNoMatches = false;
 
@@ -286,6 +324,7 @@ namespace EZ2Play.App
                 CancelAssetLoading();
 
                 _mode = ParserMode.Games;
+                ParserContentGrid.Height = double.NaN;
 
                 AssetTabsPanel.Visibility = Visibility.Collapsed;
                 CoversListBox.Visibility = Visibility.Collapsed;
@@ -388,6 +427,7 @@ namespace EZ2Play.App
 
         private void ShowCoversTab()
         {
+            ParserContentGrid.Height = (double)FindResource(UiScaleKeys.ParserCoversViewportHeight);
             BackgroundsListBox.Visibility = Visibility.Collapsed;
 
             if (_gridResults.Count == 0)
@@ -410,6 +450,7 @@ namespace EZ2Play.App
 
         private void ShowBackgroundsTab()
         {
+            ParserContentGrid.Height = (double)FindResource(UiScaleKeys.ParserBackgroundsViewportHeight);
             CoversListBox.Visibility = Visibility.Collapsed;
 
             if (_heroResults.Count == 0)
@@ -785,6 +826,7 @@ namespace EZ2Play.App
 
             _isBusy = true;
             _mode = ParserMode.Covers;
+            ParserContentGrid.Height = (double)FindResource(UiScaleKeys.ParserCoversViewportHeight);
 
             _assetGame = game;
             _backgroundsLoaded = false;
@@ -937,6 +979,7 @@ namespace EZ2Play.App
 
             _isBusy = true;
             _mode = ParserMode.Backgrounds;
+            ParserContentGrid.Height = (double)FindResource(UiScaleKeys.ParserBackgroundsViewportHeight);
 
             UpdateAssetTabs();
 

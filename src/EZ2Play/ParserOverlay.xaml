@@ -90,16 +90,16 @@
 
     <Grid>
 
-        <Border x:Name="ParserSurface" 
-                Style="{StaticResource OverlaySurfaceStyle}"
-                Padding="{DynamicResource {x:Static app:UiScaleKeys.OverlayPadding}}">
+        <Border x:Name="ParserSurface"
+            Style="{StaticResource OverlaySurfaceStyle}">
 
-            <Grid>
+        <Grid>
 
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="*"/>
-                </Grid.RowDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
 
                 <!-- Asset Tabs -->
                 <StackPanel x:Name="AssetTabsPanel"
@@ -111,15 +111,27 @@
 
                     <TextBlock x:Name="ParserCoversTabText"
                             Style="{StaticResource OverlayPrimaryTextStyle}"
+                            FontWeight="900"
                             Margin="{DynamicResource {x:Static app:UiScaleKeys.ParserTabMargin}}"/>
 
                     <TextBlock x:Name="ParserBackgroundsTabText"
                             Style="{StaticResource OverlayPrimaryTextStyle}"
+                            FontWeight="900"
                             Margin="{DynamicResource {x:Static app:UiScaleKeys.ParserTabMargin}}"/>
 
                 </StackPanel>
 
-                <Grid Grid.Row="1">
+                <!-- Asset Tabs Divider -->
+                <Border Grid.Row="1"
+                        Visibility="{Binding Visibility, ElementName=AssetTabsPanel}"
+                        Height="{DynamicResource {x:Static app:UiScaleKeys.ParserTabsDividerHeight}}"
+                        Background="{DynamicResource DividerStrokeColorDefaultBrush}"
+                        HorizontalAlignment="Stretch"
+                        SnapsToDevicePixels="True"/>
+
+                <Grid x:Name="ParserContentGrid"
+                    Grid.Row="2"
+                    Margin="{DynamicResource {x:Static app:UiScaleKeys.OverlayPadding}}">
 
                     <!-- Results -->
                     <ListBox x:Name="GamesListBox"
@@ -149,7 +161,6 @@
                             ItemContainerStyle="{StaticResource ParserCoverItemStyle}"
                             Background="Transparent"
                             BorderThickness="0"
-                            MaxHeight="{DynamicResource {x:Static app:UiScaleKeys.ParserCoversViewportHeight}}"
                             ScrollViewer.CanContentScroll="False"
                             ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                             ScrollViewer.VerticalScrollBarVisibility="Hidden"
@@ -190,7 +201,6 @@
                             ItemContainerStyle="{StaticResource ParserCoverItemStyle}"
                             Background="Transparent"
                             BorderThickness="0"
-                            MaxHeight="{DynamicResource {x:Static app:UiScaleKeys.ParserBackgroundsViewportHeight}}"
                             ScrollViewer.CanContentScroll="False"
                             ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                             ScrollViewer.VerticalScrollBarVisibility="Hidden"

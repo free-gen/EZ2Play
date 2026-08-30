@@ -25,8 +25,7 @@
             <SolidColorBrush x:Key="OverlaySelectionBackgroundBrush" Color="#10FFFFFF"/>
 
             <Style x:Key="OverlaySurfaceStyle" TargetType="Border">
-                <Setter Property="Background" Value="{DynamicResource SolidBackgroundFillColorQuarternaryBrush}"/>
-                <Setter Property="BorderBrush" Value="{DynamicResource DividerStrokeColorDefaultBrush}"/>
+                <Setter Property="BorderBrush" Value="{DynamicResource ControlStrokeColorDefaultBrush}"/>
                 <Setter Property="BorderThickness" Value="{DynamicResource {x:Static app:UiScaleKeys.OverlayBorderThickness}}"/>
                 <Setter Property="CornerRadius" Value="{DynamicResource {x:Static app:UiScaleKeys.OverlayCornerRadius}}"/>
                 <Setter Property="Width" Value="{DynamicResource {x:Static app:UiScaleKeys.OverlayWidth}}"/>
@@ -102,8 +101,7 @@
 
             <!-- Style BasicCardStyle -->
             <Style x:Key="BasicCardStyle" TargetType="Border">
-                <Setter Property="Background" Value="{DynamicResource LayerFillColorDefaultBrush}"/>
-                <Setter Property="BorderBrush" Value="{DynamicResource ControlElevationBorderBrush}"/>
+                <Setter Property="BorderBrush" Value="{DynamicResource ControlStrokeColorDefaultBrush}"/>
                 <Setter Property="BorderThickness" Value="{DynamicResource {x:Static app:UiScaleKeys.BaseCardThickness}}"/>
             </Style>
 

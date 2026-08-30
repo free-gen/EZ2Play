@@ -134,7 +134,8 @@ namespace EZ2Play.App
 
             ["ParserBackgroundsTabText"] = new[]
             {
-                "Backgrounds", "Фоны", "Hintergründe", "Arrière-plans", "背景"
+                "Background images", "Фоновые изображения", 
+                "Hintergrundbilder", "Images d’arrière-plan", "背景图像"
             },
 
             ["LoadingBackgrounds"] = new[]

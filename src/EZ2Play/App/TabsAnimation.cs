@@ -67,7 +67,7 @@ namespace EZ2Play.App
         {
             var anim = new DoubleAnimation
             {
-                To = active ? 1.0 : 0.5,
+                To = active ? 1.0 : 0.8,
                 Duration = TimeSpan.FromMilliseconds(150),
                 EasingFunction = new QuadraticEase { EasingMode = EasingMode.EaseOut }
             };
