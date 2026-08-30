@@ -1,17 +1,19 @@
 using System;
-using System.Windows;
 
 namespace EZ2Play.App
 {
     public class InputHandler
     {
+        public enum InputMode
+        {
+            Main,
+            Settings,
+            Parser
+        }
+
         private readonly Input _input;
-
-        private bool _settingsOpen;
-        private bool _parserOpen;
-
+        private InputMode _mode = InputMode.Main;
         private DateTime _lastStartBackTime;
-        private SettingsOverlay _settingsOverlay;
 
         public event Action<int> OnMoveSelection;
         public event Action<int> OnSettingsNavigate;
@@ -39,19 +41,9 @@ namespace EZ2Play.App
             SubscribeEvents();
         }
 
-        public void SetSettingsOpen(bool open)
+        public void SetMode(InputMode mode)
         {
-            _settingsOpen = open;
-        }
-
-        public void SetParserOpen(bool open)
-        {
-            _parserOpen = open;
-        }
-
-        public void RegisterSettingsOverlay(SettingsOverlay overlay)
-        {
-            _settingsOverlay = overlay;
+            _mode = mode;
         }
 
         // Route input based on the currently active overlay.
@@ -59,9 +51,9 @@ namespace EZ2Play.App
         {
             _input.OnLeftRight += dir =>
             {
-                if (_parserOpen)
+                if (_mode == InputMode.Parser)
                     OnParserNavigateHorizontal?.Invoke(dir);
-                else if (_settingsOverlay != null && _settingsOverlay.Visibility == Visibility.Visible)
+                else if (_mode == InputMode.Settings)
                     OnSettingsNavigate?.Invoke(dir);
                 else
                     OnMoveSelection?.Invoke(dir);
@@ -69,17 +61,17 @@ namespace EZ2Play.App
 
             _input.OnUpDown += dir =>
             {
-                if (_parserOpen)
+                if (_mode == InputMode.Parser)
                     OnParserNavigateVertical?.Invoke(dir);
-                else if (_settingsOverlay != null && _settingsOverlay.Visibility == Visibility.Visible)
+                else if (_mode == InputMode.Settings)
                     OnSettingsNavigateVertical?.Invoke(dir);
             };
 
             _input.OnA += () =>
             {
-                if (_parserOpen)
+                if (_mode == InputMode.Parser)
                     OnParserConfirm?.Invoke();
-                else if (_settingsOverlay != null && _settingsOverlay.Visibility == Visibility.Visible)
+                else if (_mode == InputMode.Settings)
                     OnSettingsConfirm?.Invoke();
                 else
                     OnLaunchSelected?.Invoke();
@@ -87,67 +79,56 @@ namespace EZ2Play.App
 
             _input.OnB += () =>
             {
-                if (_parserOpen)
+                if (_mode == InputMode.Parser)
                     OnParserBack?.Invoke();
-                else if (_settingsOverlay != null && _settingsOverlay.Visibility == Visibility.Visible)
+                else if (_mode == InputMode.Settings)
                     OnSettingsBack?.Invoke();
             };
 
             _input.OnX += () =>
             {
-                if (!_settingsOpen && !_parserOpen)
+                if (_mode == InputMode.Main)
                     OnOpenParser?.Invoke();
             };
 
             _input.OnY += () =>
             {
-                if (_parserOpen)
+                if (_mode == InputMode.Parser)
                     OnParserSearch?.Invoke();
             };
 
             _input.OnLB += () =>
             {
-                if (_parserOpen)
+                if (_mode == InputMode.Parser)
                     OnParserSwitchTab?.Invoke(-1);
-                else if (!_settingsOpen)
+                else if (_mode == InputMode.Main)
                     OnSwitchToGamelist?.Invoke();
             };
 
             _input.OnRB += () =>
             {
-                if (_parserOpen)
+                if (_mode == InputMode.Parser)
                     OnParserSwitchTab?.Invoke(1);
-                else if (!_settingsOpen)
+                else if (_mode == InputMode.Main)
                     OnSwitchToLastPlayed?.Invoke();
             };
 
-            _input.OnStart += () =>
-            {
-                if ((DateTime.Now - _lastStartBackTime).TotalMilliseconds < 300) return;
+            _input.OnStart += HandleStartBack;
+            _input.OnBack += HandleStartBack;
+        }
 
-                _lastStartBackTime = DateTime.Now;
+        private void HandleStartBack()
+        {
+            if ((DateTime.Now - _lastStartBackTime).TotalMilliseconds < 300) return;
 
-                if (_parserOpen)
-                    OnParserBack?.Invoke();
-                else if (_settingsOpen)
-                    OnSettingsBack?.Invoke();
-                else
-                    OnOpenSettings?.Invoke();
-            };
+            _lastStartBackTime = DateTime.Now;
 
-            _input.OnBack += () =>
-            {
-                if ((DateTime.Now - _lastStartBackTime).TotalMilliseconds < 300) return;
-
-                _lastStartBackTime = DateTime.Now;
-
-                if (_parserOpen)
-                    OnParserBack?.Invoke();
-                else if (_settingsOpen)
-                    OnSettingsBack?.Invoke();
-                else
-                    OnOpenSettings?.Invoke();
-            };
+            if (_mode == InputMode.Parser)
+                OnParserBack?.Invoke();
+            else if (_mode == InputMode.Settings)
+                OnSettingsBack?.Invoke();
+            else
+                OnOpenSettings?.Invoke();
         }
     }
 }

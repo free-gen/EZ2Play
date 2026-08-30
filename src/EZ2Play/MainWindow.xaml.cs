@@ -115,8 +115,6 @@ namespace EZ2Play
             _config = new AppConfig();
 
             _settingsOverlay = new SettingsOverlay(_inputHandler, this);
-            _inputHandler.RegisterSettingsOverlay(_settingsOverlay);
-
             _parserOverlay = new ParserOverlay(_inputHandler, this);
 
             var overlayLayer = new Grid();

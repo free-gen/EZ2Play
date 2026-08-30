@@ -123,7 +123,7 @@ namespace EZ2Play.App
 
             _mainWindow.SetHintsMode(HintPanel.HintMode.Settings);
 
-            _inputHandler.SetSettingsOpen(true);
+            _inputHandler.SetMode(InputHandler.InputMode.Settings);
             Visibility = Visibility.Visible;
 
             RefreshDisplayList();
@@ -169,7 +169,7 @@ namespace EZ2Play.App
                 HideExitDisplayConfirmation(false);
 
                 Visibility = Visibility.Collapsed;
-                _inputHandler.SetSettingsOpen(false);
+                _inputHandler.SetMode(InputHandler.InputMode.Main);
                 _mainWindow.SetHintsMode(HintPanel.HintMode.Main);
             };
 

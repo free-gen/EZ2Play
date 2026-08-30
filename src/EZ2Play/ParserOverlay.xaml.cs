@@ -213,7 +213,7 @@ namespace EZ2Play.App
 
             ShowStatus(Locals.GetString("SearchCovers"));
 
-            _inputHandler.SetParserOpen(true);
+            _inputHandler.SetMode(InputHandler.InputMode.Parser);
             _mainWindow.SetHintsMode(HintPanel.HintMode.Settings);
 
             Visibility = Visibility.Visible;
@@ -273,7 +273,7 @@ namespace EZ2Play.App
             {
                 Visibility = Visibility.Collapsed;
 
-                _inputHandler.SetParserOpen(false);
+                _inputHandler.SetMode(InputHandler.InputMode.Main);
                 _mainWindow.SetHintsMode(HintPanel.HintMode.Main);
             };
 
