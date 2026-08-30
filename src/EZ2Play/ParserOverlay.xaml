@@ -90,7 +90,7 @@
 
     <Grid>
 
-        <Border x:Name="ParserSurface"
+        <app:DitheredGradientBorder x:Name="ParserSurface"
             Style="{StaticResource OverlaySurfaceStyle}">
 
         <Grid>
@@ -268,7 +268,7 @@
 
             </Grid>
 
-        </Border>
+        </app:DitheredGradientBorder>
 
         <ProgressBar x:Name="AssetsProgressBar"
                     Visibility="Collapsed"

@@ -147,17 +147,16 @@
                     </StackPanel>
 
                     <!-- NotificationPanel -->
-                    <Border x:Name="NotificationPanel"
-                            Grid.Column="2"
-                            Visibility="Collapsed"
-                            Style="{StaticResource BasicCardStyle}"
-                            SizeChanged="NotificationPanel_SizeChanged"
-                            CornerRadius="{DynamicResource {x:Static app:UiScaleKeys.OverlayCornerRadius}}"
-                            Height="{DynamicResource {x:Static app:UiScaleKeys.NotificationPanelHeight}}"
-                            Padding="{DynamicResource {x:Static app:UiScaleKeys.NotificationPanelPadding}}"
-                            Margin="{DynamicResource {x:Static app:UiScaleKeys.NotificationPanelOuterMargin}}"
-                            HorizontalAlignment="Right" 
-                            VerticalAlignment="Center">
+                    <app:DitheredGradientBorder x:Name="NotificationPanel"
+                                                Grid.Column="2"
+                                                Visibility="Collapsed"
+                                                Style="{StaticResource BasicCardStyle}"
+                                                CornerRadius="{DynamicResource {x:Static app:UiScaleKeys.OverlayCornerRadius}}"
+                                                Height="{DynamicResource {x:Static app:UiScaleKeys.NotificationPanelHeight}}"
+                                                Padding="{DynamicResource {x:Static app:UiScaleKeys.NotificationPanelPadding}}"
+                                                Margin="{DynamicResource {x:Static app:UiScaleKeys.NotificationPanelOuterMargin}}"
+                                                HorizontalAlignment="Right" 
+                                                VerticalAlignment="Center">
                         <StackPanel Orientation="Horizontal">
                             <TextBlock x:Name="NotificationIcon"
                                         FontSize="{DynamicResource {x:Static app:UiScaleKeys.NotificationPanelIconSize}}"
@@ -171,7 +170,7 @@
                                         VerticalAlignment="Center"
                                         TextWrapping="Wrap"/>
                         </StackPanel>
-                    </Border>
+                    </app:DitheredGradientBorder>
 
                     <!-- UserAvatar -->
                     <Image  x:Name="UserAvatar" Grid.Column="3"

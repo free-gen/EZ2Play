@@ -43,9 +43,9 @@
         </Style>
     </UserControl.Resources>
 
-    <Border x:Name="SettingsSurface"
-            Style="{StaticResource OverlaySurfaceStyle}"
-            Height="Auto">
+    <app:DitheredGradientBorder x:Name="SettingsSurface"
+                                Style="{StaticResource OverlaySurfaceStyle}"
+                                Height="Auto">
         <Grid>
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
@@ -433,5 +433,5 @@
             </TextBlock>
             
         </Grid>
-    </Border>
+    </app:DitheredGradientBorder>
 </UserControl>

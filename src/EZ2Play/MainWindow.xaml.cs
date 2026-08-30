@@ -42,9 +42,6 @@ namespace EZ2Play
         private SettingsOverlay _settingsOverlay;
         private ParserOverlay _parserOverlay;
 
-        private int _notificationGradientPixelWidth;
-        private int _notificationGradientPixelHeight;
-
         public bool IsGamepadConnected { get; private set; }
 
         public bool IsHotSwapLaunch() => _hotSwapLaunch;
@@ -53,37 +50,6 @@ namespace EZ2Play
         public AppConfig GetConfig() => _config;
         public Launcher GetLauncher() => _launcher;
         public Sound GetSound() => _sound;
-
-        private void NotificationPanel_SizeChanged(object sender, SizeChangedEventArgs e)
-        {
-            if (NotificationPanel.ActualWidth <= 0 || NotificationPanel.ActualHeight <= 0)
-                return;
-
-            var dpi = VisualTreeHelper.GetDpi(NotificationPanel);
-
-            int pixelWidth = Math.Max(
-                1,
-                (int)Math.Ceiling(NotificationPanel.ActualWidth * dpi.DpiScaleX));
-
-            int pixelHeight = Math.Max(
-                1,
-                (int)Math.Ceiling(NotificationPanel.ActualHeight * dpi.DpiScaleY));
-
-            if (pixelWidth == _notificationGradientPixelWidth &&
-                pixelHeight == _notificationGradientPixelHeight)
-                return;
-
-            _notificationGradientPixelWidth = pixelWidth;
-            _notificationGradientPixelHeight = pixelHeight;
-
-            NotificationPanel.Background = DitheredGradientBrush.Create(
-                pixelWidth,
-                pixelHeight,
-                96.0 * dpi.DpiScaleX,
-                96.0 * dpi.DpiScaleY,
-                Color.FromRgb(0x26, 0x2A, 0x2D),
-                Color.FromRgb(0x17, 0x1B, 0x1D));
-        }
 
         public void RefreshSelectedBackground()
         {

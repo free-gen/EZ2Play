@@ -66,9 +66,6 @@ namespace EZ2Play.App
         private CoreInputView _manualSearchInputView;
         private bool _manualSearchFromNoMatches;
 
-        private int _gradientPixelWidth;
-        private int _gradientPixelHeight;
-
         private enum ParserMode
         {
             Games,
@@ -95,41 +92,8 @@ namespace EZ2Play.App
             CoversListBox.ItemsSource = _gridResults;
             BackgroundsListBox.ItemsSource = _heroResults;
 
-            ParserSurface.SizeChanged += ParserSurface_SizeChanged;
-
             Opacity = 0;
             Visibility = Visibility.Collapsed;
-        }
-
-        private void ParserSurface_SizeChanged(object sender, SizeChangedEventArgs e)
-        {
-            if (ParserSurface.ActualWidth <= 0 || ParserSurface.ActualHeight <= 0)
-                return;
-
-            var dpi = VisualTreeHelper.GetDpi(ParserSurface);
-
-            int pixelWidth = Math.Max(
-                1,
-                (int)Math.Ceiling(ParserSurface.ActualWidth * dpi.DpiScaleX));
-
-            int pixelHeight = Math.Max(
-                1,
-                (int)Math.Ceiling(ParserSurface.ActualHeight * dpi.DpiScaleY));
-
-            if (pixelWidth == _gradientPixelWidth &&
-                pixelHeight == _gradientPixelHeight)
-                return;
-
-            _gradientPixelWidth = pixelWidth;
-            _gradientPixelHeight = pixelHeight;
-
-            ParserSurface.Background = DitheredGradientBrush.Create(
-                pixelWidth,
-                pixelHeight,
-                96.0 * dpi.DpiScaleX,
-                96.0 * dpi.DpiScaleY,
-                Color.FromRgb(0x26, 0x2A, 0x2D),
-                Color.FromRgb(0x17, 0x1B, 0x1D));
         }
 
         private string ResolveApiKey()
