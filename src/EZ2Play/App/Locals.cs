@@ -127,6 +127,30 @@ namespace EZ2Play.App
                 "未找到封面"
             },
 
+            ["ParserCoversTabText"] = new[]
+            {
+                "Covers", "Обложки", "Cover", "Couvertures", "封面"
+            },
+
+            ["ParserBackgroundsTabText"] = new[]
+            {
+                "Backgrounds", "Фоны", "Hintergründe", "Arrière-plans", "背景"
+            },
+
+            ["LoadingBackgrounds"] = new[]
+            {
+                "Loading backgrounds", "Загрузка фонов",
+                "Hintergründe werden geladen", "Chargement des arrière-plans",
+                "正在加载背景"
+            },
+
+            ["NoBackgroundsFound"] = new[]
+            {
+                "No backgrounds found", "Фоны не найдены",
+                "Keine Hintergründe gefunden", "Aucun arrière-plan trouvé",
+                "未找到背景"
+            },
+
             ["LoadingCoversError"] = new[]
             {
                 "Loading error", "Ошибка загрузки",

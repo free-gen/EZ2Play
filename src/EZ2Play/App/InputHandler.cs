@@ -31,6 +31,7 @@ namespace EZ2Play.App
         public event Action OnParserBack;
         public event Action<int> OnParserNavigateHorizontal;
         public event Action<int> OnParserNavigateVertical;
+        public event Action<int> OnParserSwitchTab;
 
         public InputHandler(Input input)
         {
@@ -106,13 +107,17 @@ namespace EZ2Play.App
 
             _input.OnLB += () =>
             {
-                if (!_settingsOpen && !_parserOpen)
+                if (_parserOpen)
+                    OnParserSwitchTab?.Invoke(-1);
+                else if (!_settingsOpen)
                     OnSwitchToGamelist?.Invoke();
             };
 
             _input.OnRB += () =>
             {
-                if (!_settingsOpen && !_parserOpen)
+                if (_parserOpen)
+                    OnParserSwitchTab?.Invoke(1);
+                else if (!_settingsOpen)
                     OnSwitchToLastPlayed?.Invoke();
             };
 

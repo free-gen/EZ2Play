@@ -80,11 +80,15 @@ namespace EZ2Play.App
             const double parserCoverSize = 256;
             const double parserCoverMargin = 4;
             const double parserCoverBorder = 4;
+            const double parserBackgroundWidth = 584;
+            const double parserBackgroundHeight = 189;
 
             const int parserVisibleGameRows = 5;
             const int parserVisibleCoverRows = 2;
+            const int parserVisibleBackgroundRows = 3;
 
             double parserCoverCellSize = parserCoverSize + parserCoverMargin * 4 + parserCoverBorder * 2;
+            double parserBackgroundCellHeight = parserBackgroundHeight + parserCoverMargin * 4 + parserCoverBorder * 2;
 
             target[UiScaleKeys.ParserGameItemHeight] = s(parserGameItemHeight);
             target[UiScaleKeys.ParserGamesViewportHeight] = s(parserGameItemHeight * parserVisibleGameRows);
@@ -94,6 +98,13 @@ namespace EZ2Play.App
             target[UiScaleKeys.ParserCoverRadius] = s(12);
             target[UiScaleKeys.ParserCoverBorderRadius] = new CornerRadius(s(16));
             target[UiScaleKeys.ParserCoverMargin] = new Thickness(s(parserCoverMargin));
+
+            target[UiScaleKeys.ParserBackgroundWidth] = s(parserBackgroundWidth);
+            target[UiScaleKeys.ParserBackgroundHeight] = s(parserBackgroundHeight);
+            target[UiScaleKeys.ParserBackgroundsViewportHeight] = s(parserBackgroundCellHeight * parserVisibleBackgroundRows);
+
+            target[UiScaleKeys.ParserTabsMargin] = new Thickness(0, 0, 0, s(16));
+            target[UiScaleKeys.ParserTabMargin] = new Thickness(s(24), 0, s(24), 0);
 
             target[UiScaleKeys.ParserSelectionMargin] = new Thickness(s(0));
 
@@ -215,6 +226,13 @@ namespace EZ2Play.App
         public const string ParserCoverRadius = "ParserCoverRadius";
         public const string ParserCoverBorderRadius = "ParserCoverBorderRadius";
         public const string ParserCoverMargin = "ParserCoverMargin";
+
+        public const string ParserBackgroundWidth = "ParserBackgroundWidth";
+        public const string ParserBackgroundHeight = "ParserBackgroundHeight";
+        public const string ParserBackgroundsViewportHeight = "ParserBackgroundsViewportHeight";
+
+        public const string ParserTabsMargin = "ParserTabsMargin";
+        public const string ParserTabMargin = "ParserTabMargin";
 
         public const string ParserSelectionMargin = "ParserSelectionMargin";
 

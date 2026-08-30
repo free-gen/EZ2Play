@@ -271,6 +271,7 @@ namespace EZ2Play
             _inputHandler.OnParserSearch += () => _parserOverlay.Search();
             _inputHandler.OnParserNavigateHorizontal += dir => _parserOverlay.NavigateHorizontal(dir);
             _inputHandler.OnParserNavigateVertical += dir => _parserOverlay.NavigateVertical(dir);
+            _inputHandler.OnParserSwitchTab += dir => _parserOverlay.SwitchAssetTab(dir);
         }
 
         private async void SwitchToGamelist()
