@@ -202,13 +202,9 @@ namespace EZ2Play.App
 
                     var frame = decoder.Frames[0];
 
-                    int targetHeight = 1080;
-                    double scale = (double)targetHeight / frame.PixelHeight;
+                    frame.Freeze();
 
-                    var small = new TransformedBitmap(frame, new ScaleTransform(scale, scale));
-                    small.Freeze();
-
-                    BackgroundImage.Source = small;
+                    BackgroundImage.Source = frame;
                     BackgroundImage.Visibility = Visibility.Collapsed;
                     BackgroundImage.Opacity = 0;
 

@@ -29,11 +29,27 @@
               UseLayoutRounding="True">
 
             <!-- Outer Background -->
-            <Image x:Name="BackgroundImage"
-                Stretch="UniformToFill"
-                Opacity="0"
-                Visibility="Collapsed"
-                RenderOptions.BitmapScalingMode="HighQuality"/>
+            <Grid x:Name="BackgroundViewport"
+                HorizontalAlignment="Stretch"
+                VerticalAlignment="Stretch"
+                ClipToBounds="True">
+
+                <Canvas>
+                    <Image x:Name="BackgroundImage"
+                        Stretch="Fill"
+                        Opacity="0"
+                        Visibility="Collapsed"
+                        RenderOptions.BitmapScalingMode="HighQuality"
+                        CacheMode="BitmapCache">
+
+                        <Image.RenderTransform>
+                            <TranslateTransform x:Name="BackgroundTranslate"/>
+                        </Image.RenderTransform>
+
+                    </Image>
+                </Canvas>
+
+            </Grid>
 
             <!-- ParticlesCanvas -->
             <app:ParticlesCanvas x:Name="particles" />

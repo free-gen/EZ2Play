@@ -3,3 +3,4 @@
 **/.output/
 
 src/EZ2Play/FodyWeavers.xsd
+src/EZ2Play/_run.cmd
