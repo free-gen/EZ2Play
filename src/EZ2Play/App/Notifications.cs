@@ -9,8 +9,6 @@ namespace EZ2Play.App
 {
     public class Notifications
     {
-        private readonly UIRegistry _ui;
-
         private const string DefaultIcon = "\uE686";
 
         private Border _NotificationPanel;
@@ -19,11 +17,6 @@ namespace EZ2Play.App
 
         private readonly Queue<Action> _queue = new Queue<Action>();
         private bool _running;
-
-        public Notifications(UIRegistry uiRegistry)
-        {
-            _ui = uiRegistry;
-        }
 
         // Initialize UI elements after they are resolved by UIRegistry.
         public void Initialize(Border NotificationPanel, TextBlock NotificationIcon, TextBlock NotificationText)

@@ -20,13 +20,25 @@
 
             <FontFamily x:Key="XboxFont">/Assets/#Xbox Fluent</FontFamily>
 
+            <Style x:Key="BasicCardStyle" TargetType="Border">
+                <Setter Property="BorderBrush" Value="#AA34373E"/>
+                <Setter Property="BorderThickness" Value="{DynamicResource {x:Static app:UiScaleKeys.BaseCardThickness}}"/>
+            </Style>
+
+            <Style x:Key="BasicCardTextStyle" TargetType="TextBlock" BasedOn="{StaticResource {x:Type TextBlock}}">
+                <Setter Property="RenderTransform">
+                    <Setter.Value>
+                        <TranslateTransform Y="-1"/>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+
             <!-- Overlay -->
             <SolidColorBrush x:Key="OverlaySelectionBorderBrush" Color="#C0FFFFFF"/>
             <SolidColorBrush x:Key="OverlaySelectionBackgroundBrush" Color="#10FFFFFF"/>
 
             <Style x:Key="OverlaySurfaceStyle" TargetType="Border">
-                <Setter Property="Background" Value="{DynamicResource SolidBackgroundFillColorQuarternaryBrush}"/>
-                <Setter Property="BorderBrush" Value="{DynamicResource DividerStrokeColorDefaultBrush}"/>
+                <Setter Property="BorderBrush" Value="#AA34373E"/>
                 <Setter Property="BorderThickness" Value="{DynamicResource {x:Static app:UiScaleKeys.OverlayBorderThickness}}"/>
                 <Setter Property="CornerRadius" Value="{DynamicResource {x:Static app:UiScaleKeys.OverlayCornerRadius}}"/>
                 <Setter Property="Width" Value="{DynamicResource {x:Static app:UiScaleKeys.OverlayWidth}}"/>
@@ -97,24 +109,8 @@
             </Style>
 
             <Style x:Key="HintCardStyle" TargetType="Border">
-                <Setter Property="Background" Value="#F0151515"/>
-            </Style>
-
-            <!-- Style BasicCardStyle -->
-            <Style x:Key="BasicCardStyle" TargetType="Border">
-                <Setter Property="Background" Value="{DynamicResource LayerFillColorDefaultBrush}"/>
-                <Setter Property="BorderBrush" Value="{DynamicResource ControlElevationBorderBrush}"/>
-                <Setter Property="BorderThickness" Value="{DynamicResource {x:Static app:UiScaleKeys.BaseCardThickness}}"/>
-            </Style>
-
-            <!-- Style="{StaticResource BasicCardTextStyle}" -->
-            <Style x:Key="BasicCardTextStyle" TargetType="TextBlock" BasedOn="{StaticResource {x:Type TextBlock}}">
-                <Setter Property="RenderTransform">
-                    <Setter.Value>
-                        <TranslateTransform Y="-1"/>
-                    </Setter.Value>
-                </Setter>
-            </Style>
+                <Setter Property="Background" Value="#F0111111"/>
+            </Style>                        
 
         </ResourceDictionary>
     </Application.Resources>

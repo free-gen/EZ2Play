@@ -127,6 +127,31 @@ namespace EZ2Play.App
                 "未找到封面"
             },
 
+            ["ParserCoversTabText"] = new[]
+            {
+                "Covers", "Обложки", "Cover", "Couvertures", "封面"
+            },
+
+            ["ParserBackgroundsTabText"] = new[]
+            {
+                "Background images", "Фоновые изображения", 
+                "Hintergrundbilder", "Images d’arrière-plan", "背景图像"
+            },
+
+            ["LoadingBackgrounds"] = new[]
+            {
+                "Loading backgrounds", "Загрузка фонов",
+                "Hintergründe werden geladen", "Chargement des arrière-plans",
+                "正在加载背景"
+            },
+
+            ["NoBackgroundsFound"] = new[]
+            {
+                "No backgrounds found", "Фоны не найдены",
+                "Keine Hintergründe gefunden", "Aucun arrière-plan trouvé",
+                "未找到背景"
+            },
+
             ["LoadingCoversError"] = new[]
             {
                 "Loading error", "Ошибка загрузки",
@@ -139,6 +164,20 @@ namespace EZ2Play.App
                 "Saving cover", "Сохранение обложки",
                 "Cover wird gespeichert", "Enregistrement de la couverture",
                 "正在保存封面"
+            },
+
+            ["SavingBackground"] = new[]
+            {
+                "Saving background", "Сохранение фона",
+                "Hintergrund wird gespeichert", "Enregistrement de l’arrière-plan",
+                "正在保存背景"
+            },
+
+            ["SavingBackgroundError"] = new[]
+            {
+                "Failed to save background", "Не удалось сохранить фон",
+                "Hintergrund konnte nicht gespeichert werden", "Impossible d’enregistrer l’arrière-plan",
+                "保存背景失败"
             },
 
             // Settings

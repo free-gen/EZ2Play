@@ -1,21 +1,16 @@
 using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
-using System.Net.Http;
-using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
 using System.Windows.Media.Imaging;
-using Newtonsoft.Json.Linq;
 using System.Threading;
 using System.Globalization;
-using System.Net;
 using System.Windows.Input;
 using System.Windows.Threading;
 using Drawing = System.Drawing;
@@ -29,11 +24,12 @@ namespace EZ2Play.App
     public partial class ParserOverlay : UserControl, IDisposable
     {
         private const string ApiKey = "";
-        private const string BaseUrl = "https://www.steamgriddb.com/api/v2";
 
         private const int GridColumns = 4;
+        private const int BackgroundColumns = 2;
         private const int MaxGames = 15;
         private const int MaxCovers = 30;
+        private const int MaxBackgrounds = 30;
         private const double FadeDuration = 0.1;
         private const double ManualSearchKeyboardGap = 32;
 
@@ -41,8 +37,7 @@ namespace EZ2Play.App
         private readonly MainWindow _mainWindow;
         private readonly AppConfig _config;
 
-        private readonly HttpClient _httpClient;
-        private readonly HttpClient _imageHttpClient;
+        private readonly SteamGridDbClient _steamGridDbClient;
 
         private CancellationTokenSource _sessionCts;
         private bool _disposed;
@@ -52,66 +47,47 @@ namespace EZ2Play.App
 
         private readonly ObservableCollection<ParserGameResult> _gameResults = new ObservableCollection<ParserGameResult>();
         private readonly ObservableCollection<ParserGridResult> _gridResults = new ObservableCollection<ParserGridResult>();
+        private readonly ObservableCollection<ParserGridResult> _heroResults = new ObservableCollection<ParserGridResult>();
 
         private ShortcutInfo _shortcut;
+        private ParserGameResult _assetGame;
         private ParserMode _mode = ParserMode.Games;
+        private bool _backgroundsLoaded;
         private bool _isBusy;
 
-        private CancellationTokenSource _coversLoadCts;
+        private CancellationTokenSource _assetLoadCts;
         private CoreInputView _manualSearchInputView;
         private bool _manualSearchFromNoMatches;
 
         private enum ParserMode
         {
             Games,
-            Covers
+            Covers,
+            Backgrounds
         }
 
         public ParserOverlay(InputHandler inputHandler, MainWindow mainWindow)
         {
             InitializeComponent();
+            Locals.ApplyLocalization(this);
 
             _inputHandler = inputHandler;
             _mainWindow = mainWindow;
             _config = _mainWindow.GetConfig();
 
-            _httpClient = new HttpClient();
-            _httpClient.DefaultRequestHeaders.UserAgent.ParseAdd("EZ2Play/1.0");
-
-            _imageHttpClient = new HttpClient();
-            _imageHttpClient.DefaultRequestHeaders.UserAgent.ParseAdd("EZ2Play/1.0");
+            _steamGridDbClient = new SteamGridDbClient();
 
             GamesListBox.ItemsSource = _gameResults;
             CoversListBox.ItemsSource = _gridResults;
+            BackgroundsListBox.ItemsSource = _heroResults;
 
             Opacity = 0;
             Visibility = Visibility.Collapsed;
         }
 
-        private string ResolveApiKey()
-        {
-            if (!string.IsNullOrWhiteSpace(ApiKey))
-                return ApiKey.Trim();
-
-            if (!string.IsNullOrWhiteSpace(_config?.SteamGridDbApiKey))
-                return _config.SteamGridDbApiKey.Trim();
-
-            return string.Empty;
-        }
-
         private bool ConfigureApiAuthorization()
         {
-            string apiKey = ResolveApiKey();
-
-            if (string.IsNullOrWhiteSpace(apiKey))
-            {
-                _httpClient.DefaultRequestHeaders.Authorization = null;
-                return false;
-            }
-
-            _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", apiKey);
-
-            return true;
+            return _steamGridDbClient.ConfigureAuthorization(ApiKey, _config?.SteamGridDbApiKey);
         }
 
         private bool IsCurrentSession(CancellationToken cancellationToken)
@@ -156,15 +132,16 @@ namespace EZ2Play.App
             _inputLanguageCaptured = false;
         }
 
-        private void CancelCoverLoading()
+        private void CancelAssetLoading()
         {
-            _coversLoadCts?.Cancel();
+            _assetLoadCts?.Cancel();
 
-            CoversProgressBar.IsIndeterminate = false;
-            CoversProgressBar.Visibility = Visibility.Collapsed;
-            CoversProgressBar.Value = 0;
+            AssetsProgressBar.IsIndeterminate = false;
+            AssetsProgressBar.Visibility = Visibility.Collapsed;
+            AssetsProgressBar.Value = 0;
 
             CoversListBox.Opacity = 1.0;
+            BackgroundsListBox.Opacity = 1.0;
         }
 
         public async void Open()
@@ -185,19 +162,26 @@ namespace EZ2Play.App
 
             _shortcut = launcher.Shortcuts[launcher.SelectedIndex];
             _mode = ParserMode.Games;
+            ParserContentGrid.Height = double.NaN;
             _isBusy = false;
             _manualSearchFromNoMatches = false;
 
             _gameResults.Clear();
             _gridResults.Clear();
+            _heroResults.Clear();
 
+            _assetGame = null;
+            _backgroundsLoaded = false;
+
+            AssetTabsPanel.Visibility = Visibility.Collapsed;
             GamesListBox.Visibility = Visibility.Visible;
             CoversListBox.Visibility = Visibility.Collapsed;
+            BackgroundsListBox.Visibility = Visibility.Collapsed;
             ManualSearchPanel.Visibility = Visibility.Collapsed;
 
             ShowStatus(Locals.GetString("SearchCovers"));
 
-            _inputHandler.SetParserOpen(true);
+            _inputHandler.SetMode(InputHandler.InputMode.Parser);
             _mainWindow.SetHintsMode(HintPanel.HintMode.Settings);
 
             Visibility = Visibility.Visible;
@@ -228,7 +212,7 @@ namespace EZ2Play.App
 
             _mainWindow.GetSound()?.PlayBackSound();
             CancelSession();
-            CancelCoverLoading();
+            CancelAssetLoading();
 
             if (_manualSearchInputView != null)
             {
@@ -257,7 +241,7 @@ namespace EZ2Play.App
             {
                 Visibility = Visibility.Collapsed;
 
-                _inputHandler.SetParserOpen(false);
+                _inputHandler.SetMode(InputHandler.InputMode.Main);
                 _mainWindow.SetHintsMode(HintPanel.HintMode.Main);
             };
 
@@ -266,14 +250,17 @@ namespace EZ2Play.App
 
         public void Back()
         {
-            if (_mode == ParserMode.Covers)
+            if (_mode == ParserMode.Covers || _mode == ParserMode.Backgrounds)
             {
                 _mainWindow.GetSound()?.PlayBackSound();
-                CancelCoverLoading();
+                CancelAssetLoading();
 
                 _mode = ParserMode.Games;
+                ParserContentGrid.Height = double.NaN;
 
+                AssetTabsPanel.Visibility = Visibility.Collapsed;
                 CoversListBox.Visibility = Visibility.Collapsed;
+                BackgroundsListBox.Visibility = Visibility.Collapsed;
                 GamesListBox.Visibility = Visibility.Visible;
 
                 _mainWindow.SetHintsMode(HintPanel.HintMode.ParserGames);
@@ -292,15 +279,20 @@ namespace EZ2Play.App
 
         public void NavigateHorizontal(int direction)
         {
-            if (_isBusy || _mode != ParserMode.Covers || CoversListBox.Items.Count == 0) return;
+            if (_isBusy || _mode == ParserMode.Games) return;
 
-            int index = Math.Max(0, CoversListBox.SelectedIndex);
-            int column = index % GridColumns;
+            ListBox listBox = _mode == ParserMode.Covers ? CoversListBox : BackgroundsListBox;
+            int columns = _mode == ParserMode.Covers ? GridColumns : BackgroundColumns;
+
+            if (listBox.Items.Count == 0) return;
+
+            int index = Math.Max(0, listBox.SelectedIndex);
+            int column = index % columns;
 
             if (direction < 0 && column == 0) return;
-            if (direction > 0 && column == GridColumns - 1) return;
+            if (direction > 0 && column == columns - 1) return;
 
-            MoveSelection(CoversListBox, index + Math.Sign(direction));
+            MoveSelection(listBox, index + Math.Sign(direction));
         }
 
         public void NavigateVertical(int direction)
@@ -316,10 +308,99 @@ namespace EZ2Play.App
                 return;
             }
 
-            if (CoversListBox.Items.Count == 0) return;
+            ListBox listBox = _mode == ParserMode.Covers ? CoversListBox : BackgroundsListBox;
+            int columns = _mode == ParserMode.Covers ? GridColumns : BackgroundColumns;
 
-            int indexCover = Math.Max(0, CoversListBox.SelectedIndex);
-            MoveSelection(CoversListBox, indexCover + Math.Sign(direction) * GridColumns);
+            if (listBox.Items.Count == 0) return;
+
+            int indexAsset = Math.Max(0, listBox.SelectedIndex);
+            MoveSelection(listBox, indexAsset + Math.Sign(direction) * columns);
+        }
+
+        public async void SwitchAssetTab(int direction)
+        {
+            if (_isBusy || _mode == ParserMode.Games || _assetGame == null || _sessionCts == null) return;
+
+            if (direction < 0)
+            {
+                if (_mode == ParserMode.Covers) return;
+
+                _mainWindow.GetSound()?.PlayMoveSound();
+
+                _mode = ParserMode.Covers;
+                UpdateAssetTabs();
+                ShowCoversTab();
+                return;
+            }
+
+            if (direction > 0)
+            {
+                if (_mode == ParserMode.Backgrounds) return;
+
+                _mainWindow.GetSound()?.PlayMoveSound();
+
+                _mode = ParserMode.Backgrounds;
+                UpdateAssetTabs();
+
+                if (!_backgroundsLoaded)
+                    await LoadBackgroundsAsync(_assetGame, _sessionCts.Token);
+                else
+                    ShowBackgroundsTab();
+            }
+        }
+
+        private void UpdateAssetTabs()
+        {
+            AssetTabsPanel.Visibility = _mode == ParserMode.Games ? Visibility.Collapsed : Visibility.Visible;
+
+            ParserCoversTabText.Opacity = _mode == ParserMode.Covers ? 1.0 : 0.5;
+            ParserBackgroundsTabText.Opacity = _mode == ParserMode.Backgrounds ? 1.0 : 0.5;
+        }
+
+        private void ShowCoversTab()
+        {
+            ParserContentGrid.Height = (double)FindResource(UiScaleKeys.ParserCoversViewportHeight);
+            BackgroundsListBox.Visibility = Visibility.Collapsed;
+
+            if (_gridResults.Count == 0)
+            {
+                CoversListBox.Visibility = Visibility.Collapsed;
+                ShowStatus(Locals.GetString("NoCoversFound"));
+                return;
+            }
+
+            HideStatus();
+
+            CoversListBox.Visibility = Visibility.Visible;
+
+            if (CoversListBox.SelectedIndex < 0)
+                CoversListBox.SelectedIndex = 0;
+
+            CoversListBox.ScrollIntoView(CoversListBox.SelectedItem);
+            CoversListBox.Focus();
+        }
+
+        private void ShowBackgroundsTab()
+        {
+            ParserContentGrid.Height = (double)FindResource(UiScaleKeys.ParserBackgroundsViewportHeight);
+            CoversListBox.Visibility = Visibility.Collapsed;
+
+            if (_heroResults.Count == 0)
+            {
+                BackgroundsListBox.Visibility = Visibility.Collapsed;
+                ShowStatus(Locals.GetString("NoBackgroundsFound"));
+                return;
+            }
+
+            HideStatus();
+
+            BackgroundsListBox.Visibility = Visibility.Visible;
+
+            if (BackgroundsListBox.SelectedIndex < 0)
+                BackgroundsListBox.SelectedIndex = 0;
+
+            BackgroundsListBox.ScrollIntoView(BackgroundsListBox.SelectedItem);
+            BackgroundsListBox.Focus();
         }
 
         public void Search()
@@ -350,6 +431,19 @@ namespace EZ2Play.App
                 {
                     _mainWindow.GetSound()?.PlayLaunchSound();
                     await LoadCoversAsync(game, _sessionCts.Token);
+                }
+
+                return;
+            }
+
+            if (_mode == ParserMode.Backgrounds)
+            {
+                var background = BackgroundsListBox.SelectedItem as ParserGridResult;
+
+                if (background != null)
+                {
+                    _mainWindow.GetSound()?.PlayLaunchSound();
+                    await DownloadBackgroundAsync(background, _sessionCts.Token);
                 }
 
                 return;
@@ -534,7 +628,7 @@ namespace EZ2Play.App
                     ? (_shortcut.DisplayName ?? _shortcut.Name)
                     : customQuery.Trim();
 
-                var results = await SearchGamesAsync(query, cancellationToken);
+                var results = await _steamGridDbClient.SearchGamesAsync(query, MaxGames, cancellationToken);
 
                 if (!IsSessionActive(cancellationToken)) return;
 
@@ -610,76 +704,44 @@ namespace EZ2Play.App
             await SearchCurrentGameAsync(query, _sessionCts.Token);
         }
 
-        private async Task<List<ParserGameResult>> SearchGamesAsync(string query, CancellationToken cancellationToken)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-
-            string encoded = Uri.EscapeDataString(query.Trim());
-            string url = $"{BaseUrl}/search/autocomplete/{encoded}";
-
-            using (var response = await _httpClient.GetAsync(url, cancellationToken))
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-
-                if (response.StatusCode == HttpStatusCode.Unauthorized || response.StatusCode == HttpStatusCode.Forbidden)
-                    throw new SteamGridDbAuthException($"HTTP {(int)response.StatusCode}");
-
-                if (!response.IsSuccessStatusCode)
-                    throw new HttpRequestException("SteamGridDB returned HTTP " + $"{(int)response.StatusCode}.");
-
-                string content = await response.Content.ReadAsStringAsync();
-                cancellationToken.ThrowIfCancellationRequested();
-
-                var json = JObject.Parse(content);
-                var data = json["data"] as JArray;
-
-                if (json["success"]?.ToObject<bool>() != true)
-                    throw new InvalidOperationException("SteamGridDB returned success=false.");
-
-                if (data == null)
-                    return new List<ParserGameResult>();
-
-                return data
-                    .Where(item => item["id"] != null && item["name"] != null)
-                    .Take(MaxGames)
-                    .Select(item => new ParserGameResult
-                    {
-                        Id = item["id"].ToObject<int>(),
-                        Name = item["name"].ToString()
-                    })
-                    .ToList();
-            }
-        }
-
         private async Task LoadCoversAsync(ParserGameResult game, CancellationToken sessionToken)
         {
             if (!IsSessionActive(sessionToken)) return;
 
-            CancelCoverLoading();
+            CancelAssetLoading();
 
             var cts = CancellationTokenSource.CreateLinkedTokenSource(sessionToken);
-            _coversLoadCts = cts;
+            _assetLoadCts = cts;
 
             var cancellationToken = cts.Token;
 
             _isBusy = true;
             _mode = ParserMode.Covers;
+            ParserContentGrid.Height = (double)FindResource(UiScaleKeys.ParserCoversViewportHeight);
 
-            _mainWindow.SetHintsMode(HintPanel.HintMode.Settings);
+            _assetGame = game;
+            _backgroundsLoaded = false;
+            _heroResults.Clear();
+
+            AssetTabsPanel.Visibility = Visibility.Visible;
+            BackgroundsListBox.Visibility = Visibility.Collapsed;
+            UpdateAssetTabs();
+
+            _mainWindow.SetHintsMode(HintPanel.HintMode.ParserAssets);
 
             GamesListBox.Visibility = Visibility.Collapsed;
             CoversListBox.Visibility = Visibility.Collapsed;
             CoversListBox.Opacity = 0.45;
 
-            CoversProgressBar.Value = 0;
-            CoversProgressBar.IsIndeterminate = true;
-            CoversProgressBar.Visibility = Visibility.Visible;
+            AssetsProgressBar.Value = 0;
+            AssetsProgressBar.IsIndeterminate = true;
+            AssetsProgressBar.Visibility = Visibility.Visible;
 
             ShowStatus(Locals.GetString("LoadingCovers"));
 
             try
             {
-                var results = await GetSquareGridsAsync(game.Id, cancellationToken);
+                var results = await _steamGridDbClient.GetSquareGridsAsync(game.Id, MaxCovers, cancellationToken);
 
                 cancellationToken.ThrowIfCancellationRequested();
 
@@ -692,8 +754,8 @@ namespace EZ2Play.App
 
                 if (_gridResults.Count == 0)
                 {
-                    CoversProgressBar.IsIndeterminate = false;
-                    CoversProgressBar.Visibility = Visibility.Collapsed;
+                    AssetsProgressBar.IsIndeterminate = false;
+                    AssetsProgressBar.Visibility = Visibility.Collapsed;
                     CoversListBox.Opacity = 1.0;
 
                     ShowStatus(Locals.GetString("NoCoversFound"));
@@ -707,10 +769,10 @@ namespace EZ2Play.App
                 CoversListBox.ScrollIntoView(CoversListBox.SelectedItem);
                 CoversListBox.Focus();
 
-                CoversProgressBar.IsIndeterminate = false;
-                CoversProgressBar.Minimum = 0;
-                CoversProgressBar.Maximum = _gridResults.Count;
-                CoversProgressBar.Value = 0;
+                AssetsProgressBar.IsIndeterminate = false;
+                AssetsProgressBar.Minimum = 0;
+                AssetsProgressBar.Maximum = _gridResults.Count;
+                AssetsProgressBar.Value = 0;
 
                 int loadedCount = 0;
 
@@ -722,7 +784,7 @@ namespace EZ2Play.App
 
                         try
                         {
-                            await LoadThumbnailAsync(grid, cancellationToken);
+                            await LoadThumbnailAsync(grid, cancellationToken, 512, 512);
                             cancellationToken.ThrowIfCancellationRequested();
 
                             int completed = Interlocked.Increment(ref loadedCount);
@@ -730,7 +792,7 @@ namespace EZ2Play.App
                             await Dispatcher.InvokeAsync(() =>
                             {
                                 if (!cancellationToken.IsCancellationRequested)
-                                    CoversProgressBar.Value = completed;
+                                    AssetsProgressBar.Value = completed;
                             });
                         }
 
@@ -748,7 +810,7 @@ namespace EZ2Play.App
                 if (!IsSessionActive(sessionToken)) return;
 
                 CoversListBox.Opacity = 1.0;
-                CoversProgressBar.Visibility = Visibility.Collapsed;
+                AssetsProgressBar.Visibility = Visibility.Collapsed;
             }
 
             catch (OperationCanceledException)
@@ -763,8 +825,8 @@ namespace EZ2Play.App
                 if (IsSessionActive(sessionToken))
                 {
                     CoversListBox.Opacity = 1.0;
-                    CoversProgressBar.IsIndeterminate = false;
-                    CoversProgressBar.Visibility = Visibility.Collapsed;
+                    AssetsProgressBar.IsIndeterminate = false;
+                    AssetsProgressBar.Visibility = Visibility.Collapsed;
 
                     ShowStatus(Locals.GetString("SteamGridDbApiKeyInvalid"));
                 }
@@ -777,16 +839,16 @@ namespace EZ2Play.App
                 if (!IsSessionActive(sessionToken)) return;
 
                 CoversListBox.Opacity = 1.0;
-                CoversProgressBar.IsIndeterminate = false;
-                CoversProgressBar.Visibility = Visibility.Collapsed;
+                AssetsProgressBar.IsIndeterminate = false;
+                AssetsProgressBar.Visibility = Visibility.Collapsed;
 
                 ShowStatus(Locals.GetString("ErrorGridDB"));
             }
 
             finally
             {
-                if (_coversLoadCts == cts)
-                    _coversLoadCts = null;
+                if (_assetLoadCts == cts)
+                    _assetLoadCts = null;
 
                 cts.Dispose();
 
@@ -795,73 +857,179 @@ namespace EZ2Play.App
             }
         }
 
-        private async Task<List<ParserGridResult>> GetSquareGridsAsync(int gameId, CancellationToken cancellationToken)
+        private async Task LoadBackgroundsAsync(ParserGameResult game, CancellationToken sessionToken)
         {
-            string url = $"{BaseUrl}/grids/game/{gameId}?dimensions=512x512,1024x1024&mimes=image/png,image/jpeg&nsfw=false&types=static";
+            if (!IsSessionActive(sessionToken)) return;
 
-            using (var response = await _httpClient.GetAsync(url, cancellationToken))
+            CancelAssetLoading();
+
+            var cts = CancellationTokenSource.CreateLinkedTokenSource(sessionToken);
+            _assetLoadCts = cts;
+
+            var cancellationToken = cts.Token;
+
+            _isBusy = true;
+            _mode = ParserMode.Backgrounds;
+            ParserContentGrid.Height = (double)FindResource(UiScaleKeys.ParserBackgroundsViewportHeight);
+
+            UpdateAssetTabs();
+
+            CoversListBox.Visibility = Visibility.Collapsed;
+            BackgroundsListBox.Visibility = Visibility.Collapsed;
+            BackgroundsListBox.Opacity = 0.45;
+
+            AssetsProgressBar.Value = 0;
+            AssetsProgressBar.IsIndeterminate = true;
+            AssetsProgressBar.Visibility = Visibility.Visible;
+
+            ShowStatus(Locals.GetString("LoadingBackgrounds"));
+
+            try
             {
-                if (response.StatusCode == HttpStatusCode.Unauthorized || response.StatusCode == HttpStatusCode.Forbidden)
-                    throw new SteamGridDbAuthException($"HTTP {(int)response.StatusCode}");
+                var results = await _steamGridDbClient.GetHeroesAsync(game.Id, MaxBackgrounds, 3840, cancellationToken);
 
-                if (!response.IsSuccessStatusCode)
-                    throw new HttpRequestException("SteamGridDB returned HTTP " + $"{(int)response.StatusCode}.");
-
-                string content = await response.Content.ReadAsStringAsync();
                 cancellationToken.ThrowIfCancellationRequested();
 
-                var json = JObject.Parse(content);
-                var data = json["data"] as JArray;
+                if (!IsSessionActive(sessionToken)) return;
 
-                if (json["success"]?.ToObject<bool>() != true)
-                    throw new InvalidOperationException("SteamGridDB returned success=false.");
+                _heroResults.Clear();
 
-                if (data == null)
-                    return new List<ParserGridResult>();
+                foreach (var result in results)
+                    _heroResults.Add(result);
 
-                return data
-                    .Where(item => item["url"] != null)
-                    .Take(MaxCovers)
-                    .Select(item => new ParserGridResult
+                _backgroundsLoaded = true;
+
+                if (_heroResults.Count == 0)
+                {
+                    AssetsProgressBar.IsIndeterminate = false;
+                    AssetsProgressBar.Visibility = Visibility.Collapsed;
+                    BackgroundsListBox.Opacity = 1.0;
+
+                    ShowStatus(Locals.GetString("NoBackgroundsFound"));
+                    return;
+                }
+
+                HideStatus();
+
+                BackgroundsListBox.Visibility = Visibility.Visible;
+                BackgroundsListBox.SelectedIndex = 0;
+                BackgroundsListBox.ScrollIntoView(BackgroundsListBox.SelectedItem);
+                BackgroundsListBox.Focus();
+
+                AssetsProgressBar.IsIndeterminate = false;
+                AssetsProgressBar.Minimum = 0;
+                AssetsProgressBar.Maximum = _heroResults.Count;
+                AssetsProgressBar.Value = 0;
+
+                int loadedCount = 0;
+
+                using (var thumbnailSemaphore = new SemaphoreSlim(6, 6))
+                {
+                    var tasks = _heroResults.Select(async hero =>
                     {
-                        Id = item["id"]?.ToObject<int>() ?? 0,
-                        Url = item["url"].ToString(),
-                        Thumb = item["thumb"]?.ToString() ?? item["url"].ToString()
-                    })
-                    .ToList();
+                        await thumbnailSemaphore.WaitAsync(cancellationToken);
+
+                        try
+                        {
+                            await LoadThumbnailAsync(hero, cancellationToken, 768);
+                            cancellationToken.ThrowIfCancellationRequested();
+
+                            int completed = Interlocked.Increment(ref loadedCount);
+
+                            await Dispatcher.InvokeAsync(() =>
+                            {
+                                if (!cancellationToken.IsCancellationRequested)
+                                    AssetsProgressBar.Value = completed;
+                            });
+                        }
+
+                        finally
+                        {
+                            thumbnailSemaphore.Release();
+                        }
+                    });
+
+                    await Task.WhenAll(tasks);
+                }
+
+                cancellationToken.ThrowIfCancellationRequested();
+
+                if (!IsSessionActive(sessionToken)) return;
+
+                BackgroundsListBox.Opacity = 1.0;
+                AssetsProgressBar.Visibility = Visibility.Collapsed;
+            }
+
+            catch (OperationCanceledException)
+            {
+                // Expected when the user goes back or closes the parser.
+            }
+
+            catch (SteamGridDbAuthException ex)
+            {
+                DebugLog.Error("Parser", ex, "SteamGridDB authorization failed while loading backgrounds.");
+
+                if (IsSessionActive(sessionToken))
+                {
+                    BackgroundsListBox.Opacity = 1.0;
+                    AssetsProgressBar.IsIndeterminate = false;
+                    AssetsProgressBar.Visibility = Visibility.Collapsed;
+
+                    ShowStatus(Locals.GetString("SteamGridDbApiKeyInvalid"));
+                }
+            }
+
+            catch (Exception ex)
+            {
+                DebugLog.Error("Parser", ex, "SteamGridDB background search failed.");
+
+                if (!IsSessionActive(sessionToken)) return;
+
+                BackgroundsListBox.Opacity = 1.0;
+                AssetsProgressBar.IsIndeterminate = false;
+                AssetsProgressBar.Visibility = Visibility.Collapsed;
+
+                ShowStatus(Locals.GetString("ErrorGridDB"));
+            }
+
+            finally
+            {
+                if (_assetLoadCts == cts)
+                    _assetLoadCts = null;
+
+                cts.Dispose();
+
+                if (IsCurrentSession(sessionToken))
+                    _isBusy = false;
             }
         }
 
-        private async Task LoadThumbnailAsync(ParserGridResult result, CancellationToken cancellationToken)
+        private async Task LoadThumbnailAsync(ParserGridResult result, CancellationToken cancellationToken, int decodePixelWidth, int decodePixelHeight = 0)
         {
             try
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                using (var response = await _imageHttpClient.GetAsync(result.Thumb, cancellationToken))
-                {
-                    response.EnsureSuccessStatusCode();
+                byte[] bytes = await _steamGridDbClient.DownloadImageAsync(result.Thumb, cancellationToken);
 
-                    byte[] bytes = await response.Content.ReadAsByteArrayAsync();
+                using (var stream = new MemoryStream(bytes))
+                {
+                    var bitmap = new BitmapImage();
+
+                    bitmap.BeginInit();
+                    bitmap.CacheOption = BitmapCacheOption.OnLoad;
+                    bitmap.DecodePixelWidth = decodePixelWidth;
+
+                    if (decodePixelHeight > 0)
+                        bitmap.DecodePixelHeight = decodePixelHeight;
+
+                    bitmap.StreamSource = stream;
+                    bitmap.EndInit();
+                    bitmap.Freeze();
 
                     cancellationToken.ThrowIfCancellationRequested();
 
-                    using (var stream = new MemoryStream(bytes))
-                    {
-                        var bitmap = new BitmapImage();
-
-                        bitmap.BeginInit();
-                        bitmap.CacheOption = BitmapCacheOption.OnLoad;
-                        bitmap.DecodePixelWidth = 512;
-                        bitmap.DecodePixelHeight = 512;
-                        bitmap.StreamSource = stream;
-                        bitmap.EndInit();
-                        bitmap.Freeze();
-
-                        cancellationToken.ThrowIfCancellationRequested();
-
-                        result.ImageSource = bitmap;
-                    }
+                    result.ImageSource = bitmap;
                 }
             }
 
@@ -885,13 +1053,7 @@ namespace EZ2Play.App
 
             try
             {
-                byte[] bytes;
-
-                using (var response = await _imageHttpClient.GetAsync(cover.Url, cancellationToken))
-                {
-                    response.EnsureSuccessStatusCode();
-                    bytes = await response.Content.ReadAsByteArrayAsync();
-                }
+                byte[] bytes = await _steamGridDbClient.DownloadImageAsync(cover.Url, cancellationToken);
 
                 cancellationToken.ThrowIfCancellationRequested();
 
@@ -973,6 +1135,106 @@ namespace EZ2Play.App
             }
         }
 
+        private async Task DownloadBackgroundAsync(ParserGridResult background, CancellationToken cancellationToken)
+        {
+            _isBusy = true;
+
+            BackgroundsListBox.Visibility = Visibility.Collapsed;
+            ShowStatus(Locals.GetString("SavingBackground"));
+
+            string tempPath = null;
+
+            try
+            {
+                byte[] bytes = await _steamGridDbClient.DownloadImageAsync(background.Url, cancellationToken);
+
+                cancellationToken.ThrowIfCancellationRequested();
+
+                if (!IsSessionActive(cancellationToken)) return;
+
+                string extension;
+
+                using (var input = new MemoryStream(bytes))
+                using (var sourceImage = Drawing.Image.FromStream(input, true, true))
+                {
+                    if (sourceImage.Width < 3840)
+                        throw new InvalidDataException($"Background width is only {sourceImage.Width}px. Minimum required width is 3840px.");
+
+                    extension = sourceImage.RawFormat.Guid == DrawingImaging.ImageFormat.Png.Guid ? ".png" : ".jpg";
+                }
+
+                string backgroundsDirectory = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "shortcuts", "backgrounds");
+
+                Directory.CreateDirectory(backgroundsDirectory);
+
+                string backgroundPath = Path.Combine(backgroundsDirectory, _shortcut.Name + extension);
+                tempPath = Path.Combine(backgroundsDirectory, _shortcut.Name + ".tmp");
+
+                if (File.Exists(tempPath))
+                    File.Delete(tempPath);
+
+                File.WriteAllBytes(tempPath, bytes);
+
+                cancellationToken.ThrowIfCancellationRequested();
+
+                string[] extensions = { ".png", ".jpg", ".jpeg" };
+
+                foreach (string oldExtension in extensions)
+                {
+                    string oldPath = Path.Combine(backgroundsDirectory, _shortcut.Name + oldExtension);
+
+                    if (File.Exists(oldPath))
+                        File.Delete(oldPath);
+                }
+
+                File.Move(tempPath, backgroundPath);
+                tempPath = null;
+
+                cancellationToken.ThrowIfCancellationRequested();
+
+                if (!IsSessionActive(cancellationToken)) return;
+
+                _mainWindow.RefreshSelectedBackground();
+
+                Close();
+            }
+
+            catch (OperationCanceledException)
+            {
+                // Expected when the parser is closed during download.
+            }
+
+            catch (Exception ex)
+            {
+                DebugLog.Error("Parser", ex, "Failed to download or save background.");
+
+                if (IsSessionActive(cancellationToken))
+                {
+                    BackgroundsListBox.Visibility = Visibility.Visible;
+                    ShowStatus(Locals.GetString("SavingBackgroundError") + ": " + ex.Message);
+                }
+            }
+
+            finally
+            {
+                if (tempPath != null)
+                {
+                    try
+                    {
+                        if (File.Exists(tempPath))
+                            File.Delete(tempPath);
+                    }
+
+                    catch
+                    {
+                    }
+                }
+
+                if (IsCurrentSession(cancellationToken))
+                    _isBusy = false;
+            }
+        }
+
         private void ShowStatus(string text)
         {
             StatusText.Text = text;
@@ -991,7 +1253,7 @@ namespace EZ2Play.App
             _disposed = true;
 
             CancelSession();
-            CancelCoverLoading();
+            CancelAssetLoading();
 
             if (_manualSearchInputView != null)
             {
@@ -1002,18 +1264,10 @@ namespace EZ2Play.App
 
             RestoreInputLanguage();
 
-            _httpClient.Dispose();
-            _imageHttpClient.Dispose();
+            _steamGridDbClient.Dispose();
 
             _sessionCts?.Dispose();
             _sessionCts = null;
-        }
-
-        private sealed class SteamGridDbAuthException : Exception
-        {
-            public SteamGridDbAuthException(string message) : base(message)
-            {
-            }
         }
     }
 
@@ -1032,6 +1286,8 @@ namespace EZ2Play.App
         public int Id { get; set; }
         public string Url { get; set; }
         public string Thumb { get; set; }
+        public int Width { get; set; }
+        public int Height { get; set; }
 
         public ImageSource ImageSource
         {

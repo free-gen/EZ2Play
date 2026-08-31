@@ -90,11 +90,48 @@
 
     <Grid>
 
-        <Border x:Name="ParserSurface" 
-                Style="{StaticResource OverlaySurfaceStyle}"
-                Padding="{DynamicResource {x:Static app:UiScaleKeys.OverlayPadding}}">
+        <app:DitheredGradientBorder x:Name="ParserSurface"
+            Style="{StaticResource OverlaySurfaceStyle}">
 
-            <Grid>
+        <Grid>
+
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+
+                <!-- Asset Tabs -->
+                <StackPanel x:Name="AssetTabsPanel"
+                            Grid.Row="0"
+                            Visibility="Collapsed"
+                            Orientation="Horizontal"
+                            HorizontalAlignment="Center"
+                            Margin="{DynamicResource {x:Static app:UiScaleKeys.ParserTabsMargin}}">
+
+                    <TextBlock x:Name="ParserCoversTabText"
+                            Style="{StaticResource OverlayPrimaryTextStyle}"
+                            FontWeight="700"
+                            Margin="{DynamicResource {x:Static app:UiScaleKeys.ParserTabMargin}}"/>
+
+                    <TextBlock x:Name="ParserBackgroundsTabText"
+                            Style="{StaticResource OverlayPrimaryTextStyle}"
+                            FontWeight="700"
+                            Margin="{DynamicResource {x:Static app:UiScaleKeys.ParserTabMargin}}"/>
+
+                </StackPanel>
+
+                <!-- Asset Tabs Divider -->
+                <Border Grid.Row="1"
+                        Visibility="{Binding Visibility, ElementName=AssetTabsPanel}"
+                        Height="{DynamicResource {x:Static app:UiScaleKeys.ParserTabsDividerHeight}}"
+                        Background="{DynamicResource DividerStrokeColorDefaultBrush}"
+                        HorizontalAlignment="Stretch"
+                        SnapsToDevicePixels="True"/>
+
+                <Grid x:Name="ParserContentGrid"
+                    Grid.Row="2"
+                    Margin="{DynamicResource {x:Static app:UiScaleKeys.OverlayPadding}}">
 
                     <!-- Results -->
                     <ListBox x:Name="GamesListBox"
@@ -121,10 +158,10 @@
                     <!-- Covers -->
                     <ListBox x:Name="CoversListBox"
                             Visibility="Collapsed"
+                            Margin="{DynamicResource {x:Static app:UiScaleKeys.ParserAssetsMargin}}"
                             ItemContainerStyle="{StaticResource ParserCoverItemStyle}"
                             Background="Transparent"
                             BorderThickness="0"
-                            MaxHeight="{DynamicResource {x:Static app:UiScaleKeys.ParserCoversViewportHeight}}"
                             ScrollViewer.CanContentScroll="False"
                             ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                             ScrollViewer.VerticalScrollBarVisibility="Hidden"
@@ -159,10 +196,52 @@
 
                     </ListBox>
 
+                    <!-- Backgrounds -->
+                    <ListBox x:Name="BackgroundsListBox"
+                            Visibility="Collapsed"
+                            Margin="{DynamicResource {x:Static app:UiScaleKeys.ParserAssetsMargin}}"
+                            ItemContainerStyle="{StaticResource ParserCoverItemStyle}"
+                            Background="Transparent"
+                            BorderThickness="0"
+                            ScrollViewer.CanContentScroll="False"
+                            ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                            ScrollViewer.VerticalScrollBarVisibility="Hidden"
+                            VirtualizingPanel.IsVirtualizing="False">
+
+                        <ListBox.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <UniformGrid Columns="2"/>
+                            </ItemsPanelTemplate>
+                        </ListBox.ItemsPanel>
+
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+
+                                <Rectangle Width="{DynamicResource {x:Static app:UiScaleKeys.ParserBackgroundWidth}}"
+                                        Height="{DynamicResource {x:Static app:UiScaleKeys.ParserBackgroundHeight}}"
+                                        RadiusX="{DynamicResource {x:Static app:UiScaleKeys.ParserCoverRadius}}"
+                                        RadiusY="{DynamicResource {x:Static app:UiScaleKeys.ParserCoverRadius}}"
+                                        HorizontalAlignment="Center"
+                                        VerticalAlignment="Center"
+                                        SnapsToDevicePixels="True">
+
+                                    <Rectangle.Fill>
+                                        <ImageBrush ImageSource="{Binding ImageSource}"
+                                                    Stretch="UniformToFill"/>
+                                    </Rectangle.Fill>
+
+                                </Rectangle>
+
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+
+                    </ListBox>
+
                     <!-- Status Text -->
                     <TextBlock x:Name="StatusText"
                                 Visibility="Collapsed"
                                 Style="{StaticResource OverlaySecondaryTextStyle}"
+                                Margin="{DynamicResource {x:Static app:UiScaleKeys.ParserStatusMargin}}"
                                 HorizontalAlignment="Center"
                                 VerticalAlignment="Center"/>
 
@@ -188,11 +267,13 @@
 
                     </StackPanel>
 
+                </Grid>
+
             </Grid>
 
-        </Border>
+        </app:DitheredGradientBorder>
 
-        <ProgressBar x:Name="CoversProgressBar"
+        <ProgressBar x:Name="AssetsProgressBar"
                     Visibility="Collapsed"
                     Minimum="0"
                     Maximum="1"
