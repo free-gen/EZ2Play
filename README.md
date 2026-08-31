@@ -8,8 +8,8 @@ EZ2Play is a minimalistic portable fullscreen game launcher for Windows focused 
 
 Instead of scanning Steam, Epic Games or installed applications, EZ2Play uses standard Windows `.lnk` and `.url` shortcuts.
 
-![Screenshot](res/ez2play01.jpg)
-![Screenshot](res/ez2play05.jpg)
+![Screenshot](res/01.png)
+![Screenshot](res/02.png)
 
 ## Features
 
@@ -78,9 +78,10 @@ The artwork file name must match the shortcut file name without `.lnk` or `.url`
 
 ## SteamGridDB Artwork Browser
 
-![Screenshot](res/ez2play02.jpg)
-![Screenshot](res/ez2play03.jpg)
-![Screenshot](res/ez2play04.jpg)
+![Screenshot](res/03.png)
+![Screenshot](res/04.png)
+![Screenshot](res/05.png)
+![Screenshot](res/06.png)
 
 Select a game and open the built-in artwork browser to search SteamGridDB.
 
