@@ -133,7 +133,7 @@ namespace EZ2Play.App
             target[UiScaleKeys.TopInfoSecondaryFontSize] = fs(38);
             target[UiScaleKeys.UserAvatarSize] = s(56);
 
-            target[UiScaleKeys.ItemCornerRadius] = s(12);
+            target[UiScaleKeys.ItemCornerRadius] = s(16);
             target[UiScaleKeys.SelectorThickness] = s(4);
             target[UiScaleKeys.SelectorSpacing] = s(4);
 

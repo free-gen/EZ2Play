@@ -12,40 +12,44 @@ namespace EZ2Play.App
 {
     internal sealed class SteamGridDbClient : IDisposable
     {
-        private const string BaseUrl = "https://www.steamgriddb.com/api/v2";
+        private const string WorkerBaseUrl = "https://ez2play.helios-kms.workers.dev/api/v2";
+        private const string DirectBaseUrl = "https://www.steamgriddb.com/api/v2";
 
-        private readonly HttpClient _apiClient;
+        private readonly HttpClient _workerClient;
+        private readonly HttpClient _directApiClient;
         private readonly HttpClient _imageClient;
+
+        private string _fallbackApiKey;
 
         public SteamGridDbClient()
         {
-            _apiClient = new HttpClient();
-            _apiClient.DefaultRequestHeaders.UserAgent.ParseAdd("EZ2Play/1.0");
+            _workerClient = new HttpClient();
+            _workerClient.DefaultRequestHeaders.UserAgent.ParseAdd("EZ2Play/1.1");
+
+            _directApiClient = new HttpClient();
+            _directApiClient.DefaultRequestHeaders.UserAgent.ParseAdd("EZ2Play/1.1");
 
             _imageClient = new HttpClient();
-            _imageClient.DefaultRequestHeaders.UserAgent.ParseAdd("EZ2Play/1.0");
+            _imageClient.DefaultRequestHeaders.UserAgent.ParseAdd("EZ2Play/1.1");
         }
 
-        public bool ConfigureAuthorization(string primaryApiKey, string fallbackApiKey)
+        public void ConfigureFallbackAuthorization(string fallbackApiKey)
         {
-            string apiKey = !string.IsNullOrWhiteSpace(primaryApiKey)
-                ? primaryApiKey.Trim()
-                : fallbackApiKey?.Trim();
+            _fallbackApiKey = fallbackApiKey?.Trim();
 
-            if (string.IsNullOrWhiteSpace(apiKey))
+            if (string.IsNullOrWhiteSpace(_fallbackApiKey))
             {
-                _apiClient.DefaultRequestHeaders.Authorization = null;
-                return false;
+                _directApiClient.DefaultRequestHeaders.Authorization = null;
+                return;
             }
 
-            _apiClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", apiKey);
-            return true;
+            _directApiClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _fallbackApiKey);
         }
 
         public async Task<List<ParserGameResult>> SearchGamesAsync(string query, int maxResults, CancellationToken cancellationToken)
         {
             string encoded = Uri.EscapeDataString(query.Trim());
-            var data = await GetDataAsync($"{BaseUrl}/search/autocomplete/{encoded}", cancellationToken);
+            var data = await GetDataAsync($"/search/autocomplete/{encoded}", cancellationToken);
 
             if (data == null)
                 return new List<ParserGameResult>();
@@ -63,7 +67,7 @@ namespace EZ2Play.App
 
         public async Task<List<ParserGridResult>> GetSquareGridsAsync(int gameId, int maxResults, CancellationToken cancellationToken)
         {
-            var data = await GetDataAsync($"{BaseUrl}/grids/game/{gameId}?dimensions=512x512,1024x1024&mimes=image/png,image/jpeg&nsfw=false&types=static", cancellationToken);
+            var data = await GetDataAsync($"/grids/game/{gameId}?dimensions=512x512,1024x1024&mimes=image/png,image/jpeg&nsfw=false&types=static", cancellationToken);
 
             if (data == null)
                 return new List<ParserGridResult>();
@@ -82,7 +86,7 @@ namespace EZ2Play.App
 
         public async Task<List<ParserGridResult>> GetHeroesAsync(int gameId, int maxResults, int minimumWidth, CancellationToken cancellationToken)
         {
-            var data = await GetDataAsync($"{BaseUrl}/heroes/game/{gameId}?dimensions=3840x1240&mimes=image/png,image/jpeg&nsfw=false&types=static", cancellationToken);
+            var data = await GetDataAsync($"/heroes/game/{gameId}?dimensions=3840x1240&mimes=image/png,image/jpeg&nsfw=false&types=static", cancellationToken);
 
             if (data == null)
                 return new List<ParserGridResult>();
@@ -114,11 +118,50 @@ namespace EZ2Play.App
             }
         }
 
-        private async Task<JArray> GetDataAsync(string url, CancellationToken cancellationToken)
+        private async Task<JArray> GetDataAsync(string relativeUrl, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            using (var response = await _apiClient.GetAsync(url, cancellationToken))
+            try
+            {
+                return await GetDataFromWorkerAsync(relativeUrl, cancellationToken);
+            }
+
+            catch (OperationCanceledException)
+            {
+                throw;
+            }
+
+            catch (Exception ex)
+            {
+                DebugLog.Error("SteamGridDB", ex, "Cloudflare Worker request failed. Trying local API key fallback.");
+
+                if (string.IsNullOrWhiteSpace(_fallbackApiKey))
+                    throw;
+            }
+
+            return await GetDataDirectAsync(relativeUrl, cancellationToken);
+        }
+
+        private async Task<JArray> GetDataFromWorkerAsync(string relativeUrl, CancellationToken cancellationToken)
+        {
+            using (var response = await _workerClient.GetAsync(WorkerBaseUrl + relativeUrl, cancellationToken))
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+
+                if (response.StatusCode == HttpStatusCode.Unauthorized || response.StatusCode == HttpStatusCode.Forbidden)
+                    throw new SteamGridDbAuthException($"Worker returned HTTP {(int)response.StatusCode}.");
+
+                if (!response.IsSuccessStatusCode)
+                    throw new HttpRequestException($"EZ2Play SteamGridDB Worker returned HTTP {(int)response.StatusCode}.");
+
+                return await ParseDataAsync(response, cancellationToken);
+            }
+        }
+
+        private async Task<JArray> GetDataDirectAsync(string relativeUrl, CancellationToken cancellationToken)
+        {
+            using (var response = await _directApiClient.GetAsync(DirectBaseUrl + relativeUrl, cancellationToken))
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
@@ -128,21 +171,27 @@ namespace EZ2Play.App
                 if (!response.IsSuccessStatusCode)
                     throw new HttpRequestException($"SteamGridDB returned HTTP {(int)response.StatusCode}.");
 
-                string content = await response.Content.ReadAsStringAsync();
-                cancellationToken.ThrowIfCancellationRequested();
-
-                var json = JObject.Parse(content);
-
-                if (json["success"]?.ToObject<bool>() != true)
-                    throw new InvalidOperationException("SteamGridDB returned success=false.");
-
-                return json["data"] as JArray;
+                return await ParseDataAsync(response, cancellationToken);
             }
+        }
+
+        private static async Task<JArray> ParseDataAsync(HttpResponseMessage response, CancellationToken cancellationToken)
+        {
+            string content = await response.Content.ReadAsStringAsync();
+            cancellationToken.ThrowIfCancellationRequested();
+
+            var json = JObject.Parse(content);
+
+            if (json["success"]?.ToObject<bool>() != true)
+                throw new InvalidOperationException("SteamGridDB returned success=false.");
+
+            return json["data"] as JArray;
         }
 
         public void Dispose()
         {
-            _apiClient.Dispose();
+            _workerClient.Dispose();
+            _directApiClient.Dispose();
             _imageClient.Dispose();
         }
     }

@@ -23,8 +23,6 @@ namespace EZ2Play.App
 {
     public partial class ParserOverlay : UserControl, IDisposable
     {
-        private const string ApiKey = "";
-
         private const int GridColumns = 4;
         private const int BackgroundColumns = 2;
         private const int MaxGames = 15;
@@ -87,7 +85,8 @@ namespace EZ2Play.App
 
         private bool ConfigureApiAuthorization()
         {
-            return _steamGridDbClient.ConfigureAuthorization(ApiKey, _config?.SteamGridDbApiKey);
+            _steamGridDbClient.ConfigureFallbackAuthorization(_config?.SteamGridDbApiKey);
+            return true;
         }
 
         private bool IsCurrentSession(CancellationToken cancellationToken)
