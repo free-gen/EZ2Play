@@ -127,11 +127,23 @@ Backgrounds:
 
 If no custom background exists, EZ2Play displays the animated particle background.
 
-## SteamGridDB API Key
+## SteamGridDB API Access
 
-EZ2Play first uses its configured application API key and falls back to:
+EZ2Play normally accesses SteamGridDB through the project's Cloudflare Worker proxy.
 
+The SteamGridDB API key is stored as a Cloudflare Worker secret and is not embedded in the public source code or distributed with the application.
+
+Normal request flow:
+
+```text
+EZ2Play
+  -> Cloudflare Worker
+  -> SteamGridDB
 ```
+
+If the Worker is unavailable, EZ2Play can fall back to a personal SteamGridDB API key configured in:
+
+```text
 %APPDATA%\EZ2Play\config.json
 ```
 
@@ -143,7 +155,9 @@ Example:
 }
 ```
 
-If no valid key is available, the artwork browser displays a localized configuration error.
+The local API key is optional and is only used as a fallback for direct SteamGridDB requests.
+
+If both the Worker and the configured fallback key are unavailable, the artwork browser reports a connection or configuration error.
 
 ## Custom Game Source
 
@@ -274,7 +288,7 @@ Playtime is intentionally approximate. EZ2Play does not track the complete Steam
 - .NET Framework 4.7.2 or compatible newer .NET Framework 4.x runtime
 - XInput-compatible controller for gamepad features
 - Windows 11 24H2 or later for the gamepad on-screen keyboard used by manual artwork search
-- Internet connection for SteamGridDB artwork search
+- Internet connection for SteamGridDB artwork search and Cloudflare Worker access
 
 ## Build from Source
 
