@@ -24,13 +24,13 @@ namespace EZ2Play.App
         public SteamGridDbClient()
         {
             _workerClient = new HttpClient();
-            _workerClient.DefaultRequestHeaders.UserAgent.ParseAdd("EZ2Play/1.1");
+            _workerClient.DefaultRequestHeaders.UserAgent.ParseAdd(AppInfo.Name + "/" + AppInfo.Version);
 
             _directApiClient = new HttpClient();
-            _directApiClient.DefaultRequestHeaders.UserAgent.ParseAdd("EZ2Play/1.1");
+            _directApiClient.DefaultRequestHeaders.UserAgent.ParseAdd(AppInfo.Name + "/" + AppInfo.Version);
 
             _imageClient = new HttpClient();
-            _imageClient.DefaultRequestHeaders.UserAgent.ParseAdd("EZ2Play/1.1");
+            _imageClient.DefaultRequestHeaders.UserAgent.ParseAdd(AppInfo.Name + "/" + AppInfo.Version);
         }
 
         public void ConfigureFallbackAuthorization(string fallbackApiKey)
