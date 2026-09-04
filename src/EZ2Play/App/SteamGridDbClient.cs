@@ -12,7 +12,7 @@ namespace EZ2Play.App
 {
     internal sealed class SteamGridDbClient : IDisposable
     {
-        private const string WorkerBaseUrl = "https://ez2play.helios-kms.workers.dev/api/v2";
+        private const string WorkerBaseUrl = "https://ez2play.free-gen.workers.dev/api/v2";
         private const string DirectBaseUrl = "https://www.steamgriddb.com/api/v2";
 
         private readonly HttpClient _workerClient;
