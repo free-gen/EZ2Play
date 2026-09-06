@@ -72,9 +72,9 @@ namespace EZ2Play.App
             _splash = new SplashScreen(logo, overlay, mainScreen);
         }
 
-        public void InitializeNotifications(Border NotificationPanel, TextBlock NotificationIcon, TextBlock NotificationText)
+        public void InitializeNotifications(Border NotificationPanel, TextBlock NotificationIcon, TextBlock NotificationText, Sound sound)
         {
-            Notifications.Initialize(NotificationPanel, NotificationIcon, NotificationText);
+            Notifications.Initialize(NotificationPanel, NotificationIcon, NotificationText, sound);
         }
 
         public void InitializeClock()
@@ -258,7 +258,7 @@ namespace EZ2Play.App
             }
         }
 
-        public void TransitionBackgroundForShortcut(string shortcutPath)
+        public void TransitionBackgroundForShortcut(string shortcutPath, int direction = 0)
         {
             if (BackgroundImage == null) return;
 
@@ -269,7 +269,7 @@ namespace EZ2Play.App
 
             if (hasCurrentBackground && hasNextBackground)
             {
-                CrossfadeBackground(nextBitmap);
+                CrossfadeBackground(nextBitmap, direction);
                 return;
             }
 
@@ -289,7 +289,7 @@ namespace EZ2Play.App
             _particlesCanvas?.SetParticlesVisible(true, true, BackgroundTransitionDuration);
         }
 
-        private void CrossfadeBackground(BitmapImage nextBitmap)
+        private void CrossfadeBackground(BitmapImage nextBitmap, int direction)
         {
             if (BackgroundPreviousImage == null)
             {
@@ -297,6 +297,12 @@ namespace EZ2Play.App
                 ShowBackground(true);
                 return;
             }
+
+            BackgroundImage.BeginAnimation(Canvas.LeftProperty, null);
+            BackgroundPreviousImage.BeginAnimation(Canvas.LeftProperty, null);
+
+            Canvas.SetLeft(BackgroundImage, 0);
+            Canvas.SetLeft(BackgroundPreviousImage, 0);
 
             double previousOpacity = BackgroundImage.Opacity;
             double previousX = BackgroundTranslate?.X ?? 0;
@@ -340,7 +346,36 @@ namespace EZ2Play.App
                 EasingFunction = new CubicEase { EasingMode = EasingMode.EaseInOut }
             };
 
+            double slide =
+                (double)BackgroundViewport.FindResource(UiScaleKeys.BackgroundTransitionSlide)
+                * Math.Sign(direction);
+
+            var previousSlide = new DoubleAnimation
+            {
+                From = 0,
+                To = -slide,
+                Duration = TimeSpan.FromSeconds(BackgroundTransitionDuration),
+                EasingFunction = new CubicEase { EasingMode = EasingMode.EaseInOut }
+            };
+
+            var nextSlide = new DoubleAnimation
+            {
+                From = slide,
+                To = 0,
+                Duration = TimeSpan.FromSeconds(BackgroundTransitionDuration),
+                EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut }
+            };
+
             fadeOut.Completed += (s, e) => ClearPreviousBackground();
+
+            fadeIn.Completed += (s, e) =>
+            {
+                BackgroundImage.BeginAnimation(Canvas.LeftProperty, null);
+                Canvas.SetLeft(BackgroundImage, 0);
+            };
+
+            BackgroundPreviousImage.BeginAnimation(Canvas.LeftProperty, previousSlide);
+            BackgroundImage.BeginAnimation(Canvas.LeftProperty, nextSlide);
 
             BackgroundPreviousImage.BeginAnimation(UIElement.OpacityProperty, fadeOut);
             BackgroundImage.BeginAnimation(UIElement.OpacityProperty, fadeIn);
@@ -421,9 +456,13 @@ namespace EZ2Play.App
             if (BackgroundPreviousImage == null) return;
 
             BackgroundPreviousImage.BeginAnimation(UIElement.OpacityProperty, null);
+            BackgroundPreviousImage.BeginAnimation(Canvas.LeftProperty, null);
+
             BackgroundPreviousImage.Source = null;
             BackgroundPreviousImage.Visibility = Visibility.Collapsed;
             BackgroundPreviousImage.Opacity = 0;
+
+            Canvas.SetLeft(BackgroundPreviousImage, 0);
 
             if (BackgroundPreviousTranslate != null)
                 BackgroundPreviousTranslate.X = 0;

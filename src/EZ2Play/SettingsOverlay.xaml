@@ -3,7 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:app="clr-namespace:EZ2Play.App"
              xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
-             Background="{DynamicResource SmokeFillColorDefaultBrush}">
+             Background="{DynamicResource OverlayBackdropBrush}">
     
     <UserControl.Resources>
         <Style TargetType="TextBlock">
@@ -334,9 +334,9 @@
                                     Style="{StaticResource SettingsItemDescriptionStyle}"/>
                         </StackPanel>
 
-                        <TextBlock Grid.Column="2" 
-                        VerticalAlignment="Center"
+                        <TextBlock Grid.Column="2"
                         HorizontalAlignment="Right"
+                        VerticalAlignment="Center"
                         Foreground="{DynamicResource ControlStrongStrokeColorDefaultBrush}" 
                         FontSize="{DynamicResource {x:Static app:UiScaleKeys.OverlaySecondaryFontSize}}"
                         FontFamily="Xbox Fluent">&#xE3B2;</TextBlock>
@@ -353,8 +353,7 @@
                         </Grid.ColumnDefinitions>
 
                         <TextBlock Grid.Column="1" 
-                        x:Name="SettingsExitAppLabel" 
-                        VerticalAlignment="Center"
+                        x:Name="SettingsExitAppLabel"
                         Margin="{DynamicResource {x:Static app:UiScaleKeys.SettingsOverlayLabelTreeMargin}}"/>
                     </Grid>
                 </ListBoxItem>
@@ -362,71 +361,95 @@
             </ListBox>
 
             <!-- Exit Confirmation -->
-            <ListBox x:Name="ExitConfirmationListBox"
-                    Grid.Row="1"
-                    Visibility="Collapsed"
-                    FontSize="{DynamicResource {x:Static app:UiScaleKeys.OverlayPrimaryFontSize}}"
-                    FontWeight="400"
-                    HorizontalContentAlignment="Stretch"
-                    VerticalAlignment="Center"
-                    Background="Transparent"
-                    BorderThickness="0">
+            <Grid Grid.Row="1">
 
-                <ListBox.ItemContainerStyle>
-                    <Style TargetType="ListBoxItem">
-                        <Setter Property="Padding"
-                                Value="{DynamicResource {x:Static app:UiScaleKeys.SettingsOverlayItemPadding}}"/>
-                        <Setter Property="Background" Value="Transparent"/>
-                        <Setter Property="BorderBrush" Value="Transparent"/>
+                <ListBox x:Name="ExitConfirmationListBox"
+                        Visibility="Collapsed"
+                        FontSize="{DynamicResource {x:Static app:UiScaleKeys.OverlayPrimaryFontSize}}"
+                        FontWeight="600"
+                        HorizontalContentAlignment="Stretch"
+                        VerticalAlignment="Center"
+                        Background="Transparent"
+                        BorderThickness="0">
 
-                        <Setter Property="Template">
-                            <Setter.Value>
-                                <ControlTemplate TargetType="ListBoxItem">
-                                    <Grid>
-                                        <Border x:Name="SelectionBorder"
-                                                Style="{StaticResource OverlaySelectionBorderStyle}">
-                                            <Border x:Name="SelectionBackground"
-                                                    Style="{StaticResource OverlaySelectionBackgroundStyle}"/>
-                                        </Border>
+                    <ListBox.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <UniformGrid Columns="2" Rows="1"/>
+                        </ItemsPanelTemplate>
+                    </ListBox.ItemsPanel>
 
-                                        <Border Padding="{TemplateBinding Padding}"
-                                                Background="Transparent">
-                                            <ContentPresenter VerticalAlignment="Center"/>
-                                        </Border>
-                                    </Grid>
+                    <ListBox.ItemContainerStyle>
+                        <Style TargetType="ListBoxItem">
+                            <Setter Property="Padding"
+                                    Value="{DynamicResource {x:Static app:UiScaleKeys.SettingsOverlayItemPadding}}"/>
+                            <Setter Property="Background" Value="Transparent"/>
+                            <Setter Property="BorderBrush" Value="Transparent"/>
 
-                                    <ControlTemplate.Triggers>
-                                        <Trigger Property="IsSelected" Value="True">
-                                            <Setter TargetName="SelectionBorder" Property="BorderBrush" Value="{DynamicResource OverlaySelectionBorderBrush}"/>
-                                            <Setter TargetName="SelectionBackground" Property="Background" Value="{DynamicResource OverlaySelectionBackgroundBrush}"/>
-                                        </Trigger>
-                                    </ControlTemplate.Triggers>
-                                </ControlTemplate>
-                            </Setter.Value>
-                        </Setter>
-                    </Style>
-                </ListBox.ItemContainerStyle>
+                            <Setter Property="Template">
+                                <Setter.Value>
+                                    <ControlTemplate TargetType="ListBoxItem">
+                                        <Grid>
+                                            <Border x:Name="SelectionBorder"
+                                                    Style="{StaticResource OverlaySelectionBorderStyle}">
+                                                <Border x:Name="SelectionBackground"
+                                                        Style="{StaticResource OverlaySelectionBackgroundStyle}"/>
+                                            </Border>
 
-                <ListBoxItem x:Name="ConfirmYesItem">
-                    <TextBlock x:Name="ConfirmYes"
-                            HorizontalAlignment="Center"
-                            VerticalAlignment="Center"/>
-                </ListBoxItem>
+                                            <Border Padding="{TemplateBinding Padding}"
+                                                    Background="Transparent">
+                                                <ContentPresenter VerticalAlignment="Center"/>
+                                            </Border>
+                                        </Grid>
 
-                <ListBoxItem x:Name="ConfirmNoItem">
-                    <TextBlock x:Name="ConfirmNo"
-                            HorizontalAlignment="Center"
-                            VerticalAlignment="Center"/>
-                </ListBoxItem>
+                                        <ControlTemplate.Triggers>
+                                            <Trigger Property="IsSelected" Value="True">
+                                                <Setter TargetName="SelectionBorder"
+                                                        Property="BorderBrush"
+                                                        Value="{DynamicResource OverlaySelectionBorderBrush}"/>
+                                                <Setter TargetName="SelectionBackground"
+                                                        Property="Background"
+                                                        Value="{DynamicResource OverlaySelectionBackgroundBrush}"/>
+                                            </Trigger>
+                                        </ControlTemplate.Triggers>
+                                    </ControlTemplate>
+                                </Setter.Value>
+                            </Setter>
+                        </Style>
+                    </ListBox.ItemContainerStyle>
 
-            </ListBox>
+                    <ListBoxItem x:Name="ConfirmYesItem">
+                        <TextBlock x:Name="ConfirmYes"
+                                HorizontalAlignment="Center"/>
+                    </ListBoxItem>
+
+                    <ListBoxItem x:Name="ConfirmNoItem">
+                        <TextBlock x:Name="ConfirmNo"
+                                HorizontalAlignment="Center"/>
+                    </ListBoxItem>
+
+                </ListBox>
+
+                <!-- Top divider -->
+                <Border Height="{DynamicResource {x:Static app:UiScaleKeys.SettingsOverlayDividerHeight}}"
+                        Background="{DynamicResource DividerStrokeColorDefaultBrush}"
+                        VerticalAlignment="Top"
+                        Visibility="{Binding Visibility, ElementName=ExitConfirmationListBox}"
+                        IsHitTestVisible="False"/>
+
+                <!-- Bottom divider -->
+                <Border Height="{DynamicResource {x:Static app:UiScaleKeys.SettingsOverlayDividerHeight}}"
+                        Background="{DynamicResource DividerStrokeColorDefaultBrush}"
+                        VerticalAlignment="Bottom"
+                        Visibility="{Binding Visibility, ElementName=ExitConfirmationListBox}"
+                        IsHitTestVisible="False"/>
+
+            </Grid>
 
             <!-- AppInfo -->
             <TextBlock Grid.Row="2"
                        FontSize="{DynamicResource {x:Static app:UiScaleKeys.SettingsOverlayDescFontSize}}"
                        Foreground="{DynamicResource TextFillColorDisabledBrush}"
                        HorizontalAlignment="Center"
-                       VerticalAlignment="Center"
                        Margin="{DynamicResource {x:Static app:UiScaleKeys.SettingsOverlayAppInfoMargin}}">
                 <Run Text="{x:Static app:AppInfo.Description}"/>
                 <Run Text="v"/><Run Text="{x:Static app:AppInfo.Version}"/>

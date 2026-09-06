@@ -324,7 +324,7 @@ namespace EZ2Play.App
             {
                 if (_mode == ParserMode.Covers) return;
 
-                _mainWindow.GetSound()?.PlayMoveSound();
+                _mainWindow.GetSound()?.PlayTabSound();
 
                 _mode = ParserMode.Covers;
                 UpdateAssetTabs();
@@ -336,7 +336,7 @@ namespace EZ2Play.App
             {
                 if (_mode == ParserMode.Backgrounds) return;
 
-                _mainWindow.GetSound()?.PlayMoveSound();
+                _mainWindow.GetSound()?.PlayTabSound();
 
                 _mode = ParserMode.Backgrounds;
                 UpdateAssetTabs();

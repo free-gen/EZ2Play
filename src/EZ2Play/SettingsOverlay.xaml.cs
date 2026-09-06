@@ -274,14 +274,13 @@ namespace EZ2Play.App
         {            
             if (_exitConfirmationMode)
             {
-                if (isHorizontal) return;
+                if (!isHorizontal) return;
 
                 int newIndex = ExitConfirmationListBox.SelectedIndex + direction;
 
                 if (newIndex >= 0 && newIndex < ExitConfirmationListBox.Items.Count)
                 {
                     ExitConfirmationListBox.SelectedIndex = newIndex;
-                    ExitConfirmationListBox.ScrollIntoView(ExitConfirmationListBox.SelectedItem);
                     _mainWindow.GetSound()?.PlayMoveSound();
                 }
 

@@ -101,6 +101,8 @@ namespace EZ2Play.App
         private const string ResMove = "EZ2Play.Assets.Focus.mp3";
         private const string ResLaunch = "EZ2Play.Assets.Invoke.mp3";
         private const string ResBack = "EZ2Play.Assets.Back.mp3";
+        private const string ResEvent = "EZ2Play.Assets.Event.mp3";
+        private const string ResTab = "EZ2Play.Assets.Tab.mp3";
         private const string ResMenu = "EZ2Play.Assets.Ambient.mp3";
 
         private const int MaxSfxVoices = 3;
@@ -108,6 +110,8 @@ namespace EZ2Play.App
         private byte[] _moveData;
         private byte[] _launchData;
         private byte[] _backData;
+        private byte[] _eventData;
+        private byte[] _tabData;
 
         private readonly object _sfxLock = new object();
         private readonly List<SfxVoice> _sfxVoices = new List<SfxVoice>();
@@ -137,6 +141,8 @@ namespace EZ2Play.App
                 _moveData = LoadSoundBytes(ResMove, "Focus.mp3");
                 _launchData = LoadSoundBytes(ResLaunch, "Invoke.mp3");
                 _backData = LoadSoundBytes(ResBack, "Back.mp3");
+                _eventData = LoadSoundBytes(ResEvent, "Event.mp3");
+                _tabData = LoadSoundBytes(ResTab, "Tab.mp3");
             }
 
             catch
@@ -201,6 +207,8 @@ namespace EZ2Play.App
         public void PlayMoveSound() => PlaySfx(_moveData);
         public void PlayLaunchSound() => PlaySfx(_launchData);
         public void PlayBackSound() => PlaySfx(_backData);
+        public void PlayEventSound() => PlaySfx(_eventData);
+        public void PlayTabSound() => PlaySfx(_tabData);
 
         private void PlaySfx(byte[] data)
         {
@@ -484,6 +492,8 @@ namespace EZ2Play.App
             _moveData = null;
             _launchData = null;
             _backData = null;
+            _eventData = null;
+            _tabData = null;
 
             _backgroundPlayer?.Stop();
             _backgroundPlayer?.Dispose();

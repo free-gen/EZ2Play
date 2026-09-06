@@ -11,10 +11,10 @@
     <Product>EZ2Play Game Launcher</Product>
     <AppName>EZ2Play</AppName>
     <AppDescription>EZ2Play Game Launcher</AppDescription>
-    <Version>1.2.0</Version>
-    <AssemblyVersion>1.2.0</AssemblyVersion>
-    <FileVersion>1.2.0</FileVersion>
-    <InformationalVersion>1.2.0</InformationalVersion>
+    <Version>1.2.2</Version>
+    <AssemblyVersion>1.2.2</AssemblyVersion>
+    <FileVersion>1.2.2</FileVersion>
+    <InformationalVersion>1.2.2</InformationalVersion>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -29,12 +29,6 @@
   </PropertyGroup>
   
   <ItemGroup>
-    <PackageReference Include="NAudio" Version="2.2.1" />
-    <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
-    <PackageReference Include="Microsoft.Windows.SDK.Contracts" Version="10.0.26100.4948" />
-    <PackageReference Include="SharpDX.XInput" Version="4.2.0" />
-    <PackageReference Include="WPF-UI" Version="4.2.0" />
-
     <PackageReference Include="Fody" Version="6.8.2">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -43,6 +37,12 @@
     <PackageReference Include="Costura.Fody" Version="5.7.0">
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
+
+    <PackageReference Include="NAudio" Version="2.2.1" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
+    <PackageReference Include="Microsoft.Windows.SDK.Contracts" Version="10.0.26100.4948" />
+    <PackageReference Include="SharpDX.XInput" Version="4.2.0" />
+    <PackageReference Include="WPF-UI" Version="4.2.0" />
 
     <Reference Include="System.Drawing" />
     <Reference Include="System.Net.Http" />
@@ -55,6 +55,8 @@
     <EmbeddedResource Include="Assets/Focus.mp3" />
     <EmbeddedResource Include="Assets/Invoke.mp3" />
     <EmbeddedResource Include="Assets/Back.mp3" />
+    <EmbeddedResource Include="Assets/Event.mp3" />
+    <EmbeddedResource Include="Assets/Tab.mp3" />
     <EmbeddedResource Include="Assets/Ambient.mp3" />
 
     <Resource Include="Assets/Manrope-VariableFont_wght.ttf" />

@@ -29,6 +29,8 @@ namespace EZ2Play
 
         private DispatcherTimer _activityTimer;
         private DispatcherTimer _backgroundRefreshTimer;
+        private string _displayedBackgroundShortcutPath;
+        private int _backgroundTransitionDirection;
         private bool _isMainScreenActive = false;
         private bool _wasActive;
         private bool _isEmptyState;
@@ -60,13 +62,18 @@ namespace EZ2Play
 
             if (_isMainScreenActive && SystemProvider.IsForeground())
             {
-                _uiRegistry.TransitionBackgroundForShortcut(shortcut.FullPath);
+                _uiRegistry.TransitionBackgroundForShortcut(
+                    shortcut.FullPath,
+                    _backgroundTransitionDirection);
             }
 
             else
             {
                 _uiRegistry.LoadBackgroundForShortcut(shortcut.FullPath);
             }
+
+            _displayedBackgroundShortcutPath = shortcut.FullPath;
+            _backgroundTransitionDirection = 0;
         }
 
         public void ShowLoadingUI(bool show)
@@ -156,7 +163,7 @@ namespace EZ2Play
             };
 
             _uiRegistry.InitializeSplash(SplashLogo, SplashOverlay, MainScreenGrid);
-            _uiRegistry.InitializeNotifications(NotificationPanel, NotificationIcon, NotificationText);
+            _uiRegistry.InitializeNotifications(NotificationPanel, NotificationIcon, NotificationText, _sound);
             _uiRegistry.CarouselWrapper = FindName("CarouselWrapper") as System.Windows.Controls.Grid;
             _uiRegistry.SetParticlesCanvas(_particlesCanvas);
             _uiRegistry.InitializeLoadingRing(FindName("LoadingProgress") as Wpf.Ui.Controls.ProgressRing);
@@ -182,7 +189,7 @@ namespace EZ2Play
             _activityTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(300) };
             _activityTimer.Tick += CheckAppActivity;
 
-            _backgroundRefreshTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(500) };
+            _backgroundRefreshTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(300) };
             _backgroundRefreshTimer.Tick += BackgroundRefreshTimer_Tick;
 
             ItemsListBox.ItemContainerGenerator.StatusChanged += ItemContainerGenerator_StatusChanged;
@@ -201,6 +208,12 @@ namespace EZ2Play
             _backgroundRefreshTimer.Stop();
 
             if (!_isMainScreenActive || _isEmptyState) return;
+            if (_launcher == null || _launcher.Shortcuts.Length == 0 || _launcher.SelectedIndex < 0) return;
+
+            string selectedShortcutPath = _launcher.Shortcuts[_launcher.SelectedIndex].FullPath;
+
+            if (string.Equals(selectedShortcutPath, _displayedBackgroundShortcutPath, StringComparison.OrdinalIgnoreCase))
+                return;
 
             RefreshSelectedBackground();
         }
@@ -266,7 +279,11 @@ namespace EZ2Play
 
         private void SetupInputEvents()
         {
-            _inputHandler.OnMoveSelection += _launcher.MoveSelection;
+            _inputHandler.OnMoveSelection += direction =>
+            {
+                _backgroundTransitionDirection = Math.Sign(direction);
+                _launcher.MoveSelection(direction);
+            };
 
             _inputHandler.OnLaunchSelected += () =>
             {
@@ -310,7 +327,7 @@ namespace EZ2Play
         {
             if (_isTabSwitching || _currentTab == TabType.Gamelist) return;
 
-            _sound?.PlayMoveSound();
+            _sound?.PlayTabSound();
             _isTabSwitching = true;
 
             try
@@ -338,7 +355,7 @@ namespace EZ2Play
         {
             if (_isTabSwitching || _currentTab == TabType.LastPlayed) return;
 
-            _sound?.PlayMoveSound();
+            _sound?.PlayTabSound();
             _isTabSwitching = true;
 
             try

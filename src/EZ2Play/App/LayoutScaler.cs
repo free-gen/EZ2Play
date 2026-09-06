@@ -42,6 +42,8 @@ namespace EZ2Play.App
             // Shared
             target[UiScaleKeys.BaseCornerRadius] = new CornerRadius(s(8));
 
+            target[UiScaleKeys.BackgroundTransitionSlide] = s(16);
+
             // Overlay
             target[UiScaleKeys.OverlayWidth] = s(1280);
             target[UiScaleKeys.OverlayBorderThickness] = new Thickness(s(2));
@@ -185,6 +187,8 @@ namespace EZ2Play.App
         // Shared
 
         public const string BaseCornerRadius = "BaseCornerRadius";
+
+        public const string BackgroundTransitionSlide = "BackgroundTransitionSlide";
 
         // Overlay
         public const string OverlayWidth = "OverlayWidth";

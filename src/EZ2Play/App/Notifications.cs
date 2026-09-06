@@ -14,16 +14,18 @@ namespace EZ2Play.App
         private Border _NotificationPanel;
         private TextBlock _NotificationIcon;
         private TextBlock _NotificationText;
+        private Sound _sound;
 
         private readonly Queue<Action> _queue = new Queue<Action>();
         private bool _running;
 
         // Initialize UI elements after they are resolved by UIRegistry.
-        public void Initialize(Border NotificationPanel, TextBlock NotificationIcon, TextBlock NotificationText)
+        public void Initialize(Border NotificationPanel, TextBlock NotificationIcon, TextBlock NotificationText, Sound sound)
         {
             _NotificationPanel = NotificationPanel;
             _NotificationIcon = NotificationIcon;
             _NotificationText = NotificationText;
+            _sound = sound;
         }
 
         private void Enqueue(Action action)
@@ -88,6 +90,8 @@ namespace EZ2Play.App
 
             void FadeIn()
             {
+                _sound?.PlayEventSound();
+                
                 var anim = new DoubleAnimation
                 {
                     From = 0,

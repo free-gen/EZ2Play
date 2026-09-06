@@ -169,14 +169,12 @@
                         <StackPanel Orientation="Horizontal">
                             <TextBlock x:Name="NotificationIcon"
                                         FontSize="{DynamicResource {x:Static app:UiScaleKeys.NotificationPanelIconSize}}"
-                                        VerticalAlignment="Center"
                                         Margin="{DynamicResource {x:Static app:UiScaleKeys.NotificationPanelMargin}}"
                                         FontFamily="/Assets/#Xbox Fluent"/>
                             <TextBlock  x:Name="NotificationText"
                                         Style="{StaticResource BasicCardTextStyle}"
                                         MaxWidth="{DynamicResource {x:Static app:UiScaleKeys.NotificationPanelMaxWidth}}"
                                         FontSize="{DynamicResource {x:Static app:UiScaleKeys.NotificationPanelFontSize}}"
-                                        VerticalAlignment="Center"
                                         TextWrapping="Wrap"/>
                         </StackPanel>
                     </app:DitheredGradientBorder>
@@ -192,7 +190,6 @@
                     <!-- Time -->
                     <TextBlock x:Name="TimeLabelText" Grid.Column="4"
                                HorizontalAlignment="Right"
-                               VerticalAlignment="Center"
                                Effect="{StaticResource TextShadowEffect}"
                                FontSize="{DynamicResource {x:Static app:UiScaleKeys.TopInfoPrimalyFontSize}}"
                                FontWeight="SemiBold"/>
@@ -271,7 +268,6 @@
 
                                 <StackPanel Orientation="Horizontal">
                                     <TextBlock  FontSize="{DynamicResource {x:Static app:UiScaleKeys.CounterCardIconSize}}"
-                                                VerticalAlignment="Center" 
                                                 Margin="{DynamicResource {x:Static app:UiScaleKeys.CounterCardIconMargin}}"
                                                 FontFamily="/Assets/#Xbox Fluent">&#xE7FB;</TextBlock><!-- E7FB -->
                                     
