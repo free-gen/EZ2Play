@@ -5,6 +5,7 @@ using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
 using System.Windows.Media.Imaging;
+using System.Windows.Threading;
 
 namespace EZ2Play.App
 {
@@ -20,11 +21,15 @@ namespace EZ2Play.App
         private const double BackgroundPanSpeed = 5;
         private const double BackgroundPanEdgeZone = 50;
         private const double BackgroundTransitionDuration = 0.5;
+        private const int BackgroundPanStartDelayMs = 1000;
+        private const double BackgroundPanRampDuration = 1.0;
 
         private double _panOverflow;
         private double _panPosition;
         private double _panDirection = 1;
         private TimeSpan _panLastRenderTime;
+        private double _panRampElapsed;
+        private readonly DispatcherTimer _panStartTimer;
 
         private TranslateTransform ImageTranslate => _image?.RenderTransform as TranslateTransform;
         private TranslateTransform PreviousTranslate => _previousImage?.RenderTransform as TranslateTransform;
@@ -41,6 +46,13 @@ namespace EZ2Play.App
             _previousImage = previousImage;
             _image = image;
             _particles = particles;
+
+            _panStartTimer = new DispatcherTimer
+            {
+                Interval = TimeSpan.FromMilliseconds(BackgroundPanStartDelayMs)
+            };
+
+            _panStartTimer.Tick += PanStartTimer_Tick;
         }
 
         public bool Load(string shortcutPath)
@@ -346,15 +358,32 @@ namespace EZ2Play.App
 
             ImageTranslate.X = -_panPosition;
 
+            _panStartTimer.Stop();
+            _panStartTimer.Start();
+        }
+
+        private void PanStartTimer_Tick(object sender, EventArgs e)
+        {
+            _panStartTimer.Stop();
+
+            if (_panOverflow <= 0 || ImageTranslate == null)
+                return;
+
+            _panLastRenderTime = TimeSpan.Zero;
+            _panRampElapsed = 0;
+
+            CompositionTarget.Rendering -= Pan_Rendering;
             CompositionTarget.Rendering += Pan_Rendering;
         }
 
         private void StopPan()
         {
+            _panStartTimer.Stop();
             CompositionTarget.Rendering -= Pan_Rendering;
 
             _panOverflow = 0;
             _panLastRenderTime = TimeSpan.Zero;
+            _panRampElapsed = 0;
 
             if (ImageTranslate != null)
                 ImageTranslate.X = 0;
@@ -384,7 +413,12 @@ namespace EZ2Play.App
 
             double edgeFactor = Math.Min(1.0, Math.Max(0.08, distanceToEdge / BackgroundPanEdgeZone));
 
-            _panPosition += BackgroundPanSpeed * edgeFactor * _panDirection * delta;
+            _panRampElapsed = Math.Min(BackgroundPanRampDuration, _panRampElapsed + delta);
+
+            double rampProgress = _panRampElapsed / BackgroundPanRampDuration;
+            double rampFactor = rampProgress * rampProgress * (3.0 - 2.0 * rampProgress);
+
+            _panPosition += BackgroundPanSpeed * edgeFactor * rampFactor * _panDirection * delta;
 
             if (_panPosition >= _panOverflow)
             {
@@ -441,6 +475,7 @@ namespace EZ2Play.App
         public void Dispose()
         {
             StopPan();
+            _panStartTimer.Tick -= PanStartTimer_Tick;
         }
     }
 }
