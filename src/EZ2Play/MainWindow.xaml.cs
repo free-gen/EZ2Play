@@ -136,14 +136,10 @@ namespace EZ2Play
         {
             _uiRegistry = new UIRegistry
             {
-                TabGamelistText = FindName("TabGamelistText") as System.Windows.Controls.TextBlock,
-                TabLastPlayedText = FindName("TabLastPlayedText") as System.Windows.Controls.TextBlock,
                 TimeLabel = FindName("TimeLabelText") as System.Windows.Controls.TextBlock,
                 UserAvatar = FindName("UserAvatar") as System.Windows.Controls.Image,
-                TopPanel = FindName("TopPanel") as System.Windows.Controls.Grid,
                 NoShortcutsMessage = FindName("NoShortcutsMessage") as System.Windows.Controls.TextBlock,
                 SelectedGameTitle = FindName("SelectedGameTitle") as System.Windows.Controls.TextBlock,
-                GameSourceCard = FindName("GameSourceCard") as System.Windows.Controls.Border,
                 SplashLogo = FindName("SplashLogo") as System.Windows.Controls.Image,
                 SplashOverlay = FindName("SplashOverlay") as System.Windows.Controls.Grid,
                 MainScreenGrid = FindName("MainScreenGrid") as System.Windows.Controls.Grid,
@@ -154,12 +150,10 @@ namespace EZ2Play
                 NotificationText = FindName("NotificationText") as System.Windows.Controls.TextBlock,
                 GameCounterText = FindName("GameCounterText") as System.Windows.Controls.TextBlock,
                 GameCounterCard = FindName("GameCounterCard") as System.Windows.Controls.Border,
-                ItemsListBox = ItemsListBox
             };
 
             _uiRegistry.InitializeSplash(SplashLogo, SplashOverlay, MainScreenGrid);
             _uiRegistry.InitializeNotifications(NotificationPanel, NotificationIcon, NotificationText, _sound);
-            _uiRegistry.CarouselWrapper = FindName("CarouselWrapper") as System.Windows.Controls.Grid;
             _uiRegistry.InitializeLoadingRing(FindName("LoadingProgress") as Wpf.Ui.Controls.ProgressRing);
             _backgroundController = new BackgroundController(
                 FindName("BackgroundViewport") as Grid,
@@ -174,9 +168,9 @@ namespace EZ2Play
             _metadata = _launcher.Playtime;
 
             _tabsController = new TabsController(
-                _uiRegistry.TabGamelistText,
-                _uiRegistry.TabLastPlayedText,
-                _uiRegistry.CarouselWrapper,
+                FindName("TabGamelistText") as System.Windows.Controls.TextBlock,
+                FindName("TabLastPlayedText") as System.Windows.Controls.TextBlock,
+                FindName("CarouselWrapper") as Grid,
                 Dispatcher,
                 _launcher,
                 _sound,

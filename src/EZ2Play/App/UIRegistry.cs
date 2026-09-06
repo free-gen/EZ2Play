@@ -14,10 +14,6 @@ namespace EZ2Play.App
         public TextBlock NoShortcutsMessage { get; set; }
         public TextBlock ExitMessageText { get; set; }
 
-        public Grid TopPanel { get; set; }
-
-        public TextBlock TabGamelistText { get; set; }
-        public TextBlock TabLastPlayedText { get; set; }
 
         public Border NotificationPanel { get; set; }
         public TextBlock NotificationIcon { get; set; }
@@ -27,13 +23,10 @@ namespace EZ2Play.App
         public Image UserAvatar { get; set; }
         public TextBlock TimeLabel { get; set; }
 
-        public Border GameSourceCard { get; set; }
         public Grid MainScreenGrid { get; set; }
         public TextBlock SelectedGameTitle { get; set; }
         public Border GameCounterCard { get; set; }
         public TextBlock GameCounterText { get; set; }
-        public ListBox ItemsListBox { get; set; }
-        public Grid CarouselWrapper { get; set; }
 
         public HintPanel BottomHintPanel { get; set; }
 
