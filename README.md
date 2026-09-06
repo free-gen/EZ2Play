@@ -21,7 +21,7 @@ Instead of scanning Steam, Epic Games or installed applications, EZ2Play uses st
 - **Square game covers**
 - **Per-game background images**
 - **Animated particle fallback** for games without backgrounds
-- **Smooth background crossfade and horizontal pan**
+- **Directional background transitions with delayed smooth horizontal pan**
 - **Custom PNG / JPG / JPEG artwork**
 - **Quick display switching**
 - **HotSwap mode** for monitor / TV setups
@@ -34,10 +34,11 @@ Instead of scanning Steam, Epic Games or installed applications, EZ2Play uses st
 
 ## Usage
 
-1. Download or build `EZ2Play.exe`.
-2. Run it from a writable folder.
-3. Put game shortcuts into the automatically created `shortcuts` folder.
-4. Optionally place `EZ2Play Helper.exe` next to the launcher for background Guide-button launching.
+1. Download the latest `EZ2Play.Game.Launcher.zip` release or build from source.
+2. Extract `EZ2Play.exe` and `EZ2Play Helper.exe` into a writable folder.
+3. Run it from a writable folder.
+4. Put game shortcuts into the automatically created `shortcuts` folder.
+5. Optionally place `EZ2Play Helper.exe` next to the launcher for background Guide-button launching.
 
 Example:
 
@@ -122,8 +123,9 @@ Backgrounds:
 
 - preserve their aspect ratio;
 - fit the viewport height;
-- slowly pan horizontally when wider than the screen;
-- crossfade when the selected game changes.
+- transition in the direction of carousel navigation;
+- pause briefly before horizontal movement begins;
+- smoothly accelerate into horizontal pan when wider than the screen.
 
 If no custom background exists, EZ2Play displays the animated particle background.
 
@@ -247,6 +249,8 @@ Logo.png
 Focus.mp3
 Invoke.mp3
 Back.mp3
+Tab.mp3
+Event.mp3
 Ambient.mp3
 ```
 
@@ -256,6 +260,8 @@ Ambient.mp3
 | `Focus.mp3` | Navigation / movement sound |
 | `Invoke.mp3` | Confirm / launch sound |
 | `Back.mp3` | Back sound |
+| `Tab.mp3` | Tab switching sound |
+| `Event.mp3` | Notification sound |
 | `Ambient.mp3` | Background music |
 
 Create a ZIP archive containing any of these files and rename it to:
