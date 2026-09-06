@@ -20,6 +20,8 @@ namespace EZ2Play
         private Display _display;
         private UIRegistry _uiRegistry;
         private Launcher _launcher;
+        private TabsController _tabsController;
+        private BackgroundController _backgroundController;
         private GuideExitHandler _guideHandler;
 
         private ParticlesCanvas _particlesCanvas;
@@ -36,10 +38,6 @@ namespace EZ2Play
         private bool _isEmptyState;
         private bool _hotSwapLaunch;
         private bool _isExiting;
-        private bool _isTabSwitching;
-
-        private enum TabType { Gamelist, LastPlayed }
-        private TabType _currentTab = TabType.Gamelist;
 
         private SettingsOverlay _settingsOverlay;
         private ParserOverlay _parserOverlay;
@@ -62,14 +60,14 @@ namespace EZ2Play
 
             if (_isMainScreenActive && SystemProvider.IsForeground())
             {
-                _uiRegistry.TransitionBackgroundForShortcut(
+                _backgroundController.TransitionTo(
                     shortcut.FullPath,
                     _backgroundTransitionDirection);
             }
 
             else
             {
-                _uiRegistry.LoadBackgroundForShortcut(shortcut.FullPath);
+                _backgroundController.Load(shortcut.FullPath);
             }
 
             _displayedBackgroundShortcutPath = shortcut.FullPath;
@@ -154,9 +152,6 @@ namespace EZ2Play
                 NotificationPanel = FindName("NotificationPanel") as System.Windows.Controls.Border,
                 NotificationIcon = FindName("NotificationIcon") as System.Windows.Controls.TextBlock,
                 NotificationText = FindName("NotificationText") as System.Windows.Controls.TextBlock,
-                BackgroundViewport = FindName("BackgroundViewport") as System.Windows.Controls.Grid,
-                BackgroundPreviousImage = FindName("BackgroundPreviousImage") as System.Windows.Controls.Image,
-                BackgroundImage = FindName("BackgroundImage") as System.Windows.Controls.Image,
                 GameCounterText = FindName("GameCounterText") as System.Windows.Controls.TextBlock,
                 GameCounterCard = FindName("GameCounterCard") as System.Windows.Controls.Border,
                 ItemsListBox = ItemsListBox
@@ -165,14 +160,27 @@ namespace EZ2Play
             _uiRegistry.InitializeSplash(SplashLogo, SplashOverlay, MainScreenGrid);
             _uiRegistry.InitializeNotifications(NotificationPanel, NotificationIcon, NotificationText, _sound);
             _uiRegistry.CarouselWrapper = FindName("CarouselWrapper") as System.Windows.Controls.Grid;
-            _uiRegistry.SetParticlesCanvas(_particlesCanvas);
             _uiRegistry.InitializeLoadingRing(FindName("LoadingProgress") as Wpf.Ui.Controls.ProgressRing);
+            _backgroundController = new BackgroundController(
+                FindName("BackgroundViewport") as Grid,
+                FindName("BackgroundPreviousImage") as System.Windows.Controls.Image,
+                FindName("BackgroundImage") as System.Windows.Controls.Image,
+                _particlesCanvas);
         }
 
         private void InitializeLauncher()
         {
             _launcher = new Launcher(ItemsListBox, _uiRegistry.SelectedGameTitle, this, _sound);
             _metadata = _launcher.Playtime;
+
+            _tabsController = new TabsController(
+                _uiRegistry.TabGamelistText,
+                _uiRegistry.TabLastPlayedText,
+                _uiRegistry.CarouselWrapper,
+                Dispatcher,
+                _launcher,
+                _sound,
+                () => ActualWidth);
 
             _launcher.SelectionChanged += _ => ScheduleBackgroundRefresh();
 
@@ -248,12 +256,12 @@ namespace EZ2Play
         {
             _sound.PlayBackgroundMusic(Sound.FadeDurationMs * 3);
             SystemProvider.HideCursor();
-            _uiRegistry.ShowBackground(true);
+            _backgroundController.Show(true);
 
             _metadata.Stop();
             UpdatePlaytimeUI();
 
-            if (_currentTab == TabType.LastPlayed)
+            if (_tabsController.IsLastPlayed)
             {
                 _launcher.SortByLastPlayed();
             }
@@ -264,7 +272,7 @@ namespace EZ2Play
             _sound.StopBackgroundMusicSafe(Sound.FadeDurationMs);
             _uiRegistry.ShowLoading(false);
             SystemProvider.ShowCursor();
-            _uiRegistry.ShowBackground(false);
+            _backgroundController.Show(false);
         }
 
         private void MainWindow_KeyDown(object sender, KeyEventArgs e)
@@ -292,8 +300,8 @@ namespace EZ2Play
                 _launcher.LaunchSelected();
             };
 
-            _inputHandler.OnSwitchToGamelist += SwitchToGamelist;
-            _inputHandler.OnSwitchToLastPlayed += SwitchToLastPlayed;
+            _inputHandler.OnSwitchToGamelist += _tabsController.SwitchToGamelist;
+            _inputHandler.OnSwitchToLastPlayed += _tabsController.SwitchToLastPlayed;
 
             _inputHandler.OnOpenSettings += () =>
             {
@@ -321,62 +329,6 @@ namespace EZ2Play
             _inputHandler.OnParserNavigateHorizontal += dir => _parserOverlay.NavigateHorizontal(dir);
             _inputHandler.OnParserNavigateVertical += dir => _parserOverlay.NavigateVertical(dir);
             _inputHandler.OnParserSwitchTab += dir => _parserOverlay.SwitchAssetTab(dir);
-        }
-
-        private async void SwitchToGamelist()
-        {
-            if (_isTabSwitching || _currentTab == TabType.Gamelist) return;
-
-            _sound?.PlayTabSound();
-            _isTabSwitching = true;
-
-            try
-            {
-                _currentTab = TabType.Gamelist;
-
-                TabsAnimation.AnimateTabText(_uiRegistry.TabGamelistText, true);
-                TabsAnimation.AnimateTabText(_uiRegistry.TabLastPlayedText, false);
-
-                await TabsAnimation.AnimateCarouselSwitch(
-                    _uiRegistry.CarouselWrapper,
-                    Dispatcher,
-                    ActualWidth,
-                    () => _launcher.SortDefault(),
-                    -1);
-            }
-
-            finally
-            {
-                _isTabSwitching = false;
-            }
-        }
-
-        private async void SwitchToLastPlayed()
-        {
-            if (_isTabSwitching || _currentTab == TabType.LastPlayed) return;
-
-            _sound?.PlayTabSound();
-            _isTabSwitching = true;
-
-            try
-            {
-                _currentTab = TabType.LastPlayed;
-
-                TabsAnimation.AnimateTabText(_uiRegistry.TabLastPlayedText, true);
-                TabsAnimation.AnimateTabText(_uiRegistry.TabGamelistText, false);
-
-                await TabsAnimation.AnimateCarouselSwitch(
-                    _uiRegistry.CarouselWrapper,
-                    Dispatcher,
-                    ActualWidth,
-                    () => _launcher.SortByLastPlayed(),
-                    1);
-            }
-
-            finally
-            {
-                _isTabSwitching = false;
-            }
         }
 
         private void UpdatePlaytimeUI()
@@ -481,7 +433,7 @@ namespace EZ2Play
                 EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut }
             };
 
-            fadeIn.Completed += (s, args) => _uiRegistry.ShowBackground(true);
+            fadeIn.Completed += (s, args) => _backgroundController.Show(true);
             baseGrid.BeginAnimation(UIElement.OpacityProperty, fadeIn);
         }
 
@@ -536,7 +488,7 @@ namespace EZ2Play
             _sound.PlayBackSound();
             _sound.StopBackgroundMusicSafe(Sound.FadeDurationMs);
 
-            _uiRegistry.ShowBackground(false);
+            _backgroundController.Show(false);
             _uiRegistry.ShowExitOverlay();
 
             Task.Delay(2000).ContinueWith(_ => Dispatcher.Invoke(Close));
@@ -572,7 +524,7 @@ namespace EZ2Play
             UpdateLayout();
             InitializeCarouselSelectedItem();
             ItemsListBox.Items.Refresh();
-            _uiRegistry?.RefreshBackgroundPan();
+            _backgroundController?.RefreshPan();
         }
 
         protected override void OnActivated(EventArgs e)
@@ -596,6 +548,7 @@ namespace EZ2Play
             _input?.Dispose();
             _guideHandler?.Dispose();
             _sound?.Dispose();
+            _backgroundController?.Dispose();
             _uiRegistry?.Dispose();
             _display?.Dispose();
 
