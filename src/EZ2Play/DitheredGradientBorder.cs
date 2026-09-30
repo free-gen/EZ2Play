@@ -8,8 +8,8 @@ namespace EZ2Play.App
 {
     public class DitheredGradientBorder : Border
     {
-        private static readonly Color StartColor = Color.FromRgb(0x30, 0x33, 0x3D);
-        private static readonly Color EndColor = Color.FromRgb(0x1A, 0x1E, 0x23);
+        private static readonly Color StartColor = Color.FromRgb(0x23, 0x25, 0x28);
+        private static readonly Color EndColor = Color.FromRgb(0x19, 0x1C, 0x1E);
 
         private static readonly byte[,] Bayer8 =
         {

@@ -123,11 +123,28 @@
 
                 <!-- Asset Tabs Divider -->
                 <Border Grid.Row="1"
+                        Style="{StaticResource AppDividerStyle}"
                         Visibility="{Binding Visibility, ElementName=AssetTabsPanel}"
-                        Height="{DynamicResource {x:Static app:UiScaleKeys.ParserTabsDividerHeight}}"
-                        Background="{DynamicResource DividerStrokeColorDefaultBrush}"
-                        HorizontalAlignment="Stretch"
-                        SnapsToDevicePixels="True"/>
+                        HorizontalAlignment="Stretch"/>
+
+                <!-- Assets Progress Bar -->
+                <Grid Grid.Row="1"
+                    Height="{DynamicResource {x:Static app:UiScaleKeys.DividerThickness}}"
+                    HorizontalAlignment="Stretch"
+                    Panel.ZIndex="10"
+                    IsHitTestVisible="False">
+
+                    <ProgressBar x:Name="AssetsProgressBar"
+                                Visibility="Collapsed"
+                                Opacity="0.75"
+                                Minimum="0"
+                                Maximum="1"
+                                Height="{DynamicResource {x:Static app:UiScaleKeys.ParserProgressHeight}}"
+                                HorizontalAlignment="Stretch"
+                                VerticalAlignment="Center"
+                                Value="0"/>
+
+                </Grid>
 
                 <Grid x:Name="ParserContentGrid"
                     Grid.Row="2"
@@ -148,6 +165,7 @@
 
                                 <TextBlock Text="{Binding DisplayText}"
                                         Style="{StaticResource OverlayPrimaryTextStyle}"
+                                        Margin="{DynamicResource {x:Static app:UiScaleKeys.ParserTabMargin}}"
                                         Padding="{DynamicResource {x:Static app:UiScaleKeys.OverlayPadding}}"/>
 
                             </DataTemplate>
@@ -239,10 +257,16 @@
 
                     <!-- Status Text -->
                     <TextBlock x:Name="StatusText"
-                                Visibility="Collapsed"
-                                Style="{StaticResource OverlaySecondaryTextStyle}"
-                                Margin="{DynamicResource {x:Static app:UiScaleKeys.ParserStatusMargin}}"
-                                HorizontalAlignment="Center"/>
+                            Visibility="Collapsed"
+                            Style="{StaticResource OverlaySecondaryTextStyle}"
+                            Margin="{DynamicResource {x:Static app:UiScaleKeys.ParserStatusMargin}}"
+                            HorizontalAlignment="Center">
+
+                        <TextBlock.RenderTransform>
+                            <TranslateTransform Y="-1"/>
+                        </TextBlock.RenderTransform>
+
+                    </TextBlock>
 
                     <!-- Manual Search Panel -->
                     <StackPanel x:Name="ManualSearchPanel"
@@ -258,6 +282,7 @@
 
                         <TextBox x:Name="SearchInputBox"
                                 Height="{DynamicResource {x:Static app:UiScaleKeys.ParserInputHeight}}"
+                                Margin="{DynamicResource {x:Static app:UiScaleKeys.ParserInputMargin}}"
                                 HorizontalAlignment="Stretch"
                                 Foreground="{DynamicResource TextFillColorSecondaryBrush}"
                                 FontSize="{DynamicResource {x:Static app:UiScaleKeys.ParserInputFontSize}}"
@@ -271,16 +296,6 @@
             </Grid>
 
         </app:DitheredGradientBorder>
-
-        <ProgressBar x:Name="AssetsProgressBar"
-                    Visibility="Collapsed"
-                    Minimum="0"
-                    Maximum="1"
-                    Width="{DynamicResource {x:Static app:UiScaleKeys.ParserProgressWidth}}"
-                    Height="{DynamicResource {x:Static app:UiScaleKeys.ParserProgressHeight}}"
-                    HorizontalAlignment="Center"
-                    VerticalAlignment="Bottom"
-                    Value="0"/>
 
     </Grid>
 

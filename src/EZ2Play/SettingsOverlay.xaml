@@ -95,11 +95,10 @@
 
                                         <!-- ItemDivider -->
                                         <Border x:Name="ItemDivider"
-                                                Height="{DynamicResource {x:Static app:UiScaleKeys.SettingsOverlayDividerHeight}}"
+                                                Style="{StaticResource AppDividerStyle}"
                                                 VerticalAlignment="Bottom"
                                                 Margin="{DynamicResource {x:Static app:UiScaleKeys.SettingsOverlayDividerMargin}}"
-                                                Background="{DynamicResource DividerStrokeColorDefaultBrush}"
-                                                SnapsToDevicePixels="True"/>
+                                                Background="#0CFFFFFF"/>
                                     </Grid>
 
                                     <ControlTemplate.Triggers>
@@ -115,7 +114,7 @@
                                                 <Setter.Value>
                                                     <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
                                                         <GradientStop Color="#00000000" Offset="0"/>
-                                                        <GradientStop Color="#20000000" Offset="1"/>
+                                                        <GradientStop Color="#30000000" Offset="1"/>
                                                     </LinearGradientBrush>
                                                 </Setter.Value>
                                             </Setter>
@@ -202,9 +201,8 @@
                                                     <Border x:Name="ItemBorder"
                                                             Padding="{DynamicResource {x:Static app:UiScaleKeys.SettingsOverlayTreeItemPadding}}"
                                                             Margin="{DynamicResource {x:Static app:UiScaleKeys.SettingsOverlayTreeItemMargin}}"
-                                                            CornerRadius="{DynamicResource {x:Static app:UiScaleKeys.OverlaySelectionBackgroundCornerRadius}}"
-                                                            BorderThickness="{DynamicResource {x:Static app:UiScaleKeys.OverlayBorderThickness}}"
-                                                            BorderBrush="{DynamicResource ControlElevationBorderBrush}"
+                                                            CornerRadius="{DynamicResource {x:Static app:UiScaleKeys.SettingsOverlayTreeItemsCornerRadius}}"
+                                                            BorderBrush="Transparent"
                                                             Background="{DynamicResource CardBackgroundFillColorDefaultBrush}">
                                                         <ContentPresenter/>
                                                     </Border>
@@ -430,15 +428,13 @@
                 </ListBox>
 
                 <!-- Top divider -->
-                <Border Height="{DynamicResource {x:Static app:UiScaleKeys.SettingsOverlayDividerHeight}}"
-                        Background="{DynamicResource DividerStrokeColorDefaultBrush}"
+                <Border Style="{StaticResource AppDividerStyle}"
                         VerticalAlignment="Top"
                         Visibility="{Binding Visibility, ElementName=ExitConfirmationListBox}"
                         IsHitTestVisible="False"/>
 
                 <!-- Bottom divider -->
-                <Border Height="{DynamicResource {x:Static app:UiScaleKeys.SettingsOverlayDividerHeight}}"
-                        Background="{DynamicResource DividerStrokeColorDefaultBrush}"
+                <Border Style="{StaticResource AppDividerStyle}"
                         VerticalAlignment="Bottom"
                         Visibility="{Binding Visibility, ElementName=ExitConfirmationListBox}"
                         IsHitTestVisible="False"/>

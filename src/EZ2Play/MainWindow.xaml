@@ -92,9 +92,8 @@
                        TextAlignment="Center"
                        Margin="{DynamicResource {x:Static app:UiScaleKeys.NoShortcutsMargin}}"
                        FontSize="{DynamicResource {x:Static app:UiScaleKeys.NoShortcutsFontSize}}"
-                       FontWeight="ExtraLight"
-                       Visibility="Collapsed"
-                       Style="{StaticResource HintTextStyle}">
+                       FontWeight="300"
+                       Visibility="Collapsed">
                 <Run x:Name="NoShortcutsMessageTop"/>
                 <LineBreak/><LineBreak/>
                 <Run x:Name="NoShortcutsMessageBottom"/>
@@ -106,7 +105,7 @@
                        HorizontalAlignment="Center"
                        TextAlignment="Center"
                        FontSize="{DynamicResource {x:Static app:UiScaleKeys.ExitMessageFontSize}}"
-                       FontWeight="ExtraLight"
+                       FontWeight="300"
                        Visibility="Hidden"
                        Panel.ZIndex="11">
                 <Run Text="Assembled by"/>
@@ -147,7 +146,7 @@
                                 Opacity="1"
                                 Effect="{StaticResource TextShadowEffect}"
                                 FontSize="{DynamicResource {x:Static app:UiScaleKeys.TopInfoPrimalyFontSize}}"
-                                FontWeight="ExtraBold"/>
+                                FontWeight="900"/>
                         <TextBlock x:Name="TabLastPlayedText"
                                 Margin="{DynamicResource {x:Static app:UiScaleKeys.TopInfoTabsMargin}}"
                                 Opacity="0.8"
@@ -159,24 +158,33 @@
                     <app:DitheredGradientBorder x:Name="NotificationPanel"
                                                 Grid.Column="2"
                                                 Visibility="Collapsed"
-                                                Style="{StaticResource BasicCardStyle}"
-                                                CornerRadius="{DynamicResource {x:Static app:UiScaleKeys.OverlayCornerRadius}}"
+                                                CornerRadius="{DynamicResource {x:Static app:UiScaleKeys.NotificationPanelCornerRadius}}"
                                                 Height="{DynamicResource {x:Static app:UiScaleKeys.NotificationPanelHeight}}"
                                                 Padding="{DynamicResource {x:Static app:UiScaleKeys.NotificationPanelPadding}}"
                                                 Margin="{DynamicResource {x:Static app:UiScaleKeys.NotificationPanelOuterMargin}}"
                                                 HorizontalAlignment="Right" 
                                                 VerticalAlignment="Center">
+
                         <StackPanel Orientation="Horizontal">
+
                             <TextBlock x:Name="NotificationIcon"
                                         FontSize="{DynamicResource {x:Static app:UiScaleKeys.NotificationPanelIconSize}}"
                                         Margin="{DynamicResource {x:Static app:UiScaleKeys.NotificationPanelMargin}}"
                                         FontFamily="/Assets/#Xbox Fluent"/>
+
                             <TextBlock  x:Name="NotificationText"
-                                        Style="{StaticResource BasicCardTextStyle}"
                                         MaxWidth="{DynamicResource {x:Static app:UiScaleKeys.NotificationPanelMaxWidth}}"
                                         FontSize="{DynamicResource {x:Static app:UiScaleKeys.NotificationPanelFontSize}}"
-                                        TextWrapping="Wrap"/>
+                                        TextWrapping="Wrap">
+                                        
+                                <TextBlock.RenderTransform>
+                                    <TranslateTransform Y="-1"/>
+                                </TextBlock.RenderTransform>
+
+                            </TextBlock>
+
                         </StackPanel>
+
                     </app:DitheredGradientBorder>
 
                     <!-- UserAvatar -->
@@ -192,7 +200,7 @@
                                HorizontalAlignment="Right"
                                Effect="{StaticResource TextShadowEffect}"
                                FontSize="{DynamicResource {x:Static app:UiScaleKeys.TopInfoPrimalyFontSize}}"
-                               FontWeight="SemiBold"/>
+                               FontWeight="600"/>
 
                 </Grid>
 
@@ -231,7 +239,7 @@
 
                         <TextBlock x:Name="SelectedGameTitle"
                                     FontSize="{DynamicResource {x:Static app:UiScaleKeys.SelectedGameTitleFontSize}}"
-                                    FontWeight="Medium"
+                                    FontWeight="500"
                                     TextAlignment="Left"
                                     TextWrapping="Wrap"
                                     HorizontalAlignment="Stretch"
@@ -252,7 +260,7 @@
                                 <TextBlock Text="{Binding ElementName=ItemsListBox, Path=SelectedItem.SourceType}"
                                         Foreground="{DynamicResource SolidBackgroundFillColorBaseAltBrush}"
                                         FontSize="{DynamicResource {x:Static app:UiScaleKeys.SourceCardFontSize}}"
-                                        FontWeight="Bold"
+                                        FontWeight="900"
                                         TextAlignment="Center"/>
                             </Border>
 
@@ -273,7 +281,7 @@
                                     
                                     <TextBlock x:Name="GameCounterText"
                                             FontSize="{DynamicResource {x:Static app:UiScaleKeys.CounterCardFontSize}}"
-                                            FontWeight="ExtraBold"
+                                            FontWeight="900"
                                             TextAlignment="Center">
                                         <TextBlock.RenderTransform>
                                             <TranslateTransform X="5" Y="-1"/>
