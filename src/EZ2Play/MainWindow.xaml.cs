@@ -446,14 +446,10 @@ namespace EZ2Play
             }
 
             // HotSwap notification
-            if (_config.ShouldShowHotSwapNotification(_hotSwapLaunch))
+            if (_hotSwapLaunch && _config.ShouldShowHotSwapNotification(true))
             {
-                if (_hotSwapLaunch)
-                {
-                    _uiRegistry.Notifications.HotSwap(2, 8);
-                }
-
-                _config.MarkHotSwapNotificationShown(_hotSwapLaunch);
+                _uiRegistry.Notifications.HotSwap(2, 8);
+                _config.MarkHotSwapNotificationShown(true);
             }
         }
 

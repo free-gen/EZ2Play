@@ -6,6 +6,49 @@ namespace EZ2Play.App
 {
     internal static class DebugLog
     {
+        [Conditional("DEBUG")]
+        public static void StartSession()
+        {
+            AppendSessionMarker("START");
+        }
+
+        [Conditional("DEBUG")]
+        public static void EndSession()
+        {
+            AppendSessionMarker("CLOSE");
+        }
+
+        private static void AppendSessionMarker(string phase)
+        {
+            try
+            {
+                string directory = Path.GetDirectoryName(LogPath);
+
+                lock (Sync)
+                {
+                    if (!Directory.Exists(directory))
+                        Directory.CreateDirectory(directory);
+
+                    bool hasContent = File.Exists(LogPath) && new FileInfo(LogPath).Length > 0;
+                    string prefix =
+                        phase == "START" && hasContent
+                            ? Environment.NewLine
+                            : string.Empty;
+
+                    string line =
+                        $"{prefix}DEBUG SESSION {phase}: " +
+                        $"{DateTime.Now:yyyy-MM-dd HH:mm:ss.fff}{Environment.NewLine}";
+
+                    File.AppendAllText(LogPath, line);
+                }
+            }
+
+            catch
+            {
+                // Diagnostics must never break the application.
+            }
+        }
+
         private static readonly object Sync = new object();
 
         private static readonly string LogPath = Path.Combine(

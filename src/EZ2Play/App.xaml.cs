@@ -26,7 +26,7 @@ namespace EZ2Play.Main
 
             if (!createdNew)
             {
-                DebugLog.Write("App", "Second instance blocked.");
+                DebugLog.Write("APP", "Second instance blocked.");
 
                 _singleInstanceMutex.Dispose();
                 _singleInstanceMutex = null;
@@ -35,7 +35,8 @@ namespace EZ2Play.Main
                 return;
             }
 
-            DebugLog.Write("App", "Application startup.");
+            DebugLog.StartSession();
+            DebugLog.Write("APP", "Application startup.");
 
             try
             {
@@ -75,14 +76,15 @@ namespace EZ2Play.Main
 
             catch (Exception ex)
             {
-                DebugLog.Error("App", ex, "Application startup failed.");
+                DebugLog.Error("APP", ex, "Application startup failed.");
                 throw;
             }
         }
 
         protected override void OnExit(ExitEventArgs e)
         {
-            DebugLog.Write("App", "Application shutdown.");
+            DebugLog.Write("APP", "Application shutdown.");
+            DebugLog.EndSession();
 
             if (_ownsSingleInstanceMutex && _singleInstanceMutex != null)
             {
