@@ -65,37 +65,21 @@ namespace EZ2Play.App
             },
 
             // Parser
-            ["SearchCovers"] = new[]
+            ["GridDBSearch"] = new[]
             {
                 "Searching SteamGridDB", "Поиск в базе SteamGridDB",
                 "Suche in der SteamGridDB-Datenbank", "Recherche dans la base SteamGridDB",
                 "正在 SteamGridDB 数据库中搜索"
             },
 
-            ["NoGamesFound"] = new[]
-            {
-                "No matches found",  "Совпадения не найдены",
-                "Keine Übereinstimmungen gefunden", "Aucune correspondance trouvée",
-                "未找到匹配项"
-            },
-
-            ["ManualSearchHint"] = new[]
-            {
-                "No matches found. Try entering the title manually.",
-                "Совпадений не найдено, попробуйте ручной ввод.",
-                "Keine Übereinstimmungen gefunden. Versuchen Sie, den Titel manuell einzugeben.",
-                "Aucune correspondance trouvée. Essayez de saisir le titre manuellement.",
-                "未找到匹配项。请尝试手动输入名称。"
-            },
-
-            ["ErrorGridDB"] = new[]
+            ["GridDBError"] = new[]
             {
                 "Error connecting to SteamGridDB", "Ошибка подключения к SteamGridDB",
                 "Fehler bei der Verbindung zu SteamGridDB", "Erreur de connexion à SteamGridDB",
                 "连接 SteamGridDB 时出错"
             },
 
-            ["SteamGridDbApiKeyMissing"] = new[]
+            ["GridDbApiMiss"] = new[]
             {
                 "SteamGridDB API key is not configured",
                 "API-ключ SteamGridDB не настроен",
@@ -104,7 +88,7 @@ namespace EZ2Play.App
                 "未配置 SteamGridDB API 密钥"
             },
 
-            ["SteamGridDbApiKeyInvalid"] = new[]
+            ["GridDbInvalidApi"] = new[]
             {
                 "SteamGridDB API key is invalid or unauthorized",
                 "API-ключ SteamGridDB недействителен или не авторизован",
@@ -113,18 +97,27 @@ namespace EZ2Play.App
                 "SteamGridDB API 密钥无效或未授权"
             },
 
-            ["LoadingCovers"] = new[]
+            ["NoResultsFound"] = new[]
             {
-                "Loading covers", "Загрузка обложек",
-                "Cover werden geladen", "Chargement des couvertures",
-                "正在加载封面"
+                "Nothing found", "Ничего не найдено",
+                "Nichts gefunden", "Aucun résultat",
+                "未找到任何内容"
             },
 
-            ["NoCoversFound"] = new[]
+            ["ParserOperationError"] = new[]
             {
-                "No covers found", "Обложки не найдены",
-                "Keine Cover gefunden", "Aucune couverture trouvée",
-                "未找到封面"
+                "Error", "Ошибка",
+                "Fehler", "Erreur",
+                "错误"
+            },
+
+            ["ManualSearchHint"] = new[]
+            {
+                "No matches found. Try changing your search query.",
+                "Совпадений не найдено. Попробуйте изменить запрос.",
+                "Keine Übereinstimmungen gefunden. Ändern Sie Ihre Suchanfrage.",
+                "Aucune correspondance trouvée. Modifiez votre requête de recherche.",
+                "未找到匹配项。请尝试修改搜索内容。"
             },
 
             ["ParserCoversTabText"] = new[]
@@ -136,48 +129,6 @@ namespace EZ2Play.App
             {
                 "Background images", "Фоновые изображения", 
                 "Hintergrundbilder", "Images d’arrière-plan", "背景图像"
-            },
-
-            ["LoadingBackgrounds"] = new[]
-            {
-                "Loading backgrounds", "Загрузка фонов",
-                "Hintergründe werden geladen", "Chargement des arrière-plans",
-                "正在加载背景"
-            },
-
-            ["NoBackgroundsFound"] = new[]
-            {
-                "No backgrounds found", "Фоны не найдены",
-                "Keine Hintergründe gefunden", "Aucun arrière-plan trouvé",
-                "未找到背景"
-            },
-
-            ["LoadingCoversError"] = new[]
-            {
-                "Loading error", "Ошибка загрузки",
-                "Fehler beim Laden", "Erreur de chargement",
-                "加载出错"
-            },
-
-            ["SavingCover"] = new[]
-            {
-                "Saving cover", "Сохранение обложки",
-                "Cover wird gespeichert", "Enregistrement de la couverture",
-                "正在保存封面"
-            },
-
-            ["SavingBackground"] = new[]
-            {
-                "Saving background", "Сохранение фона",
-                "Hintergrund wird gespeichert", "Enregistrement de l’arrière-plan",
-                "正在保存背景"
-            },
-
-            ["SavingBackgroundError"] = new[]
-            {
-                "Failed to save background", "Не удалось сохранить фон",
-                "Hintergrund konnte nicht gespeichert werden", "Impossible d’enregistrer l’arrière-plan",
-                "保存背景失败"
             },
 
             // Settings

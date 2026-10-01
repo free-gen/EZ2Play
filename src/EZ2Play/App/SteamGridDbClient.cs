@@ -134,10 +134,23 @@ namespace EZ2Play.App
 
             catch (Exception ex)
             {
-                DebugLog.Error("SteamGridDB", ex, "Cloudflare Worker request failed. Trying local API key fallback.");
+                DebugLog.Error(
+                    "SteamGridDB", ex, 
+                    "Cloudflare Worker request failed. Trying local API key fallback.");
 
-                if (string.IsNullOrWhiteSpace(_fallbackApiKey))
+                if (ex is SteamGridDbAuthException)
+                {
+                    if (string.IsNullOrWhiteSpace(_fallbackApiKey))
+                    {
+                        throw new SteamGridDbApiKeyMissingException(
+                            "Worker authorization failed and no fallback API key is configured.", ex);
+                    }
+                }
+
+                else if (string.IsNullOrWhiteSpace(_fallbackApiKey))
+                {
                     throw;
+                }
             }
 
             return await GetDataDirectAsync(relativeUrl, cancellationToken);
@@ -199,6 +212,14 @@ namespace EZ2Play.App
     internal sealed class SteamGridDbAuthException : Exception
     {
         public SteamGridDbAuthException(string message) : base(message)
+        {
+        }
+    }
+
+    internal sealed class SteamGridDbApiKeyMissingException : Exception
+    {
+        public SteamGridDbApiKeyMissingException(string message, Exception innerException)
+            : base(message, innerException)
         {
         }
     }

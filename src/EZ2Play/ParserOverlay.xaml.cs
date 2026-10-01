@@ -34,6 +34,8 @@ namespace EZ2Play.App
         private readonly InputHandler _inputHandler;
         private readonly MainWindow _mainWindow;
         private readonly AppConfig _config;
+        private const double StatusAutoHideSeconds = 5;
+        private readonly DispatcherTimer _statusTimer;
 
         private readonly SteamGridDbClient _steamGridDbClient;
 
@@ -69,6 +71,22 @@ namespace EZ2Play.App
             InitializeComponent();
             Locals.ApplyLocalization(this);
 
+            _statusTimer = new DispatcherTimer
+            {
+                Interval = TimeSpan.FromSeconds(StatusAutoHideSeconds)
+            };
+
+            _statusTimer.Tick += (sender, args) =>
+            {
+                if (!_isBusy && ParserSurface.Visibility == Visibility.Collapsed)
+                {
+                    Close();
+                    return;
+                }
+
+                HideStatus();
+            };
+
             _inputHandler = inputHandler;
             _mainWindow = mainWindow;
             _config = _mainWindow.GetConfig();
@@ -83,10 +101,10 @@ namespace EZ2Play.App
             Visibility = Visibility.Collapsed;
         }
 
-        private bool ConfigureApiAuthorization()
+        private void ConfigureApiAuthorization()
         {
-            _steamGridDbClient.ConfigureFallbackAuthorization(_config?.SteamGridDbApiKey);
-            return true;
+            string apiKey = _config?.SteamGridDbApiKey?.Trim();
+            _steamGridDbClient.ConfigureFallbackAuthorization(apiKey);
         }
 
         private bool IsCurrentSession(CancellationToken cancellationToken)
@@ -143,6 +161,18 @@ namespace EZ2Play.App
             BackgroundsListBox.Opacity = 1.0;
         }
 
+        private void ShowParserSurface()
+        {
+            ParserSurface.Visibility = Visibility.Visible;
+            ParserContentGrid.Visibility = Visibility.Visible;
+        }
+
+        private void HideParserSurface()
+        {
+            ParserSurface.Visibility = Visibility.Collapsed;
+            ParserContentGrid.Visibility = Visibility.Collapsed;
+        }
+
         public async void Open()
         {
             if (_disposed || Visibility == Visibility.Visible) return;
@@ -162,6 +192,7 @@ namespace EZ2Play.App
             _shortcut = launcher.Shortcuts[launcher.SelectedIndex];
             _mode = ParserMode.Games;
             ParserContentGrid.Height = double.NaN;
+            HideParserSurface();
             _isBusy = false;
             _manualSearchFromNoMatches = false;
 
@@ -178,10 +209,9 @@ namespace EZ2Play.App
             BackgroundsListBox.Visibility = Visibility.Collapsed;
             ManualSearchPanel.Visibility = Visibility.Collapsed;
 
-            ShowStatus(Locals.GetString("SearchCovers"));
+            ShowStatus(Locals.GetString("GridDBSearch"));
 
             _inputHandler.SetMode(InputHandler.InputMode.Parser);
-            _mainWindow.SetHintsMode(HintPanel.HintMode.Settings);
 
             Visibility = Visibility.Visible;
 
@@ -195,12 +225,7 @@ namespace EZ2Play.App
 
             BeginAnimation(OpacityProperty, fadeIn);
 
-            if (!ConfigureApiAuthorization())
-            {
-                DebugLog.Write("Parser", "SteamGridDB API key is not configured.");
-                ShowStatus(Locals.GetString("SteamGridDbApiKeyMissing"));
-                return;
-            }
+            ConfigureApiAuthorization();
 
             await SearchCurrentGameAsync(null, cancellationToken);
         }
@@ -212,6 +237,7 @@ namespace EZ2Play.App
             _mainWindow.GetSound()?.PlayBackSound();
             CancelSession();
             CancelAssetLoading();
+            HideStatus();
 
             if (_manualSearchInputView != null)
             {
@@ -364,7 +390,7 @@ namespace EZ2Play.App
             if (_gridResults.Count == 0)
             {
                 CoversListBox.Visibility = Visibility.Collapsed;
-                ShowStatus(Locals.GetString("NoCoversFound"));
+                ShowStatus(Locals.GetString("NoResultsFound"));
                 return;
             }
 
@@ -387,7 +413,7 @@ namespace EZ2Play.App
             if (_heroResults.Count == 0)
             {
                 BackgroundsListBox.Visibility = Visibility.Collapsed;
-                ShowStatus(Locals.GetString("NoBackgroundsFound"));
+                ShowStatus(Locals.GetString("NoResultsFound"));
                 return;
             }
 
@@ -408,12 +434,6 @@ namespace EZ2Play.App
             if (_mode != ParserMode.Games) return;
             if (GamesListBox.Visibility != Visibility.Visible) return;
             if (_sessionCts == null) return;
-
-            if (!ConfigureApiAuthorization())
-            {
-                ShowStatus(Locals.GetString("SteamGridDbApiKeyMissing"));
-                return;
-            }
 
             ShowManualSearch(false, _sessionCts.Token);
         }
@@ -495,6 +515,7 @@ namespace EZ2Play.App
                 ManualSearchHintText.Visibility = Visibility.Collapsed;
             }
 
+            ShowParserSurface();
             ManualSearchPanel.Visibility = Visibility.Visible;
             ParserSurface.RenderTransform = null;
 
@@ -644,6 +665,7 @@ namespace EZ2Play.App
                     return;
                 }
 
+                ShowParserSurface();
                 ManualSearchPanel.Visibility = Visibility.Collapsed;
                 GamesListBox.Visibility = Visibility.Visible;
                 _mainWindow.SetHintsMode(HintPanel.HintMode.ParserGames);
@@ -657,12 +679,20 @@ namespace EZ2Play.App
                 // Expected when the parser is closed or the operation is canceled.
             }
 
+            catch (SteamGridDbApiKeyMissingException ex)
+            {
+                DebugLog.Error("Parser", ex, "SteamGridDB API key is not configured.");
+
+                if (IsSessionActive(cancellationToken))
+                    ShowErrorNotification(Locals.GetString("GridDbApiMiss"));
+            }
+
             catch (SteamGridDbAuthException ex)
             {
                 DebugLog.Error("Parser", ex, "SteamGridDB authorization failed.");
 
                 if (IsSessionActive(cancellationToken))
-                    ShowStatus(Locals.GetString("SteamGridDbApiKeyInvalid"));
+                    ShowErrorNotification(Locals.GetString("GridDbInvalidApi"));
             }
 
             catch (Exception ex)
@@ -670,7 +700,7 @@ namespace EZ2Play.App
                 DebugLog.Error("Parser", ex, "SteamGridDB game search failed.");
 
                 if (IsSessionActive(cancellationToken))
-                    ShowStatus(Locals.GetString("ErrorGridDB"));
+                    ShowErrorNotification(Locals.GetString("GridDBError"));
             }
 
             finally
@@ -694,8 +724,10 @@ namespace EZ2Play.App
             RestoreInputLanguage();
 
             ManualSearchPanel.Visibility = Visibility.Collapsed;
+            HideParserSurface();
+            ParserContentGrid.Visibility = Visibility.Collapsed;
 
-            ShowStatus(Locals.GetString("SearchCovers"));
+            ShowStatus(Locals.GetString("GridDBSearch"));
 
             if (_sessionCts == null) return;
 
@@ -736,8 +768,6 @@ namespace EZ2Play.App
             AssetsProgressBar.IsIndeterminate = true;
             AssetsProgressBar.Visibility = Visibility.Visible;
 
-            ShowStatus(Locals.GetString("LoadingCovers"));
-
             try
             {
                 var results = await _steamGridDbClient.GetSquareGridsAsync(game.Id, MaxCovers, cancellationToken);
@@ -757,7 +787,7 @@ namespace EZ2Play.App
                     AssetsProgressBar.Visibility = Visibility.Collapsed;
                     CoversListBox.Opacity = 1.0;
 
-                    ShowStatus(Locals.GetString("NoCoversFound"));
+                    ShowStatus(Locals.GetString("NoResultsFound"));
                     return;
                 }
 
@@ -817,6 +847,14 @@ namespace EZ2Play.App
                 // Expected when the user goes back or closes the parser.
             }
 
+            catch (SteamGridDbApiKeyMissingException ex)
+            {
+                DebugLog.Error("Parser", ex, "SteamGridDB API key is not configured.");
+
+                if (IsSessionActive(cancellationToken))
+                    ShowErrorNotification(Locals.GetString("GridDbApiMiss"));
+            }
+
             catch (SteamGridDbAuthException ex)
             {
                 DebugLog.Error("Parser", ex, "SteamGridDB authorization failed while loading covers.");
@@ -827,7 +865,8 @@ namespace EZ2Play.App
                     AssetsProgressBar.IsIndeterminate = false;
                     AssetsProgressBar.Visibility = Visibility.Collapsed;
 
-                    ShowStatus(Locals.GetString("SteamGridDbApiKeyInvalid"));
+                    HideParserSurface();
+                    ShowErrorNotification(Locals.GetString("GridDbInvalidApi"));
                 }
             }
 
@@ -841,7 +880,8 @@ namespace EZ2Play.App
                 AssetsProgressBar.IsIndeterminate = false;
                 AssetsProgressBar.Visibility = Visibility.Collapsed;
 
-                ShowStatus(Locals.GetString("ErrorGridDB"));
+                HideParserSurface();
+                ShowErrorNotification(Locals.GetString("GridDBError"));
             }
 
             finally
@@ -881,8 +921,6 @@ namespace EZ2Play.App
             AssetsProgressBar.IsIndeterminate = true;
             AssetsProgressBar.Visibility = Visibility.Visible;
 
-            ShowStatus(Locals.GetString("LoadingBackgrounds"));
-
             try
             {
                 var results = await _steamGridDbClient.GetHeroesAsync(game.Id, MaxBackgrounds, 3840, cancellationToken);
@@ -904,7 +942,7 @@ namespace EZ2Play.App
                     AssetsProgressBar.Visibility = Visibility.Collapsed;
                     BackgroundsListBox.Opacity = 1.0;
 
-                    ShowStatus(Locals.GetString("NoBackgroundsFound"));
+                    ShowStatus(Locals.GetString("NoResultsFound"));
                     return;
                 }
 
@@ -964,6 +1002,14 @@ namespace EZ2Play.App
                 // Expected when the user goes back or closes the parser.
             }
 
+            catch (SteamGridDbApiKeyMissingException ex)
+            {
+                DebugLog.Error("Parser", ex, "SteamGridDB API key is not configured.");
+
+                if (IsSessionActive(cancellationToken))
+                    ShowErrorNotification(Locals.GetString("GridDbApiMiss"));
+            }
+
             catch (SteamGridDbAuthException ex)
             {
                 DebugLog.Error("Parser", ex, "SteamGridDB authorization failed while loading backgrounds.");
@@ -974,7 +1020,8 @@ namespace EZ2Play.App
                     AssetsProgressBar.IsIndeterminate = false;
                     AssetsProgressBar.Visibility = Visibility.Collapsed;
 
-                    ShowStatus(Locals.GetString("SteamGridDbApiKeyInvalid"));
+                    HideParserSurface();
+                    ShowErrorNotification(Locals.GetString("GridDbInvalidApi"));
                 }
             }
 
@@ -988,7 +1035,8 @@ namespace EZ2Play.App
                 AssetsProgressBar.IsIndeterminate = false;
                 AssetsProgressBar.Visibility = Visibility.Collapsed;
 
-                ShowStatus(Locals.GetString("ErrorGridDB"));
+                HideParserSurface();
+                ShowErrorNotification(Locals.GetString("GridDBError"));
             }
 
             finally
@@ -1047,8 +1095,9 @@ namespace EZ2Play.App
         {
             _isBusy = true;
 
-            CoversListBox.Visibility = Visibility.Collapsed;
-            ShowStatus(Locals.GetString("SavingCover"));
+            AssetsProgressBar.Value = 0;
+            AssetsProgressBar.IsIndeterminate = true;
+            AssetsProgressBar.Visibility = Visibility.Visible;
 
             try
             {
@@ -1123,12 +1172,16 @@ namespace EZ2Play.App
                 if (IsSessionActive(cancellationToken))
                 {
                     CoversListBox.Visibility = Visibility.Visible;
-                    ShowStatus(Locals.GetString("LoadingCoversError") + ": " + ex.Message);
+                    ShowStatus(Locals.GetString("ParserOperationError") + ": " + ex.Message);
                 }
             }
 
             finally
             {
+                AssetsProgressBar.IsIndeterminate = false;
+                AssetsProgressBar.Visibility = Visibility.Collapsed;
+                AssetsProgressBar.Value = 0;
+
                 if (IsCurrentSession(cancellationToken))
                     _isBusy = false;
             }
@@ -1138,8 +1191,9 @@ namespace EZ2Play.App
         {
             _isBusy = true;
 
-            BackgroundsListBox.Visibility = Visibility.Collapsed;
-            ShowStatus(Locals.GetString("SavingBackground"));
+            AssetsProgressBar.Value = 0;
+            AssetsProgressBar.IsIndeterminate = true;
+            AssetsProgressBar.Visibility = Visibility.Visible;
 
             string tempPath = null;
 
@@ -1210,12 +1264,16 @@ namespace EZ2Play.App
                 if (IsSessionActive(cancellationToken))
                 {
                     BackgroundsListBox.Visibility = Visibility.Visible;
-                    ShowStatus(Locals.GetString("SavingBackgroundError") + ": " + ex.Message);
+                    ShowStatus(Locals.GetString("ParserOperationError") + ": " + ex.Message);
                 }
             }
 
             finally
             {
+                AssetsProgressBar.IsIndeterminate = false;
+                AssetsProgressBar.Visibility = Visibility.Collapsed;
+                AssetsProgressBar.Value = 0;
+
                 if (tempPath != null)
                 {
                     try
@@ -1236,13 +1294,27 @@ namespace EZ2Play.App
 
         private void ShowStatus(string text)
         {
+            _statusTimer.Stop();
+
             StatusText.Text = text;
+            ParserStatusSurface.Visibility = Visibility.Visible;
             StatusText.Visibility = Visibility.Visible;
+
+            _statusTimer.Start();
         }
 
         private void HideStatus()
         {
+            _statusTimer.Stop();
+
             StatusText.Visibility = Visibility.Collapsed;
+            ParserStatusSurface.Visibility = Visibility.Collapsed;
+        }
+
+        private void ShowErrorNotification(string text)
+        {
+            _mainWindow.ShowParserErrorNotification(text);
+            Close();
         }
 
         public void Dispose()
@@ -1253,6 +1325,7 @@ namespace EZ2Play.App
 
             CancelSession();
             CancelAssetLoading();
+            _statusTimer.Stop();
 
             if (_manualSearchInputView != null)
             {

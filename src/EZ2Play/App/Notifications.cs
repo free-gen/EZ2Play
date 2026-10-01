@@ -136,7 +136,7 @@ namespace EZ2Play.App
         [System.Diagnostics.Conditional("DEBUG")]
         public void Debug(double delaySeconds, double displaySeconds)
         {
-            Enqueue(() => Show(Locals.GetString("MessageDebugBuild"), delaySeconds, displaySeconds, "\uE91A", Done));
+            Enqueue(() => Show(Locals.GetString("MessageDebugBuild"), delaySeconds, displaySeconds, "\uE7B2", Done));
         }
 
         public void HotSwap(double delaySeconds, double displaySeconds)
@@ -160,6 +160,11 @@ namespace EZ2Play.App
                 string msg = Locals.GetString(gameBarInstalled ? "MessageGameBarDetected" : "MessageGameBarNotDetected");
                 Show(msg, delaySeconds, displaySeconds, "\uE927", Done);
             });
+        }
+
+        public void Error(string text, double delaySeconds, double displaySeconds)
+        {
+            Enqueue(() => Show(text, delaySeconds, displaySeconds, "\uE91B", Done));
         }
     }
 }

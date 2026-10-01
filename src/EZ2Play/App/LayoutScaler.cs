@@ -117,6 +117,10 @@ namespace EZ2Play.App
             target[UiScaleKeys.ParserAssetsMargin] = new Thickness(0, s(24), 0, s(24));
             target[UiScaleKeys.ParserStatusMargin] = new Thickness(0, s(16), 0, s(16));
 
+            target[UiScaleKeys.ParserStatusSurfaceMaxWidth] = s(800);
+            target[UiScaleKeys.ParserStatusSurfaceMargin] = new Thickness(s(128));
+            target[UiScaleKeys.ParserStatusSurfacePadding] = new Thickness(s(32), s(4), s(32), s(4));
+
             // Main
             target[UiScaleKeys.SplashLogoMaxHeight] = s(256);
 
@@ -162,9 +166,9 @@ namespace EZ2Play.App
             target[UiScaleKeys.NotificationPanelMaxWidth] = s(1024);
             target[UiScaleKeys.NotificationPanelPadding] = new Thickness(s(42), 0, s(64), 0);
             target[UiScaleKeys.NotificationPanelOuterMargin] = new Thickness(0, 0, s(48), 0);
-            target[UiScaleKeys.NotificationPanelMargin] = new Thickness(0, 0, s(32), 0);
+            target[UiScaleKeys.NotificationPanelMargin] = new Thickness(0, 0, s(24), 0);
             target[UiScaleKeys.NotificationPanelFontSize] = fs(22);
-            target[UiScaleKeys.NotificationPanelIconSize] = fs(32);
+            target[UiScaleKeys.NotificationPanelIconSize] = fs(28);
 
             // Hints
             target[UiScaleKeys.HintPanelHeight] = s(64);
@@ -249,6 +253,10 @@ namespace EZ2Play.App
 
         public const string ParserAssetsMargin = "ParserAssetsMargin";
         public const string ParserStatusMargin = "ParserStatusMargin";
+
+        public const string ParserStatusSurfaceMaxWidth = "ParserStatusSurfaceMaxWidth";
+        public const string ParserStatusSurfaceMargin = "ParserStatusSurfaceMargin";
+        public const string ParserStatusSurfacePadding = "ParserStatusSurfacePadding";
 
         // Main
         public const string SplashLogoMaxHeight = "SplashLogoMaxHeight";

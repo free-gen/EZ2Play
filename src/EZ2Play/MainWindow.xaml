@@ -178,7 +178,7 @@
                                         TextWrapping="Wrap">
                                         
                                 <TextBlock.RenderTransform>
-                                    <TranslateTransform Y="-1"/>
+                                    <TranslateTransform Y="-2"/>
                                 </TextBlock.RenderTransform>
 
                             </TextBlock>

@@ -434,7 +434,7 @@ namespace EZ2Play
         private void ShowStartupNotifications()
         {
             // Debug build notification
-            _uiRegistry.Notifications.Debug(2, 8);
+            _uiRegistry.Notifications.Debug(1, 3);
 
             // Xbox Game Bar notification
             bool gamebarInstalled = SystemProvider.IsXboxGameBarInstalled();
@@ -451,6 +451,11 @@ namespace EZ2Play
                 _uiRegistry.Notifications.HotSwap(2, 8);
                 _config.MarkHotSwapNotificationShown(true);
             }
+        }
+
+        public void ShowParserErrorNotification(string text)
+        {
+            _uiRegistry.Notifications.Error(text, 0, 3);
         }
 
         private void StartApplication()
