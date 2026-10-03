@@ -24,6 +24,8 @@
             <SolidColorBrush x:Key="OverlayBackdropBrush" Color="#B4000000"/>
             <SolidColorBrush x:Key="OverlaySelectionBorderBrush" Color="#80F7FBFF"/>
             <SolidColorBrush x:Key="OverlaySelectionBackgroundBrush" Color="#0DF7FBFF"/>
+            <SolidColorBrush x:Key="OverlayGradientStartBrush" Color="#24282C"/>
+            <SolidColorBrush x:Key="OverlayGradientEndBrush" Color="#181C20"/>
 
             <Style x:Key="OverlaySurfaceStyle" TargetType="Border">
                 <Setter Property="CornerRadius" Value="{DynamicResource {x:Static app:UiScaleKeys.OverlayCornerRadius}}"/>
@@ -109,6 +111,10 @@
 
             <Style x:Key="LightSurfaceStyle" TargetType="Border">
                 <Setter Property="Background" Value="#F2F2F6FA"/>
+            </Style>
+
+            <Style x:Key="TreeItemStyle" TargetType="Border">
+                <Setter Property="Background" Value="#0AF7FBFF"/>
             </Style>
 
         </ResourceDictionary>

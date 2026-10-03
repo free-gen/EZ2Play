@@ -65,10 +65,11 @@ namespace EZ2Play.App
             target[UiScaleKeys.SettingsOverlayItemPadding] = new Thickness(0, s(32), 0, s(32));
 
             target[UiScaleKeys.SettingsOverlayTreeItemsContainerMargin] = new Thickness(0, 0, 0, 0);
-            target[UiScaleKeys.SettingsOverlayTreeItemsContainerPadding] = new Thickness(s(16), 0, s(16), s(16));
-            target[UiScaleKeys.SettingsOverlayTreeItemsCornerRadius] = new CornerRadius(s(12));
+            target[UiScaleKeys.SettingsOverlayTreeItemsContainerPadding] = new Thickness(s(8), 0, s(8), s(16));
+            target[UiScaleKeys.SettingsOverlayTreeItemsCornerRadius] = new CornerRadius(s(4));
             target[UiScaleKeys.SettingsOverlayTreeItemPadding] = new Thickness(0, s(12), 0, s(12));
             target[UiScaleKeys.SettingsOverlayTreeItemMargin] = new Thickness(s(8));
+            target[UiScaleKeys.SettingsOverlayTreeItemSelectionBorderMargin] = new Thickness(s(0));
 
             target[UiScaleKeys.SettingsOverlayDividerMargin] = new Thickness(0);
             target[UiScaleKeys.SettingsOverlayAppInfoMargin] = new Thickness(0, s(24), 0, s(24));
@@ -217,6 +218,7 @@ namespace EZ2Play.App
         public const string SettingsOverlayTreeItemsCornerRadius = "SettingsOverlayTreeItemsCornerRadius";
         public const string SettingsOverlayTreeItemPadding = "SettingsOverlayTreeItemPadding";
         public const string SettingsOverlayTreeItemMargin = "SettingsOverlayTreeItemMargin";
+        public const string SettingsOverlayTreeItemSelectionBorderMargin = "SettingsOverlayTreeItemSelectionBorderMargin";
 
         public const string SettingsOverlayDividerMargin = "SettingsOverlayDividerMargin";
         public const string SettingsOverlayAppInfoMargin = "SettingsOverlayAppInfoMargin";

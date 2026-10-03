@@ -8,8 +8,9 @@ namespace EZ2Play.App
 {
     public class DitheredGradientBorder : Border
     {
-        private static readonly Color StartColor = Color.FromRgb(0x24, 0x28, 0x2C);
-        private static readonly Color EndColor = Color.FromRgb(0x18, 0x1C, 0x20);
+        private static Color StartColor;
+        private static Color EndColor;
+        private static bool _colorsInitialized;
 
         private static readonly byte[,] Bayer8 =
         {
@@ -31,6 +32,15 @@ namespace EZ2Play.App
             SizeChanged += DitheredGradientBorder_SizeChanged;
         }
 
+        private static void EnsureColorsInitialized()
+        {
+            if (_colorsInitialized) return;
+
+            StartColor = ((SolidColorBrush)Application.Current.Resources["OverlayGradientStartBrush"]).Color;
+            EndColor = ((SolidColorBrush)Application.Current.Resources["OverlayGradientEndBrush"]).Color;
+            _colorsInitialized = true;
+        }
+
         private void DitheredGradientBorder_SizeChanged(object sender, SizeChangedEventArgs e)
         {
             if (ActualWidth <= 0 || ActualHeight <= 0) return;
@@ -49,6 +59,8 @@ namespace EZ2Play.App
 
         private static ImageBrush CreateBrush(int pixelWidth, int pixelHeight, double dpiX, double dpiY)
         {
+            EnsureColorsInitialized();
+
             int stride = pixelWidth * 4;
             byte[] pixels = new byte[stride * pixelHeight];
 

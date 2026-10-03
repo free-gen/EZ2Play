@@ -191,6 +191,7 @@
                                             <ControlTemplate TargetType="ListBoxItem">
                                                 <Grid>
                                                     <Border x:Name="SelectionBorder"
+                                                            Margin="{DynamicResource {x:Static app:UiScaleKeys.SettingsOverlayTreeItemSelectionBorderMargin}}"
                                                             Style="{StaticResource OverlaySelectionBorderStyle}">
                                                         <Border x:Name="SelectionBackground"
                                                                 Style="{StaticResource OverlaySelectionBackgroundStyle}"/>
@@ -202,7 +203,7 @@
                                                             Margin="{DynamicResource {x:Static app:UiScaleKeys.SettingsOverlayTreeItemMargin}}"
                                                             CornerRadius="{DynamicResource {x:Static app:UiScaleKeys.SettingsOverlayTreeItemsCornerRadius}}"
                                                             BorderBrush="Transparent"
-                                                            Background="{DynamicResource CardBackgroundFillColorDefaultBrush}">
+                                                            Style="{StaticResource TreeItemStyle}">
                                                         <ContentPresenter/>
                                                     </Border>
                                                 </Grid>
