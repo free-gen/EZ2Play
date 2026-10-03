@@ -44,8 +44,6 @@
 
         <Style x:Key="ParserCoverItemStyle" TargetType="ListBoxItem">
             <Setter Property="Padding" Value="0"/>
-            <Setter Property="Margin"
-                    Value="{DynamicResource {x:Static app:UiScaleKeys.ParserCoverMargin}}"/>
             <Setter Property="Background" Value="Transparent"/>
             <Setter Property="BorderBrush" Value="Transparent"/>
             <Setter Property="HorizontalContentAlignment" Value="Center"/>
@@ -61,10 +59,10 @@
                             <Border x:Name="SelectionBorder"
                                     HorizontalAlignment="Center"
                                     VerticalAlignment="Center"
-                                    Padding="{DynamicResource {x:Static app:UiScaleKeys.ParserCoverMargin}}"
-                                    BorderThickness="{DynamicResource {x:Static app:UiScaleKeys.OverlaySelectionBorderThickness}}"
+                                    Padding="{DynamicResource {x:Static app:UiScaleKeys.ParserMediaSelectionPadding}}"
+                                    BorderThickness="{DynamicResource {x:Static app:UiScaleKeys.OverlaySelectionThickness}}"
                                     BorderBrush="Transparent"
-                                    CornerRadius="{DynamicResource {x:Static app:UiScaleKeys.ParserCoverBorderRadius}}">
+                                    CornerRadius="{DynamicResource {x:Static app:UiScaleKeys.ParserMediaSelectionRadius}}">
 
                                 <ContentPresenter HorizontalAlignment="Center"
                                                 VerticalAlignment="Center"/>
@@ -201,8 +199,8 @@
 
                                 <Rectangle Width="{DynamicResource {x:Static app:UiScaleKeys.ParserCoverSize}}"
                                         Height="{DynamicResource {x:Static app:UiScaleKeys.ParserCoverSize}}"
-                                        RadiusX="{DynamicResource {x:Static app:UiScaleKeys.ParserCoverRadius}}"
-                                        RadiusY="{DynamicResource {x:Static app:UiScaleKeys.ParserCoverRadius}}"
+                                        RadiusX="{DynamicResource {x:Static app:UiScaleKeys.ParserMediaRadius}}"
+                                        RadiusY="{DynamicResource {x:Static app:UiScaleKeys.ParserMediaRadius}}"
                                         HorizontalAlignment="Center"
                                         VerticalAlignment="Center"
                                         SnapsToDevicePixels="True">
@@ -242,8 +240,8 @@
 
                                 <Rectangle Width="{DynamicResource {x:Static app:UiScaleKeys.ParserBackgroundWidth}}"
                                         Height="{DynamicResource {x:Static app:UiScaleKeys.ParserBackgroundHeight}}"
-                                        RadiusX="{DynamicResource {x:Static app:UiScaleKeys.ParserCoverRadius}}"
-                                        RadiusY="{DynamicResource {x:Static app:UiScaleKeys.ParserCoverRadius}}"
+                                        RadiusX="{DynamicResource {x:Static app:UiScaleKeys.ParserMediaRadius}}"
+                                        RadiusY="{DynamicResource {x:Static app:UiScaleKeys.ParserMediaRadius}}"
                                         HorizontalAlignment="Center"
                                         VerticalAlignment="Center"
                                         SnapsToDevicePixels="True">
@@ -301,13 +299,13 @@
                 MaxWidth="{DynamicResource {x:Static app:UiScaleKeys.ParserStatusSurfaceMaxWidth}}"
                 Margin="{DynamicResource {x:Static app:UiScaleKeys.ParserStatusSurfaceMargin}}"
                 Padding="{DynamicResource {x:Static app:UiScaleKeys.ParserStatusSurfacePadding}}"
-                CornerRadius="{DynamicResource {x:Static app:UiScaleKeys.OverlaySelectionBackgroundCornerRadius}}"
+                CornerRadius="{DynamicResource {x:Static app:UiScaleKeys.ParserStatusSurfaceRadius}}"
                 HorizontalAlignment="Center"
                 VerticalAlignment="Bottom"
                 IsHitTestVisible="False">
 
             <TextBlock x:Name="StatusText"
-                    FontSize="{DynamicResource {x:Static app:UiScaleKeys.CounterCardFontSize}}"
+                    FontSize="{DynamicResource {x:Static app:UiScaleKeys.ParserStatusFontSize}}"
                     Margin="{DynamicResource {x:Static app:UiScaleKeys.ParserStatusMargin}}"
                     HorizontalAlignment="Stretch"
                     VerticalAlignment="Center"

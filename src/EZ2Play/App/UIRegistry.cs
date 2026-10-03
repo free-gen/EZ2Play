@@ -25,7 +25,7 @@ namespace EZ2Play.App
 
         public Grid MainScreenGrid { get; set; }
         public TextBlock SelectedGameTitle { get; set; }
-        public Border GameCounterCard { get; set; }
+        public Border GameCounterPill { get; set; }
         public TextBlock GameCounterText { get; set; }
 
         public HintPanel BottomHintPanel { get; set; }
@@ -147,8 +147,8 @@ namespace EZ2Play.App
             if (GameCounterText != null)
                 GameCounterText.Text = text;
 
-            if (GameCounterCard != null)
-                GameCounterCard.Visibility = visible ? Visibility.Visible : Visibility.Collapsed;
+            if (GameCounterPill != null)
+                GameCounterPill.Visibility = visible ? Visibility.Visible : Visibility.Collapsed;
         }
 
         public void InitializeLoadingRing(Wpf.Ui.Controls.ProgressRing ring)

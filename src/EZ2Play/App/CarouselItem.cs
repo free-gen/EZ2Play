@@ -165,7 +165,7 @@ namespace EZ2Play.App
             _background.Width = size;
             _background.Height = size;
 
-            if (TryFindResource(UiScaleKeys.ItemCornerRadius) is double r)
+            if (TryFindResource(UiScaleKeys.GameCoverRadius) is double r)
             {
                 _cover.RadiusX = r;
                 _cover.RadiusY = r;
@@ -214,7 +214,7 @@ namespace EZ2Play.App
             Pen pen = new Pen(brush, thickness);
             pen.Freeze();
 
-            double radius = (double)TryFindResource(UiScaleKeys.ItemCornerRadius) + radiusOffset;
+            double radius = (double)TryFindResource(UiScaleKeys.GameCoverRadius) + radiusOffset;
 
             dc.DrawRoundedRectangle(null, pen, rect, radius, radius);
         }

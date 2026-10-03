@@ -40,23 +40,21 @@ namespace EZ2Play.App
             double fs(double baseVal) => GetScaledFontSize(baseVal, windowHeight);
 
             // Shared
-            target[UiScaleKeys.BaseCornerRadius] = new CornerRadius(s(8));
             target[UiScaleKeys.DividerThickness] = s(2);
-
             target[UiScaleKeys.BackgroundTransitionSlide] = s(16);
 
-            // Overlay
+            // Overlays
             target[UiScaleKeys.OverlayWidth] = s(1280);
-            target[UiScaleKeys.OverlayCornerRadius] = new CornerRadius(s(16));
+            target[UiScaleKeys.OverlayRadius] = new CornerRadius(s(16));
             target[UiScaleKeys.OverlayPadding] = new Thickness(s(8));
             target[UiScaleKeys.OverlayPrimaryFontSize] = fs(32);
             target[UiScaleKeys.OverlaySecondaryFontSize] = fs(24);
 
-            target[UiScaleKeys.OverlaySelectionBorderMargin] = new Thickness(s(8));
-            target[UiScaleKeys.OverlaySelectionBorderThickness] = new Thickness(s(4));
+            target[UiScaleKeys.OverlaySelectionMargin] = new Thickness(s(8));
+            target[UiScaleKeys.OverlaySelectionThickness] = new Thickness(s(4));
             target[UiScaleKeys.OverlaySelectionBackgroundMargin] = new Thickness(s(4));
-            target[UiScaleKeys.OverlaySelectionCornerRadius] = new CornerRadius(s(8));
-            target[UiScaleKeys.OverlaySelectionBackgroundCornerRadius] = new CornerRadius(s(4));
+            target[UiScaleKeys.OverlaySelectionRadius] = new CornerRadius(s(8));
+            target[UiScaleKeys.OverlaySelectionBackgroundRadius] = new CornerRadius(s(4));
 
             // Settings
             target[UiScaleKeys.SettingsOverlayLabelMargin] = new Thickness(0, 0, 0, s(8));
@@ -66,42 +64,40 @@ namespace EZ2Play.App
 
             target[UiScaleKeys.SettingsOverlayTreeItemsContainerMargin] = new Thickness(0, 0, 0, 0);
             target[UiScaleKeys.SettingsOverlayTreeItemsContainerPadding] = new Thickness(s(8), 0, s(8), s(16));
-            target[UiScaleKeys.SettingsOverlayTreeItemsCornerRadius] = new CornerRadius(s(4));
+            target[UiScaleKeys.SettingsOverlayTreeItemRadius] = new CornerRadius(s(4));
             target[UiScaleKeys.SettingsOverlayTreeItemPadding] = new Thickness(0, s(12), 0, s(12));
             target[UiScaleKeys.SettingsOverlayTreeItemMargin] = new Thickness(s(8));
-            target[UiScaleKeys.SettingsOverlayTreeItemSelectionBorderMargin] = new Thickness(s(0));
+            target[UiScaleKeys.SettingsOverlayTreeItemSelectionMargin] = new Thickness(s(0));
 
             target[UiScaleKeys.SettingsOverlayDividerMargin] = new Thickness(0);
             target[UiScaleKeys.SettingsOverlayAppInfoMargin] = new Thickness(0, s(24), 0, s(24));
 
             target[UiScaleKeys.ToggleSwitchWidth] = s(64);
             target[UiScaleKeys.ToggleSwitchHeight] = s(32);
-            target[UiScaleKeys.CheckBox] = s(64);
+            target[UiScaleKeys.CheckBoxSize] = s(64);
 
             // Parser
             const double parserGameItemHeight = 128;
-            const double parserCoverSize = 256;
-            const double parserCoverMargin = 4;
-            const double parserBackgroundWidth = 584;
-            const double parserBackgroundHeight = 189;
-
-            const double parserCoversViewportHeight = 601;
-            const double parserBackgroundsViewportHeight = 678;
-
             const int parserVisibleGameRows = 5;
 
             target[UiScaleKeys.ParserGameItemHeight] = s(parserGameItemHeight);
             target[UiScaleKeys.ParserGamesViewportHeight] = s(parserGameItemHeight * parserVisibleGameRows);
 
+            const double parserMediaRadius = 16;
+            const double parserCoverSize = 256;
+            
             target[UiScaleKeys.ParserCoverSize] = s(parserCoverSize);
-            target[UiScaleKeys.ParserCoverRadius] = s(16);
-            target[UiScaleKeys.ParserCoverBorderRadius] = new CornerRadius(s(20));
-            target[UiScaleKeys.ParserCoverMargin] = new Thickness(s(parserCoverMargin));
+            target[UiScaleKeys.ParserMediaRadius] = s(parserMediaRadius);
+            target[UiScaleKeys.ParserMediaSelectionRadius] = new CornerRadius(s(parserMediaRadius * 1.25));
+            target[UiScaleKeys.ParserMediaSelectionPadding] = new Thickness(s(4));
 
+            const double parserBackgroundWidth = 587;
+            const double parserBackgroundHeight = 190;
+            
             target[UiScaleKeys.ParserBackgroundWidth] = s(parserBackgroundWidth);
             target[UiScaleKeys.ParserBackgroundHeight] = s(parserBackgroundHeight);
-            target[UiScaleKeys.ParserCoversViewportHeight] = s(parserCoversViewportHeight);
-            target[UiScaleKeys.ParserBackgroundsViewportHeight] = s(parserBackgroundsViewportHeight);
+            target[UiScaleKeys.ParserCoversViewportHeight] = s((parserCoverSize * 2) + 80);
+            target[UiScaleKeys.ParserBackgroundsViewportHeight] = s((parserBackgroundHeight * 3) + 96);
 
             target[UiScaleKeys.ParserTabsMargin] = new Thickness(0, s(32), 0, s(32));
             target[UiScaleKeys.ParserTabMargin] = new Thickness(s(24), 0, s(24), 0);
@@ -121,6 +117,8 @@ namespace EZ2Play.App
             target[UiScaleKeys.ParserStatusSurfaceMaxWidth] = s(800);
             target[UiScaleKeys.ParserStatusSurfaceMargin] = new Thickness(s(128));
             target[UiScaleKeys.ParserStatusSurfacePadding] = new Thickness(s(32), s(4), s(32), s(4));
+            target[UiScaleKeys.ParserStatusSurfaceRadius] = new CornerRadius(s(4));
+            target[UiScaleKeys.ParserStatusFontSize] = fs(22);
 
             // Main
             target[UiScaleKeys.SplashLogoMaxHeight] = s(256);
@@ -135,35 +133,35 @@ namespace EZ2Play.App
 
             target[UiScaleKeys.TopPanelMargin] = new Thickness(0, s(24), 0, 0);
             target[UiScaleKeys.TopInfoTabsMargin] = new Thickness(s(72), 0, 0, 0);
-            target[UiScaleKeys.TopInfoPrimalyFontSize] = fs(42);
+            target[UiScaleKeys.TopInfoPrimaryFontSize] = fs(42);
             target[UiScaleKeys.TopInfoSecondaryFontSize] = fs(38);
-            target[UiScaleKeys.UserAvatarSize] = s(56);
+            target[UiScaleKeys.UserAvatarSize] = s(50);
 
-            target[UiScaleKeys.ItemCornerRadius] = s(16);
+            target[UiScaleKeys.GameCoverRadius] = s(16);
             target[UiScaleKeys.SelectorThickness] = s(4);
             target[UiScaleKeys.SelectorSpacing] = s(4);
 
             target[UiScaleKeys.GameTitleMargin] = new Thickness(s(224), 0, 0, 0);
-            target[UiScaleKeys.SelectedGameTitleFontSize] = fs(72);
-            target[UiScaleKeys.LoadingProgressScale] = fs(48);
+            target[UiScaleKeys.GameTitleFontSize] = fs(72);
+            target[UiScaleKeys.LoadingProgressSize] = fs(48);
 
-            // Cards
-            target[UiScaleKeys.SourceCardWidth] = s(320);
-            target[UiScaleKeys.SourceCardHeight] = s(64);
-            target[UiScaleKeys.PillCardRadius] = new CornerRadius(s(32));
-            target[UiScaleKeys.SourceCardMargin] = new Thickness(0, s(72), 0, 0);
-            target[UiScaleKeys.SourceCardFontSize] = fs(28);
+            // Pills
+            target[UiScaleKeys.SourcePillWidth] = s(320);
+            target[UiScaleKeys.SourcePillHeight] = s(64);
+            target[UiScaleKeys.SourcePillRadius] = new CornerRadius(s(32));
+            target[UiScaleKeys.SourcePillMargin] = new Thickness(0, s(72), 0, 0);
+            target[UiScaleKeys.SourcePillFontSize] = fs(28);
 
-            target[UiScaleKeys.CounterCardHeight] = s(64);
-            target[UiScaleKeys.CounterCardPadding] = new Thickness(s(32), 0, s(32), 0);
-            target[UiScaleKeys.CounterCardMargin] = new Thickness(s(48), 0, 0, 0);
-            target[UiScaleKeys.CounterCardIconMargin] = new Thickness(0, 0, s(8), 0);
-            target[UiScaleKeys.CounterCardFontSize] = fs(22);
-            target[UiScaleKeys.CounterCardIconSize] = fs(22);
+            target[UiScaleKeys.CounterPillHeight] = s(64);
+            target[UiScaleKeys.CounterPillPadding] = new Thickness(s(32), 0, s(32), 0);
+            target[UiScaleKeys.CounterPillMargin] = new Thickness(s(48), 0, 0, 0);
+            target[UiScaleKeys.CounterPillIconMargin] = new Thickness(0, 0, s(8), 0);
+            target[UiScaleKeys.CounterPillFontSize] = fs(22);
+            target[UiScaleKeys.CounterPillIconSize] = fs(22);
 
             // Notifications
             target[UiScaleKeys.NotificationPanelHeight] = s(96);
-            target[UiScaleKeys.NotificationPanelCornerRadius] = new CornerRadius(s(16));
+            target[UiScaleKeys.NotificationPanelRadius] = new CornerRadius(s(16));
             target[UiScaleKeys.NotificationPanelMaxWidth] = s(1024);
             target[UiScaleKeys.NotificationPanelPadding] = new Thickness(s(42), 0, s(64), 0);
             target[UiScaleKeys.NotificationPanelOuterMargin] = new Thickness(0, 0, s(48), 0);
@@ -188,24 +186,21 @@ namespace EZ2Play.App
     public static class UiScaleKeys
     {
         // Shared
-
-        public const string BaseCornerRadius = "BaseCornerRadius";
         public const string DividerThickness = "DividerThickness";
-
         public const string BackgroundTransitionSlide = "BackgroundTransitionSlide";
 
         // Overlay
         public const string OverlayWidth = "OverlayWidth";
-        public const string OverlayCornerRadius = "OverlayCornerRadius";
+        public const string OverlayRadius = "OverlayRadius";
         public const string OverlayPadding = "OverlayPadding";
         public const string OverlayPrimaryFontSize = "OverlayPrimaryFontSize";
         public const string OverlaySecondaryFontSize = "OverlaySecondaryFontSize";
 
-        public const string OverlaySelectionBorderMargin = "OverlaySelectionBorderMargin";
-        public const string OverlaySelectionBorderThickness = "OverlaySelectionBorderThickness";
+        public const string OverlaySelectionMargin = "OverlaySelectionMargin";
+        public const string OverlaySelectionThickness = "OverlaySelectionThickness";
         public const string OverlaySelectionBackgroundMargin = "OverlaySelectionBackgroundMargin";
-        public const string OverlaySelectionCornerRadius = "OverlaySelectionCornerRadius";
-        public const string OverlaySelectionBackgroundCornerRadius = "OverlaySelectionBackgroundCornerRadius";
+        public const string OverlaySelectionRadius = "OverlaySelectionRadius";
+        public const string OverlaySelectionBackgroundRadius = "OverlaySelectionBackgroundRadius";
 
         // Settings
         public const string SettingsOverlayLabelMargin = "SettingsOverlayLabelMargin";
@@ -215,26 +210,26 @@ namespace EZ2Play.App
 
         public const string SettingsOverlayTreeItemsContainerMargin = "SettingsOverlayTreeItemsContainerMargin";
         public const string SettingsOverlayTreeItemsContainerPadding = "SettingsOverlayTreeItemsContainerPadding";
-        public const string SettingsOverlayTreeItemsCornerRadius = "SettingsOverlayTreeItemsCornerRadius";
+        public const string SettingsOverlayTreeItemRadius = "SettingsOverlayTreeItemRadius";
         public const string SettingsOverlayTreeItemPadding = "SettingsOverlayTreeItemPadding";
         public const string SettingsOverlayTreeItemMargin = "SettingsOverlayTreeItemMargin";
-        public const string SettingsOverlayTreeItemSelectionBorderMargin = "SettingsOverlayTreeItemSelectionBorderMargin";
+        public const string SettingsOverlayTreeItemSelectionMargin = "SettingsOverlayTreeItemSelectionMargin";
 
         public const string SettingsOverlayDividerMargin = "SettingsOverlayDividerMargin";
         public const string SettingsOverlayAppInfoMargin = "SettingsOverlayAppInfoMargin";
 
         public const string ToggleSwitchWidth = "ToggleSwitchWidth";
         public const string ToggleSwitchHeight = "ToggleSwitchHeight";
-        public const string CheckBox = "CheckBox";
+        public const string CheckBoxSize = "CheckBoxSize";
 
         // Parser
         public const string ParserGameItemHeight = "ParserGameItemHeight";
         public const string ParserGamesViewportHeight = "ParserGamesViewportHeight";
 
         public const string ParserCoverSize = "ParserCoverSize";
-        public const string ParserCoverRadius = "ParserCoverRadius";
-        public const string ParserCoverBorderRadius = "ParserCoverBorderRadius";
-        public const string ParserCoverMargin = "ParserCoverMargin";
+        public const string ParserMediaRadius = "ParserMediaRadius";
+        public const string ParserMediaSelectionRadius = "ParserMediaSelectionRadius";
+        public const string ParserMediaSelectionPadding = "ParserMediaSelectionPadding";
 
         public const string ParserBackgroundWidth = "ParserBackgroundWidth";
         public const string ParserBackgroundHeight = "ParserBackgroundHeight";
@@ -259,6 +254,8 @@ namespace EZ2Play.App
         public const string ParserStatusSurfaceMaxWidth = "ParserStatusSurfaceMaxWidth";
         public const string ParserStatusSurfaceMargin = "ParserStatusSurfaceMargin";
         public const string ParserStatusSurfacePadding = "ParserStatusSurfacePadding";
+        public const string ParserStatusSurfaceRadius = "ParserStatusSurfaceRadius";
+        public const string ParserStatusFontSize = "ParserStatusFontSize";
 
         // Main
         public const string SplashLogoMaxHeight = "SplashLogoMaxHeight";
@@ -273,35 +270,35 @@ namespace EZ2Play.App
 
         public const string TopPanelMargin = "TopPanelMargin";
         public const string TopInfoTabsMargin = "TopInfoTabsMargin";
-        public const string TopInfoPrimalyFontSize = "TopInfoPrimalyFontSize";
+        public const string TopInfoPrimaryFontSize = "TopInfoPrimaryFontSize";
         public const string TopInfoSecondaryFontSize = "TopInfoSecondaryFontSize";
         public const string UserAvatarSize = "UserAvatarSize";
 
-        public const string ItemCornerRadius = "ItemCornerRadius";
+        public const string GameCoverRadius = "GameCoverRadius";
         public const string SelectorThickness = "SelectorThickness";
         public const string SelectorSpacing = "SelectorSpacing";
 
         public const string GameTitleMargin = "GameTitleMargin";
-        public const string SelectedGameTitleFontSize = "SelectedGameTitleFontSize";
-        public const string LoadingProgressScale = "LoadingProgressScale";
+        public const string GameTitleFontSize = "GameTitleFontSize";
+        public const string LoadingProgressSize = "LoadingProgressSize";
 
         // Cards
-        public const string SourceCardWidth = "SourceCardWidth";
-        public const string SourceCardHeight = "SourceCardHeight";
-        public const string PillCardRadius = "PillCardRadius";
-        public const string SourceCardMargin = "SourceCardMargin";
-        public const string SourceCardFontSize = "SourceCardFontSize";
+        public const string SourcePillWidth = "SourcePillWidth";
+        public const string SourcePillHeight = "SourcePillHeight";
+        public const string SourcePillRadius = "SourcePillRadius";
+        public const string SourcePillMargin = "SourcePillMargin";
+        public const string SourcePillFontSize = "SourcePillFontSize";
 
-        public const string CounterCardHeight = "CounterCardHeight";
-        public const string CounterCardPadding = "CounterCardPadding";
-        public const string CounterCardMargin = "CounterCardMargin";
-        public const string CounterCardIconMargin = "CounterCardIconMargin";
-        public const string CounterCardFontSize = "CounterCardFontSize";
-        public const string CounterCardIconSize = "CounterCardIconSize";
+        public const string CounterPillHeight = "CounterPillHeight";
+        public const string CounterPillPadding = "CounterPillPadding";
+        public const string CounterPillMargin = "CounterPillMargin";
+        public const string CounterPillIconMargin = "CounterPillIconMargin";
+        public const string CounterPillFontSize = "CounterPillFontSize";
+        public const string CounterPillIconSize = "CounterPillIconSize";
 
         // Notifications
         public const string NotificationPanelHeight = "NotificationPanelHeight";
-        public const string NotificationPanelCornerRadius = "NotificationPanelCornerRadius";
+        public const string NotificationPanelRadius = "NotificationPanelRadius";
         public const string NotificationPanelMaxWidth = "NotificationPanelMaxWidth";
         public const string NotificationPanelPadding = "NotificationPanelPadding";
         public const string NotificationPanelOuterMargin = "NotificationPanelOuterMargin";

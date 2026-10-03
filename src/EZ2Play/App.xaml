@@ -28,7 +28,7 @@
             <SolidColorBrush x:Key="OverlayGradientEndBrush" Color="#181C20"/>
 
             <Style x:Key="OverlaySurfaceStyle" TargetType="Border">
-                <Setter Property="CornerRadius" Value="{DynamicResource {x:Static app:UiScaleKeys.OverlayCornerRadius}}"/>
+                <Setter Property="CornerRadius" Value="{DynamicResource {x:Static app:UiScaleKeys.OverlayRadius}}"/>
                 <Setter Property="Width" Value="{DynamicResource {x:Static app:UiScaleKeys.OverlayWidth}}"/>
                 <Setter Property="HorizontalAlignment" Value="Center"/>
                 <Setter Property="VerticalAlignment" Value="Center"/>
@@ -44,16 +44,16 @@
             </Style>
 
             <Style x:Key="OverlaySelectionBorderStyle" TargetType="Border">
-                <Setter Property="Margin" Value="{DynamicResource {x:Static app:UiScaleKeys.OverlaySelectionBorderMargin}}"/>
-                <Setter Property="BorderThickness" Value="{DynamicResource {x:Static app:UiScaleKeys.OverlaySelectionBorderThickness}}"/>
+                <Setter Property="Margin" Value="{DynamicResource {x:Static app:UiScaleKeys.OverlaySelectionMargin}}"/>
+                <Setter Property="BorderThickness" Value="{DynamicResource {x:Static app:UiScaleKeys.OverlaySelectionThickness}}"/>
                 <Setter Property="BorderBrush" Value="Transparent"/>
-                <Setter Property="CornerRadius" Value="{DynamicResource {x:Static app:UiScaleKeys.OverlaySelectionCornerRadius}}"/>
+                <Setter Property="CornerRadius" Value="{DynamicResource {x:Static app:UiScaleKeys.OverlaySelectionRadius}}"/>
             </Style>
 
             <Style x:Key="OverlaySelectionBackgroundStyle" TargetType="Border">
                 <Setter Property="Margin" Value="{DynamicResource {x:Static app:UiScaleKeys.OverlaySelectionBackgroundMargin}}"/>
                 <Setter Property="Background" Value="Transparent"/>
-                <Setter Property="CornerRadius" Value="{DynamicResource {x:Static app:UiScaleKeys.OverlaySelectionBackgroundCornerRadius}}"/>
+                <Setter Property="CornerRadius" Value="{DynamicResource {x:Static app:UiScaleKeys.OverlaySelectionBackgroundRadius}}"/>
             </Style>
 
             <!-- AppDividerStyle -->

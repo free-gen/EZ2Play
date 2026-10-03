@@ -149,7 +149,7 @@ namespace EZ2Play
                 NotificationIcon = FindName("NotificationIcon") as System.Windows.Controls.TextBlock,
                 NotificationText = FindName("NotificationText") as System.Windows.Controls.TextBlock,
                 GameCounterText = FindName("GameCounterText") as System.Windows.Controls.TextBlock,
-                GameCounterCard = FindName("GameCounterCard") as System.Windows.Controls.Border,
+                GameCounterPill = FindName("GameCounterPill") as System.Windows.Controls.Border,
             };
 
             _uiRegistry.InitializeSplash(SplashLogo, SplashOverlay, MainScreenGrid);

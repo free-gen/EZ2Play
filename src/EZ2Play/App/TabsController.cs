@@ -168,7 +168,7 @@ namespace EZ2Play.App
             {
                 text.SetResourceReference(
                     TextBlock.FontSizeProperty,
-                    UiScaleKeys.TopInfoPrimalyFontSize);
+                    UiScaleKeys.TopInfoPrimaryFontSize);
             }
 
             else
