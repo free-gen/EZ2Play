@@ -250,7 +250,7 @@
                             
                             <!-- GameSourceCard -->
                             <Border x:Name="GameSourceCard"
-                                    Background="#F0F2F2F2"
+                                    Style="{StaticResource LightSurfaceStyle}"
                                     CornerRadius="{DynamicResource {x:Static app:UiScaleKeys.PillCardRadius}}"
                                     Width="{DynamicResource {x:Static app:UiScaleKeys.SourceCardWidth}}"
                                     Height="{DynamicResource {x:Static app:UiScaleKeys.SourceCardHeight}}"
@@ -266,7 +266,7 @@
 
                             <!-- GameCounterCard -->
                             <Border x:Name="GameCounterCard"
-                                    Background="#F0121212"
+                                    Style="{StaticResource DarkSurfaceStyle}"
                                     Padding="{DynamicResource {x:Static app:UiScaleKeys.CounterCardPadding}}"
                                     Margin="{DynamicResource {x:Static app:UiScaleKeys.CounterCardMargin}}"
                                     Height="{DynamicResource {x:Static app:UiScaleKeys.CounterCardHeight}}"
@@ -277,7 +277,7 @@
                                 <StackPanel Orientation="Horizontal">
                                     <TextBlock  FontSize="{DynamicResource {x:Static app:UiScaleKeys.CounterCardIconSize}}"
                                                 Margin="{DynamicResource {x:Static app:UiScaleKeys.CounterCardIconMargin}}"
-                                                FontFamily="/Assets/#Xbox Fluent">&#xE7FB;</TextBlock><!-- E7FB -->
+                                                FontFamily="/Assets/#Xbox Fluent">&#xE7FB;</TextBlock>
                                     
                                     <TextBlock x:Name="GameCounterText"
                                             FontSize="{DynamicResource {x:Static app:UiScaleKeys.CounterCardFontSize}}"
@@ -308,6 +308,7 @@
                         Panel.ZIndex="105"
                         Mode="Main"
                         Device="Keyboard"
+                        Style="{StaticResource DarkSurfaceStyle}"
                         Visibility="Collapsed"
                         Margin="{DynamicResource {x:Static app:UiScaleKeys.HintPanelMargin}}"
                         CornerRadius="{DynamicResource {x:Static app:UiScaleKeys.PillCardRadius}}"

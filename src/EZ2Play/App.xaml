@@ -21,9 +21,9 @@
             <FontFamily x:Key="XboxFont">/Assets/#Xbox Fluent</FontFamily>
 
             <!-- Overlay -->
-            <SolidColorBrush x:Key="OverlayBackdropBrush" Color="#A0000000"/>
-            <SolidColorBrush x:Key="OverlaySelectionBorderBrush" Color="#80FFFFFF"/>
-            <SolidColorBrush x:Key="OverlaySelectionBackgroundBrush" Color="#0AFFFFFF"/>
+            <SolidColorBrush x:Key="OverlayBackdropBrush" Color="#B4000000"/>
+            <SolidColorBrush x:Key="OverlaySelectionBorderBrush" Color="#80F7FBFF"/>
+            <SolidColorBrush x:Key="OverlaySelectionBackgroundBrush" Color="#0DF7FBFF"/>
 
             <Style x:Key="OverlaySurfaceStyle" TargetType="Border">
                 <Setter Property="CornerRadius" Value="{DynamicResource {x:Static app:UiScaleKeys.OverlayCornerRadius}}"/>
@@ -56,16 +56,16 @@
 
             <!-- AppDividerStyle -->
             <Style x:Key="AppDividerStyle" TargetType="Border">
-                <Setter Property="Height"
-                        Value="{DynamicResource {x:Static app:UiScaleKeys.DividerThickness}}"/>
-                <Setter Property="Background"
-                        Value="{DynamicResource DividerStrokeColorDefaultBrush}"/>
+                <Setter Property="Height" Value="{DynamicResource {x:Static app:UiScaleKeys.DividerThickness}}"/>
+                <Setter Property="Background" Value="#F7FBFF"/>
+                <Setter Property="Opacity" Value="0.05"/>
                 <Setter Property="SnapsToDevicePixels" Value="True"/>
             </Style>
 
             <!-- Icons -->
             <Style TargetType="Path">
-                <Setter Property="Fill" Value="#E8E8E8"/>
+                <Setter Property="Fill" Value="#F7FBFF"/>
+                <Setter Property="Opacity" Value="0.9"/>
             </Style>
 
             <!-- Style ListBoxItemStyle -->
@@ -103,9 +103,13 @@
                 </Setter>
             </Style>
 
-            <Style x:Key="HintCardStyle" TargetType="Border">
-                <Setter Property="Background" Value="#F0111111"/>
-            </Style>                        
+            <Style x:Key="DarkSurfaceStyle" TargetType="Border">
+                <Setter Property="Background" Value="#F20A0E12"/>
+            </Style>
+
+            <Style x:Key="LightSurfaceStyle" TargetType="Border">
+                <Setter Property="Background" Value="#F2F2F6FA"/>
+            </Style>
 
         </ResourceDictionary>
     </Application.Resources>

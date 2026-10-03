@@ -97,8 +97,7 @@
                                         <Border x:Name="ItemDivider"
                                                 Style="{StaticResource AppDividerStyle}"
                                                 VerticalAlignment="Bottom"
-                                                Margin="{DynamicResource {x:Static app:UiScaleKeys.SettingsOverlayDividerMargin}}"
-                                                Background="#0CFFFFFF"/>
+                                                Margin="{DynamicResource {x:Static app:UiScaleKeys.SettingsOverlayDividerMargin}}"/>
                                     </Grid>
 
                                     <ControlTemplate.Triggers>
@@ -114,7 +113,7 @@
                                                 <Setter.Value>
                                                     <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
                                                         <GradientStop Color="#00000000" Offset="0"/>
-                                                        <GradientStop Color="#30000000" Offset="1"/>
+                                                        <GradientStop Color="#26000000" Offset="1"/>
                                                     </LinearGradientBrush>
                                                 </Setter.Value>
                                             </Setter>
@@ -378,8 +377,7 @@
 
                     <ListBox.ItemContainerStyle>
                         <Style TargetType="ListBoxItem">
-                            <Setter Property="Padding"
-                                    Value="{DynamicResource {x:Static app:UiScaleKeys.SettingsOverlayItemPadding}}"/>
+                            <Setter Property="Padding" Value="{DynamicResource {x:Static app:UiScaleKeys.SettingsOverlayItemPadding}}"/>
                             <Setter Property="Background" Value="Transparent"/>
                             <Setter Property="BorderBrush" Value="Transparent"/>
 
@@ -416,13 +414,11 @@
                     </ListBox.ItemContainerStyle>
 
                     <ListBoxItem x:Name="ConfirmYesItem">
-                        <TextBlock x:Name="ConfirmYes"
-                                HorizontalAlignment="Center"/>
+                        <TextBlock x:Name="ConfirmYes" HorizontalAlignment="Center"/>
                     </ListBoxItem>
 
                     <ListBoxItem x:Name="ConfirmNoItem">
-                        <TextBlock x:Name="ConfirmNo"
-                                HorizontalAlignment="Center"/>
+                        <TextBlock x:Name="ConfirmNo" HorizontalAlignment="Center"/>
                     </ListBoxItem>
 
                 </ListBox>

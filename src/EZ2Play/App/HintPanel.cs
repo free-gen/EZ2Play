@@ -55,7 +55,6 @@ namespace EZ2Play.App
                 ["BtnXboxFill"] = ("\uE3E3", null, new SolidColorBrush(Color.FromRgb(0xD3, 0xD3, 0xD3)))
             };
 
-            Style = Application.Current.FindResource("HintCardStyle") as Style;
             HorizontalAlignment = HorizontalAlignment.Right;
             VerticalAlignment = VerticalAlignment.Bottom;
 
