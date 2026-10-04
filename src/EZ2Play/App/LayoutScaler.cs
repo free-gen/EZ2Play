@@ -91,13 +91,8 @@ namespace EZ2Play.App
             target[UiScaleKeys.ParserMediaSelectionRadius] = new CornerRadius(s(parserMediaRadius * 1.25));
             target[UiScaleKeys.ParserMediaSelectionPadding] = new Thickness(s(4));
 
-            const double parserBackgroundWidth = 587;
-            const double parserBackgroundHeight = 190;
-            
-            target[UiScaleKeys.ParserBackgroundWidth] = s(parserBackgroundWidth);
-            target[UiScaleKeys.ParserBackgroundHeight] = s(parserBackgroundHeight);
-            target[UiScaleKeys.ParserCoversViewportHeight] = s((parserCoverSize * 2) + 80);
-            target[UiScaleKeys.ParserBackgroundsViewportHeight] = s((parserBackgroundHeight * 3) + 96);
+            target[UiScaleKeys.ParserBackgroundWidth] = s(587);
+            target[UiScaleKeys.ParserBackgroundHeight] = s(190);
 
             target[UiScaleKeys.ParserTabsMargin] = new Thickness(0, s(32), 0, s(32));
             target[UiScaleKeys.ParserTabMargin] = new Thickness(s(24), 0, s(24), 0);
@@ -111,7 +106,8 @@ namespace EZ2Play.App
             target[UiScaleKeys.ParserInputMargin] = new Thickness(s(8));
             target[UiScaleKeys.ParserManualSearchHintMargin] = new Thickness(0, s(16), 0, s(20));
 
-            target[UiScaleKeys.ParserAssetsMargin] = new Thickness(0, s(24), 0, s(24));
+            target[UiScaleKeys.ParserAssetsMargin] = new Thickness(s(12));
+            target[UiScaleKeys.ParserAssetsGap] = new Thickness(s(8));
             target[UiScaleKeys.ParserStatusMargin] = new Thickness(0, s(16), 0, s(16));
 
             target[UiScaleKeys.ParserStatusSurfaceMaxWidth] = s(800);
@@ -233,8 +229,6 @@ namespace EZ2Play.App
 
         public const string ParserBackgroundWidth = "ParserBackgroundWidth";
         public const string ParserBackgroundHeight = "ParserBackgroundHeight";
-        public const string ParserCoversViewportHeight = "ParserCoversViewportHeight";
-        public const string ParserBackgroundsViewportHeight = "ParserBackgroundsViewportHeight";
 
         public const string ParserTabsMargin = "ParserTabsMargin";
         public const string ParserTabMargin = "ParserTabMargin";
@@ -249,6 +243,7 @@ namespace EZ2Play.App
         public const string ParserManualSearchHintMargin = "ParserManualSearchHintMargin";
 
         public const string ParserAssetsMargin = "ParserAssetsMargin";
+        public const string ParserAssetsGap = "ParserAssetsGap";
         public const string ParserStatusMargin = "ParserStatusMargin";
 
         public const string ParserStatusSurfaceMaxWidth = "ParserStatusSurfaceMaxWidth";

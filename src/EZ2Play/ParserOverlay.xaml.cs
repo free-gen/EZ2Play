@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.IO;
@@ -21,14 +22,142 @@ using Windows.UI.ViewManagement.Core;
 
 namespace EZ2Play.App
 {
+    public sealed class ParserAssetsPanel : Panel
+    {
+        private double _layoutCellHeight;
+        private double _layoutVerticalGap;
+        private double _layoutHorizontalGap;
+
+        public ParserAssetsPanel()
+        {
+            SnapsToDevicePixels = true;
+            UseLayoutRounding = true;
+        }
+
+        public static readonly DependencyProperty ColumnsProperty =
+            DependencyProperty.Register(nameof(Columns), typeof(int), typeof(ParserAssetsPanel),
+                new FrameworkPropertyMetadata(1, FrameworkPropertyMetadataOptions.AffectsMeasure));
+
+        public static readonly DependencyProperty GapProperty =
+            DependencyProperty.Register(nameof(Gap), typeof(Thickness), typeof(ParserAssetsPanel),
+                new FrameworkPropertyMetadata(new Thickness(0), FrameworkPropertyMetadataOptions.AffectsMeasure));
+
+        public int Columns
+        {
+            get => (int)GetValue(ColumnsProperty);
+            set => SetValue(ColumnsProperty, value);
+        }
+
+        public Thickness Gap
+        {
+            get => (Thickness)GetValue(GapProperty);
+            set => SetValue(GapProperty, value);
+        }
+
+        public double ItemHeight { get; private set; }
+
+        public double VerticalGap => _layoutVerticalGap > 0 ? _layoutVerticalGap : Math.Ceiling(Gap.Top + Gap.Bottom);
+
+        public double GetViewportHeight(int visibleRows, double fallbackItemHeight)
+        {
+            double itemHeight = InternalChildren.Count > 0 && ItemHeight > 0 ? ItemHeight : fallbackItemHeight;
+
+            if (itemHeight <= 0 || visibleRows <= 0)
+                return 0;
+
+            return Math.Ceiling(itemHeight * visibleRows + VerticalGap * Math.Max(0, visibleRows - 1));
+        }
+
+        protected override Size MeasureOverride(Size availableSize)
+        {
+            int columns = Math.Max(1, Columns);
+            int rows = (InternalChildren.Count + columns - 1) / columns;
+
+            if (InternalChildren.Count == 0)
+            {
+                ItemHeight = 0;
+                return new Size();
+            }
+
+            double horizontalGap = Gap.Left + Gap.Right;
+            double verticalGap = Gap.Top + Gap.Bottom;
+
+            double maxWidth = 0;
+            double maxHeight = 0;
+
+            foreach (UIElement child in InternalChildren)
+            {
+                child.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
+
+                maxWidth = Math.Max(maxWidth, child.DesiredSize.Width);
+                maxHeight = Math.Max(maxHeight, child.DesiredSize.Height);
+            }
+
+            double cellWidth = double.IsInfinity(availableSize.Width)
+                ? maxWidth
+                : Math.Max(0, (availableSize.Width - horizontalGap * (columns - 1)) / columns);
+
+            foreach (UIElement child in InternalChildren)
+            {
+                child.Measure(new Size(cellWidth, double.PositiveInfinity));
+            }
+
+            maxHeight = InternalChildren
+                .Cast<UIElement>()
+                .Max(child => child.DesiredSize.Height);
+
+            _layoutCellHeight = Math.Ceiling(maxHeight);
+            _layoutVerticalGap = Math.Ceiling(verticalGap);
+            _layoutHorizontalGap = Math.Ceiling(horizontalGap);
+            ItemHeight = _layoutCellHeight;
+
+            double desiredWidth = double.IsInfinity(availableSize.Width)
+                ? cellWidth * columns + horizontalGap * (columns - 1) : availableSize.Width;
+
+            double desiredHeight = _layoutCellHeight * rows + _layoutVerticalGap * Math.Max(0, rows - 1);
+
+            return new Size(desiredWidth, desiredHeight);
+        }
+
+        protected override Size ArrangeOverride(Size finalSize)
+        {
+            int columns = Math.Max(1, Columns);
+
+            double horizontalGap = _layoutHorizontalGap;
+            double verticalGap = _layoutVerticalGap;
+
+            double cellWidth =
+                Math.Max(0, (finalSize.Width - horizontalGap * (columns - 1)) / columns);
+
+            double cellHeight = _layoutCellHeight;
+
+            for (int index = 0; index < InternalChildren.Count; index++)
+            {
+                int row = index / columns;
+                int column = index % columns;
+
+                double x = Math.Round(column * (cellWidth + horizontalGap));
+                double y = row * (cellHeight + verticalGap);
+                double right = Math.Round((column + 1) * (cellWidth + horizontalGap) - horizontalGap);
+
+                InternalChildren[index].Arrange(new Rect(x, y, right - x, cellHeight));
+            }
+
+            return finalSize;
+        }
+    }
+
     public partial class ParserOverlay : UserControl, IDisposable
     {
         private const int GridColumns = 4;
         private const int BackgroundColumns = 2;
+        private const int CoversVisibleRows = 2;
+        private const int BackgroundsVisibleRows = 3;
         private const int MaxGames = 15;
         private const int MaxCovers = 30;
         private const int MaxBackgrounds = 30;
         private const double FadeDuration = 0.1;
+        private const int GameSearchTimeoutSeconds = 3;
         private const double ManualSearchKeyboardGap = 32;
 
         private readonly InputHandler _inputHandler;
@@ -171,6 +300,70 @@ namespace EZ2Play.App
         {
             ParserSurface.Visibility = Visibility.Collapsed;
             ParserContentGrid.Visibility = Visibility.Collapsed;
+        }
+
+        private static T FindVisualChild<T>(DependencyObject parent)
+            where T : DependencyObject
+        {
+            if (parent == null)
+                return null;
+
+            for (int i = 0; i < VisualTreeHelper.GetChildrenCount(parent); i++)
+            {
+                DependencyObject child = VisualTreeHelper.GetChild(parent, i);
+
+                if (child is T result)
+                    return result;
+
+                T nestedResult = FindVisualChild<T>(child);
+
+                if (nestedResult != null)
+                    return nestedResult;
+            }
+
+            return null;
+        }
+
+        private void UpdateAssetViewportHeight(
+            ListBox listBox,
+            int visibleRows,
+            string mediaHeightKey)
+        {
+            listBox.ApplyTemplate();
+            listBox.UpdateLayout();
+
+            ParserAssetsPanel panel = FindVisualChild<ParserAssetsPanel>(listBox);
+
+            double mediaHeight = (double)FindResource(mediaHeightKey);
+
+            Thickness selectionPadding = (Thickness)FindResource(UiScaleKeys.ParserMediaSelectionPadding);
+            Thickness selectionBorder = (Thickness)FindResource(UiScaleKeys.OverlaySelectionThickness);
+
+            double fallbackItemHeight =
+                mediaHeight +
+                selectionPadding.Top +
+                selectionPadding.Bottom +
+                selectionBorder.Top +
+                selectionBorder.Bottom;
+
+            double contentHeight;
+
+            if (panel != null)
+            {
+                contentHeight = panel.GetViewportHeight(visibleRows, fallbackItemHeight);
+            }
+            else
+            {
+                Thickness gap = (Thickness)FindResource(UiScaleKeys.ParserAssetsGap);
+
+                double verticalGap = gap.Top + gap.Bottom;
+
+                contentHeight = Math.Ceiling(fallbackItemHeight * visibleRows + verticalGap * Math.Max(0, visibleRows - 1));
+            }
+
+            double outerMargin = listBox.Margin.Top + listBox.Margin.Bottom;
+
+            ParserContentGrid.Height = Math.Ceiling(contentHeight + outerMargin);
         }
 
         public async void Open()
@@ -384,8 +577,8 @@ namespace EZ2Play.App
 
         private void ShowCoversTab()
         {
-            ParserContentGrid.Height = (double)FindResource(UiScaleKeys.ParserCoversViewportHeight);
             BackgroundsListBox.Visibility = Visibility.Collapsed;
+            UpdateAssetViewportHeight(CoversListBox, CoversVisibleRows, UiScaleKeys.ParserCoverSize);
 
             if (_gridResults.Count == 0)
             {
@@ -407,8 +600,8 @@ namespace EZ2Play.App
 
         private void ShowBackgroundsTab()
         {
-            ParserContentGrid.Height = (double)FindResource(UiScaleKeys.ParserBackgroundsViewportHeight);
             CoversListBox.Visibility = Visibility.Collapsed;
+            UpdateAssetViewportHeight(BackgroundsListBox, BackgroundsVisibleRows, UiScaleKeys.ParserBackgroundHeight);
 
             if (_heroResults.Count == 0)
             {
@@ -648,7 +841,23 @@ namespace EZ2Play.App
                     ? (_shortcut.DisplayName ?? _shortcut.Name)
                     : customQuery.Trim();
 
-                var results = await _steamGridDbClient.SearchGamesAsync(query, MaxGames, cancellationToken);
+                Task<List<ParserGameResult>> searchTask = _steamGridDbClient.SearchGamesAsync(query, MaxGames, cancellationToken);
+                Task timeoutTask = Task.Delay(TimeSpan.FromSeconds(GameSearchTimeoutSeconds), cancellationToken);
+                Task completedTask = await Task.WhenAny(searchTask, timeoutTask);
+
+                if (completedTask != searchTask)
+                {
+                    if (cancellationToken.IsCancellationRequested)
+                        return;
+
+                    if (!searchTask.IsCompleted)
+                    {
+                        ShowErrorNotification(Locals.GetString("GridDBError"));
+                        return;
+                    }
+                }
+
+                var results = await searchTask;
 
                 if (!IsSessionActive(cancellationToken)) return;
 
@@ -676,7 +885,7 @@ namespace EZ2Play.App
 
             catch (OperationCanceledException)
             {
-                // Expected when the parser is closed or the operation is canceled.
+                // Пользователь закрыл парсер или отменил операцию.
             }
 
             catch (SteamGridDbApiKeyMissingException ex)
@@ -748,7 +957,8 @@ namespace EZ2Play.App
 
             _isBusy = true;
             _mode = ParserMode.Covers;
-            ParserContentGrid.Height = (double)FindResource(UiScaleKeys.ParserCoversViewportHeight);
+
+            UpdateAssetViewportHeight(CoversListBox, CoversVisibleRows, UiScaleKeys.ParserCoverSize);
 
             _assetGame = game;
             _backgroundsLoaded = false;
@@ -794,6 +1004,9 @@ namespace EZ2Play.App
                 HideStatus();
 
                 CoversListBox.Visibility = Visibility.Visible;
+
+                UpdateAssetViewportHeight(CoversListBox, CoversVisibleRows, UiScaleKeys.ParserCoverSize);
+
                 CoversListBox.SelectedIndex = 0;
                 CoversListBox.ScrollIntoView(CoversListBox.SelectedItem);
                 CoversListBox.Focus();
@@ -909,7 +1122,8 @@ namespace EZ2Play.App
 
             _isBusy = true;
             _mode = ParserMode.Backgrounds;
-            ParserContentGrid.Height = (double)FindResource(UiScaleKeys.ParserBackgroundsViewportHeight);
+
+            UpdateAssetViewportHeight(BackgroundsListBox, BackgroundsVisibleRows, UiScaleKeys.ParserBackgroundHeight);
 
             UpdateAssetTabs();
 
@@ -949,6 +1163,9 @@ namespace EZ2Play.App
                 HideStatus();
 
                 BackgroundsListBox.Visibility = Visibility.Visible;
+
+                UpdateAssetViewportHeight(BackgroundsListBox, BackgroundsVisibleRows, UiScaleKeys.ParserBackgroundHeight);
+
                 BackgroundsListBox.SelectedIndex = 0;
                 BackgroundsListBox.ScrollIntoView(BackgroundsListBox.SelectedItem);
                 BackgroundsListBox.Focus();
@@ -1116,10 +1333,7 @@ namespace EZ2Play.App
 
                 using (var input = new MemoryStream(bytes))
                 using (var sourceImage = Drawing.Image.FromStream(input, true, true))
-                using (var resizedImage = new Drawing.Bitmap(
-                    512,
-                    512,
-                    DrawingImaging.PixelFormat.Format32bppArgb))
+                using (var resizedImage = new Drawing.Bitmap(512, 512, DrawingImaging.PixelFormat.Format32bppArgb))
                 {
                     using (var graphics = Drawing.Graphics.FromImage(resizedImage))
                     {
@@ -1136,11 +1350,7 @@ namespace EZ2Play.App
                         var destRect = new Drawing.RectangleF(0, 0, 512, 512);
                         var sourceRect = new Drawing.RectangleF(sourceX, sourceY, sourceSize, sourceSize);
 
-                        graphics.DrawImage(
-                            sourceImage,
-                            destRect,
-                            sourceRect,
-                            Drawing.GraphicsUnit.Pixel);
+                        graphics.DrawImage(sourceImage, destRect, sourceRect, Drawing.GraphicsUnit.Pixel);
                     }
 
                     cancellationToken.ThrowIfCancellationRequested();

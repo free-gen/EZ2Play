@@ -27,7 +27,7 @@
     
 
     <!-- Window Background {DynamicResource LayerOnAcrylicFillColorDefaultBrush} -->
-    <Border Background="{DynamicResource LayerOnAcrylicFillColorDefaultBrush}" Margin="0">
+    <Border Background="{DynamicResource CardBackgroundFillColorDefaultBrush}" Margin="0">
 
         <Grid x:Name="RootGrid"
               HorizontalAlignment="Stretch"

@@ -64,8 +64,7 @@
                                     BorderBrush="Transparent"
                                     CornerRadius="{DynamicResource {x:Static app:UiScaleKeys.ParserMediaSelectionRadius}}">
 
-                                <ContentPresenter HorizontalAlignment="Center"
-                                                VerticalAlignment="Center"/>
+                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
 
                             </Border>
 
@@ -190,7 +189,9 @@
 
                         <ListBox.ItemsPanel>
                             <ItemsPanelTemplate>
-                                <UniformGrid Columns="4"/>
+                                <app:ParserAssetsPanel
+                                    Columns="4"
+                                    Gap="{DynamicResource {x:Static app:UiScaleKeys.ParserAssetsGap}}"/>
                             </ItemsPanelTemplate>
                         </ListBox.ItemsPanel>
 
@@ -231,7 +232,9 @@
 
                         <ListBox.ItemsPanel>
                             <ItemsPanelTemplate>
-                                <UniformGrid Columns="2"/>
+                                <app:ParserAssetsPanel
+                                    Columns="2"
+                                    Gap="{DynamicResource {x:Static app:UiScaleKeys.ParserAssetsGap}}"/>
                             </ItemsPanelTemplate>
                         </ListBox.ItemsPanel>
 
