@@ -7,6 +7,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using Rectangle = System.Windows.Shapes.Rectangle;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
 using System.Windows.Media.Imaging;
@@ -163,6 +164,7 @@ namespace EZ2Play.App
         private readonly InputHandler _inputHandler;
         private readonly MainWindow _mainWindow;
         private readonly AppConfig _config;
+        private readonly SelectorCoordinator _selectorCoordinator;
         private const double StatusAutoHideSeconds = 5;
         private readonly DispatcherTimer _statusTimer;
 
@@ -195,7 +197,7 @@ namespace EZ2Play.App
             Backgrounds
         }
 
-        public ParserOverlay(InputHandler inputHandler, MainWindow mainWindow)
+        public ParserOverlay(InputHandler inputHandler, MainWindow mainWindow, SelectorCoordinator selectorCoordinator)
         {
             InitializeComponent();
             Locals.ApplyLocalization(this);
@@ -219,6 +221,7 @@ namespace EZ2Play.App
             _inputHandler = inputHandler;
             _mainWindow = mainWindow;
             _config = _mainWindow.GetConfig();
+            _selectorCoordinator = selectorCoordinator;
 
             _steamGridDbClient = new SteamGridDbClient();
 
@@ -302,6 +305,63 @@ namespace EZ2Play.App
             ParserContentGrid.Visibility = Visibility.Collapsed;
         }
 
+        private void ScheduleParserSelectorUpdate()
+        {
+            Dispatcher.BeginInvoke(new Action(UpdateParserSelector), DispatcherPriority.Loaded);
+        }
+
+        private void UpdateParserSelector()
+        {
+            if (_selectorCoordinator == null)
+                return;
+
+            if (Visibility != Visibility.Visible)
+            {
+                _selectorCoordinator.Hide(SelectorCoordinator.Owner.Parser);
+                return;
+            }
+
+            ListBox activeListBox = null;
+
+            if (_mode == ParserMode.Games && GamesListBox.Visibility == Visibility.Visible)
+                activeListBox = GamesListBox;
+            else if (_mode == ParserMode.Covers && CoversListBox.Visibility == Visibility.Visible)
+                activeListBox = CoversListBox;
+            else if (_mode == ParserMode.Backgrounds && BackgroundsListBox.Visibility == Visibility.Visible)
+                activeListBox = BackgroundsListBox;
+
+            if (activeListBox == null || activeListBox.SelectedIndex < 0)
+            {
+                _selectorCoordinator.Hide(SelectorCoordinator.Owner.Parser);
+                return;
+            }
+
+            var selectedItem = activeListBox.ItemContainerGenerator.ContainerFromIndex(activeListBox.SelectedIndex) as ListBoxItem;
+
+            if (selectedItem == null)
+            {
+                _selectorCoordinator.Hide(SelectorCoordinator.Owner.Parser);
+                return;
+            }
+
+            FrameworkElement target = selectedItem;
+            Selector.SelectorProfile profile = _selectorCoordinator.CreateOverlayItemProfile();
+
+            if (_mode == ParserMode.Covers || _mode == ParserMode.Backgrounds)
+            {
+                target = FindVisualChild<Rectangle>(selectedItem);
+                profile = _selectorCoordinator.CreateMediaProfile();
+            }
+
+            if (target == null)
+            {
+                _selectorCoordinator.Hide(SelectorCoordinator.Owner.Parser);
+                return;
+            }
+
+            _selectorCoordinator.ShowOverlay(SelectorCoordinator.Owner.Parser, target, profile);
+        }
+
         private static T FindVisualChild<T>(DependencyObject parent)
             where T : DependencyObject
         {
@@ -324,10 +384,7 @@ namespace EZ2Play.App
             return null;
         }
 
-        private void UpdateAssetViewportHeight(
-            ListBox listBox,
-            int visibleRows,
-            string mediaHeightKey)
+        private void UpdateAssetViewportHeight(ListBox listBox, int visibleRows, string mediaHeightKey)
         {
             listBox.ApplyTemplate();
             listBox.UpdateLayout();
@@ -335,17 +392,7 @@ namespace EZ2Play.App
             ParserAssetsPanel panel = FindVisualChild<ParserAssetsPanel>(listBox);
 
             double mediaHeight = (double)FindResource(mediaHeightKey);
-
-            Thickness selectionPadding = (Thickness)FindResource(UiScaleKeys.ParserMediaSelectionPadding);
-            Thickness selectionBorder = (Thickness)FindResource(UiScaleKeys.OverlaySelectionThickness);
-
-            double fallbackItemHeight =
-                mediaHeight +
-                selectionPadding.Top +
-                selectionPadding.Bottom +
-                selectionBorder.Top +
-                selectionBorder.Bottom;
-
+            double fallbackItemHeight = mediaHeight;
             double contentHeight;
 
             if (panel != null)
@@ -408,6 +455,8 @@ namespace EZ2Play.App
 
             Visibility = Visibility.Visible;
 
+            ScheduleParserSelectorUpdate();
+
             var fadeIn = new DoubleAnimation
             {
                 From = 0,
@@ -431,6 +480,7 @@ namespace EZ2Play.App
             CancelSession();
             CancelAssetLoading();
             HideStatus();
+            _selectorCoordinator.Hide(SelectorCoordinator.Owner.Parser);
 
             if (_manualSearchInputView != null)
             {
@@ -458,6 +508,8 @@ namespace EZ2Play.App
             fadeOut.Completed += (s, e) =>
             {
                 Visibility = Visibility.Collapsed;
+
+                _selectorCoordinator.ShowMain();
 
                 _inputHandler.SetMode(InputHandler.InputMode.Main);
                 _mainWindow.SetHintsMode(HintPanel.HintMode.Main);
@@ -489,6 +541,9 @@ namespace EZ2Play.App
                     GamesListBox.SelectedIndex = 0;
 
                 GamesListBox.Focus();
+
+                ScheduleParserSelectorUpdate();
+
                 return;
             }
 
@@ -535,35 +590,48 @@ namespace EZ2Play.App
             MoveSelection(listBox, indexAsset + Math.Sign(direction) * columns);
         }
 
+        private async Task SetActiveParserAssetTab(ParserMode mode)
+        {
+            _mode = mode;
+            UpdateAssetTabs();
+
+            if (mode == ParserMode.Covers)
+            {
+                ShowCoversTab();
+                return;
+            }
+
+            if (mode == ParserMode.Backgrounds)
+            {
+                if (!_backgroundsLoaded)
+                    await LoadBackgroundsAsync(_assetGame, _sessionCts.Token);
+                else
+                    ShowBackgroundsTab();
+            }
+        }
+
         public async void SwitchAssetTab(int direction)
         {
-            if (_isBusy || _mode == ParserMode.Games || _assetGame == null || _sessionCts == null) return;
+            if (_isBusy || _mode == ParserMode.Games || _assetGame == null || _sessionCts == null)
+                return;
 
             if (direction < 0)
             {
-                if (_mode == ParserMode.Covers) return;
+                if (_mode == ParserMode.Covers)
+                    return;
 
                 _mainWindow.GetSound()?.PlayTabSound();
-
-                _mode = ParserMode.Covers;
-                UpdateAssetTabs();
-                ShowCoversTab();
+                await SetActiveParserAssetTab(ParserMode.Covers);
                 return;
             }
 
             if (direction > 0)
             {
-                if (_mode == ParserMode.Backgrounds) return;
+                if (_mode == ParserMode.Backgrounds)
+                    return;
 
                 _mainWindow.GetSound()?.PlayTabSound();
-
-                _mode = ParserMode.Backgrounds;
-                UpdateAssetTabs();
-
-                if (!_backgroundsLoaded)
-                    await LoadBackgroundsAsync(_assetGame, _sessionCts.Token);
-                else
-                    ShowBackgroundsTab();
+                await SetActiveParserAssetTab(ParserMode.Backgrounds);
             }
         }
 
@@ -584,6 +652,7 @@ namespace EZ2Play.App
             {
                 CoversListBox.Visibility = Visibility.Collapsed;
                 ShowStatus(Locals.GetString("NoResultsFound"));
+                ScheduleParserSelectorUpdate();
                 return;
             }
 
@@ -596,6 +665,7 @@ namespace EZ2Play.App
 
             CoversListBox.ScrollIntoView(CoversListBox.SelectedItem);
             CoversListBox.Focus();
+            ScheduleParserSelectorUpdate();
         }
 
         private void ShowBackgroundsTab()
@@ -607,6 +677,7 @@ namespace EZ2Play.App
             {
                 BackgroundsListBox.Visibility = Visibility.Collapsed;
                 ShowStatus(Locals.GetString("NoResultsFound"));
+                ScheduleParserSelectorUpdate();
                 return;
             }
 
@@ -619,6 +690,7 @@ namespace EZ2Play.App
 
             BackgroundsListBox.ScrollIntoView(BackgroundsListBox.SelectedItem);
             BackgroundsListBox.Focus();
+            ScheduleParserSelectorUpdate();
         }
 
         public void Search()
@@ -677,9 +749,13 @@ namespace EZ2Play.App
             targetIndex = Math.Max(0, Math.Min(targetIndex, listBox.Items.Count - 1));
 
             if (targetIndex == listBox.SelectedIndex) return;
-
+            
             listBox.SelectedIndex = targetIndex;
+            UpdateParserSelector();
             listBox.ScrollIntoView(listBox.SelectedItem);
+
+            ScheduleParserSelectorUpdate();
+
             _mainWindow.GetSound()?.PlayMoveSound();
         }
 
@@ -693,6 +769,8 @@ namespace EZ2Play.App
 
             GamesListBox.Visibility = Visibility.Collapsed;
             CoversListBox.Visibility = Visibility.Collapsed;
+
+            ScheduleParserSelectorUpdate();
 
             SearchInputBox.Text = string.Empty;
 
@@ -881,6 +959,8 @@ namespace EZ2Play.App
                 GamesListBox.SelectedIndex = 0;
                 GamesListBox.ScrollIntoView(GamesListBox.SelectedItem);
                 GamesListBox.Focus();
+
+                ScheduleParserSelectorUpdate();
             }
 
             catch (OperationCanceledException)
@@ -973,6 +1053,7 @@ namespace EZ2Play.App
             GamesListBox.Visibility = Visibility.Collapsed;
             CoversListBox.Visibility = Visibility.Collapsed;
             CoversListBox.Opacity = 0.45;
+            ScheduleParserSelectorUpdate();
 
             AssetsProgressBar.Value = 0;
             AssetsProgressBar.IsIndeterminate = true;
@@ -1010,6 +1091,8 @@ namespace EZ2Play.App
                 CoversListBox.SelectedIndex = 0;
                 CoversListBox.ScrollIntoView(CoversListBox.SelectedItem);
                 CoversListBox.Focus();
+
+                ScheduleParserSelectorUpdate();
 
                 AssetsProgressBar.IsIndeterminate = false;
                 AssetsProgressBar.Minimum = 0;
@@ -1130,6 +1213,7 @@ namespace EZ2Play.App
             CoversListBox.Visibility = Visibility.Collapsed;
             BackgroundsListBox.Visibility = Visibility.Collapsed;
             BackgroundsListBox.Opacity = 0.45;
+            ScheduleParserSelectorUpdate();
 
             AssetsProgressBar.Value = 0;
             AssetsProgressBar.IsIndeterminate = true;
@@ -1169,6 +1253,8 @@ namespace EZ2Play.App
                 BackgroundsListBox.SelectedIndex = 0;
                 BackgroundsListBox.ScrollIntoView(BackgroundsListBox.SelectedItem);
                 BackgroundsListBox.Focus();
+
+                ScheduleParserSelectorUpdate();
 
                 AssetsProgressBar.IsIndeterminate = false;
                 AssetsProgressBar.Minimum = 0;

@@ -13,16 +13,18 @@ namespace EZ2Play.App
         private InputHandler _inputHandler;
         private MainWindow _mainWindow;
         private AppConfig _config;
+        private SelectorCoordinator _selectorCoordinator;
         private double fadeDuration = 0.1;
         private bool _exitConfirmationMode = false;
         private int _subOptionsSelectedIndex = 0;
 
-        public SettingsOverlay(InputHandler inputHandler, MainWindow mainWindow)
+        public SettingsOverlay(InputHandler inputHandler, MainWindow mainWindow, SelectorCoordinator selectorCoordinator)
         {
             InitializeComponent();
 
             _inputHandler = inputHandler;
             _mainWindow = mainWindow;
+            _selectorCoordinator = selectorCoordinator;
             _config = _mainWindow.GetConfig();
 
             Loaded += (s, e) =>
@@ -45,6 +47,7 @@ namespace EZ2Play.App
                     ExitConfirmationListBox.SelectedIndex = 0;
 
                 SettingsListBox.SelectionChanged += OnSelectionChanged;
+                UpdateOverlaySelector();
                 SubOptionsListBox.SelectionChanged += OnSelectionChanged;
                 ExitConfirmationListBox.SelectionChanged += OnSelectionChanged;
 
@@ -61,9 +64,55 @@ namespace EZ2Play.App
             Visibility = Visibility.Collapsed;
         }
 
+        private void UpdateOverlaySelector()
+        {
+            if (_selectorCoordinator == null)
+                return;
+
+            if (Visibility != Visibility.Visible)
+            {
+                _selectorCoordinator.Hide(SelectorCoordinator.Owner.Settings);
+                return;
+            }
+
+            ListBox activeListBox;
+
+            if (_exitConfirmationMode)
+            {
+                activeListBox = ExitConfirmationListBox;
+            }
+            else if (SettingsListBox.SelectedItem == TreeItemsContainer &&
+                    TreeItemsContainer.Visibility == Visibility.Visible)
+            {
+                activeListBox = SubOptionsListBox;
+            }
+            else
+            {
+                activeListBox = SettingsListBox;
+            }
+
+            if (activeListBox.SelectedIndex < 0)
+            {
+                _selectorCoordinator.Hide(SelectorCoordinator.Owner.Settings);
+                return;
+            }
+
+            var selectedItem = activeListBox.ItemContainerGenerator.ContainerFromIndex(activeListBox.SelectedIndex) as ListBoxItem;
+
+            if (selectedItem == null)
+            {
+                _selectorCoordinator.Hide(SelectorCoordinator.Owner.Settings);
+                return;
+            }
+
+            _selectorCoordinator.ShowOverlay(
+                SelectorCoordinator.Owner.Settings, selectedItem, _selectorCoordinator.CreateOverlayItemProfile());
+        }
+
         private void OnSelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             UpdateSelectionState();
+            UpdateOverlaySelector();
         }
 
         private void UpdateSelectionState()
@@ -130,6 +179,10 @@ namespace EZ2Play.App
 
             if (SettingsListBox.Items.Count > 0)
                 SettingsListBox.SelectedIndex = 0;
+            
+            Dispatcher.BeginInvoke(
+                new Action(UpdateOverlaySelector),
+                DispatcherPriority.Loaded);
 
             RefreshAutorunState();
             RefreshFpsMonitorVisibility();
@@ -155,6 +208,7 @@ namespace EZ2Play.App
             if (Visibility != Visibility.Visible) return;
 
             _mainWindow.GetSound()?.PlayBackSound();
+            _selectorCoordinator.Hide(SelectorCoordinator.Owner.Settings);
 
             var fadeOut = new DoubleAnimation
             {
@@ -166,9 +220,10 @@ namespace EZ2Play.App
 
             fadeOut.Completed += (s, e) =>
             {
-                HideExitDisplayConfirmation(false);
-
                 Visibility = Visibility.Collapsed;
+                HideExitDisplayConfirmation(false);
+                _selectorCoordinator.ShowMain();
+
                 _inputHandler.SetMode(InputHandler.InputMode.Main);
                 _mainWindow.SetHintsMode(HintPanel.HintMode.Main);
             };
@@ -536,6 +591,7 @@ namespace EZ2Play.App
             ExitConfirmationListBox.Focus();
 
             UpdateSelectionState();
+            UpdateOverlaySelector();
         }
 
         private void HideExitDisplayConfirmation(bool focusSettings = true)
@@ -551,6 +607,7 @@ namespace EZ2Play.App
                 SettingsListBox.Focus();
 
             UpdateSelectionState();
+            UpdateOverlaySelector();
         }
 
         // Recursively find a named child in the visual tree.

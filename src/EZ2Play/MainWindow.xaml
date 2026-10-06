@@ -26,7 +26,6 @@
     </Window.Resources>
     
 
-    <!-- Window Background {DynamicResource LayerOnAcrylicFillColorDefaultBrush} -->
     <Border Background="{DynamicResource CardBackgroundFillColorDefaultBrush}" Margin="0">
 
         <Grid x:Name="RootGrid"
@@ -224,7 +223,7 @@
                         </ListBox.ItemsPanel>
                         <ListBox.ItemTemplate>
                             <DataTemplate>
-                                <app:CarouselItem IsSelected="{Binding IsSelected, RelativeSource={RelativeSource AncestorType=ListBoxItem}}"/>
+                                <app:CarouselItem/>
                             </DataTemplate>
                         </ListBox.ItemTemplate>
                     </ListBox>
@@ -301,6 +300,12 @@
                     </StackPanel>
                 </Grid>
             </Grid>
+
+            <app:Selector x:Name="SelectionSelector"
+                        Panel.ZIndex="104"
+                        HorizontalAlignment="Stretch"
+                        VerticalAlignment="Stretch"
+                        IsHitTestVisible="False"/>
 
             <!-- HintPanel -->
             <app:HintPanel x:Name="HintPanel"

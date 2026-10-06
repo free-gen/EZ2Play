@@ -46,7 +46,7 @@
     <app:DitheredGradientBorder x:Name="SettingsSurface"
                                 Style="{StaticResource OverlaySurfaceStyle}"
                                 Height="Auto">
-        <Grid>
+        <Grid Margin="0">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="85*"/>
@@ -55,11 +55,11 @@
 
             <!-- ExitConfirmText -->
             <TextBlock x:Name="ExitConfirmText"
-                        Grid.Row="0"
-                        Visibility="Collapsed"
-                        Style="{StaticResource OverlayPrimaryTextStyle}"
-                        HorizontalAlignment="Center"
-                        Margin="{DynamicResource {x:Static app:UiScaleKeys.SettingsOverlayItemPadding}}"/>
+                       Grid.Row="0"
+                       Visibility="Collapsed"
+                       Style="{StaticResource OverlayPrimaryTextStyle}"
+                       HorizontalAlignment="Center"
+                       Margin="{DynamicResource {x:Static app:UiScaleKeys.SettingsOverlayItemPadding}}"/>
 
             <ListBox x:Name="SettingsListBox"
                      Grid.Row="1"
@@ -79,13 +79,6 @@
                             <Setter.Value>
                                 <ControlTemplate TargetType="ListBoxItem">
                                     <Grid>
-                                        <!-- SelectionBorder -->
-                                        <Border x:Name="SelectionBorder"
-                                                Style="{StaticResource OverlaySelectionBorderStyle}">
-                                            <Border x:Name="SelectionBackground"
-                                                    Style="{StaticResource OverlaySelectionBackgroundStyle}"/>
-                                        </Border>
-
                                         <!-- ItemBorder -->
                                         <Border x:Name="ItemBorder"
                                                 Padding="{TemplateBinding Padding}"
@@ -102,11 +95,6 @@
 
                                     <ControlTemplate.Triggers>
 
-                                        <Trigger Property="IsSelected" Value="True">
-                                            <Setter TargetName="SelectionBorder" Property="BorderBrush" Value="{DynamicResource OverlaySelectionBorderBrush}"/>
-                                            <Setter TargetName="SelectionBackground" Property="Background" Value="{DynamicResource OverlaySelectionBackgroundBrush}"/>
-                                        </Trigger>
-
                                         <!-- Gradient BG -->
                                         <Trigger Property="Tag" Value="TreeContainer">
                                             <Setter TargetName="ItemBorder" Property="Background">
@@ -117,8 +105,6 @@
                                                     </LinearGradientBrush>
                                                 </Setter.Value>
                                             </Setter>
-                                            <Setter TargetName="SelectionBorder" Property="BorderBrush" Value="Transparent"/>
-                                            <Setter TargetName="SelectionBackground" Property="Background" Value="Transparent"/>
                                         </Trigger>
 
                                     </ControlTemplate.Triggers>
@@ -143,34 +129,34 @@
                                     VerticalAlignment="Center"
                                     Margin="{DynamicResource {x:Static app:UiScaleKeys.SettingsOverlayLabelMargin}}">
                             <TextBlock x:Name="SettingsAutorunAppLabel"
-                                    Style="{StaticResource SettingsItemLabelStyle}"/>
+                                       Style="{StaticResource SettingsItemLabelStyle}"/>
                             <TextBlock x:Name="SettingsAutorunAppDesc"
-                                    Style="{StaticResource SettingsItemDescriptionStyle}"/>
+                                       Style="{StaticResource SettingsItemDescriptionStyle}"/>
                         </StackPanel>
 
                         <Viewbox Grid.Column="2"
-                                Style="{StaticResource SettingsToggleViewboxStyle}">
+                                 Style="{StaticResource SettingsToggleViewboxStyle}">
                             <ui:ToggleSwitch x:Name="AutorunToggle"/>
                         </Viewbox>
                     </Grid>
                 </ListBoxItem>
 
                 <!-- TreeItemsContainer -->
-                <ListBoxItem x:Name="TreeItemsContainer" 
-                            Background="Transparent"
-                            Tag="TreeContainer" 
-                            Margin="{DynamicResource {x:Static app:UiScaleKeys.SettingsOverlayTreeItemsContainerMargin}}" 
-                            Padding="{DynamicResource {x:Static app:UiScaleKeys.SettingsOverlayTreeItemsContainerPadding}}">
+                <ListBoxItem x:Name="TreeItemsContainer"
+                             Background="Transparent"
+                             Tag="TreeContainer"
+                             Margin="{DynamicResource {x:Static app:UiScaleKeys.SettingsOverlayTreeItemsContainerMargin}}"
+                             Padding="{DynamicResource {x:Static app:UiScaleKeys.SettingsOverlayTreeItemsContainerPadding}}">
                     <Grid>
 
                         <ListBox x:Name="SubOptionsListBox"
-                                Background="Transparent"
-                                BorderThickness="0"
-                                Padding="0"
-                                ScrollViewer.HorizontalScrollBarVisibility="Disabled"
-                                ScrollViewer.VerticalScrollBarVisibility="Disabled"
-                                Focusable="False">
-                            
+                                 Background="Transparent"
+                                 BorderThickness="0"
+                                 Padding="0"
+                                 ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                                 ScrollViewer.VerticalScrollBarVisibility="Disabled"
+                                 Focusable="False">
+
                             <ListBox.ItemsPanel>
                                 <ItemsPanelTemplate>
                                     <UniformGrid Columns="3" Rows="1"/>
@@ -190,13 +176,6 @@
                                         <Setter.Value>
                                             <ControlTemplate TargetType="ListBoxItem">
                                                 <Grid>
-                                                    <Border x:Name="SelectionBorder"
-                                                            Margin="{DynamicResource {x:Static app:UiScaleKeys.SettingsOverlayTreeItemSelectionMargin}}"
-                                                            Style="{StaticResource OverlaySelectionBorderStyle}">
-                                                        <Border x:Name="SelectionBackground"
-                                                                Style="{StaticResource OverlaySelectionBackgroundStyle}"/>
-                                                    </Border>
-
                                                     <!-- TreeItemStyle -->
                                                     <Border x:Name="ItemBorder"
                                                             Padding="{DynamicResource {x:Static app:UiScaleKeys.SettingsOverlayTreeItemPadding}}"
@@ -207,13 +186,6 @@
                                                         <ContentPresenter/>
                                                     </Border>
                                                 </Grid>
-
-                                                <ControlTemplate.Triggers>
-                                                    <Trigger Property="IsSelected" Value="True">
-                                                        <Setter TargetName="SelectionBorder" Property="BorderBrush" Value="{DynamicResource OverlaySelectionBorderBrush}"/>
-                                                        <Setter TargetName="SelectionBackground" Property="Background" Value="{DynamicResource OverlaySelectionBackgroundBrush}"/>
-                                                    </Trigger>
-                                                </ControlTemplate.Triggers>
                                             </ControlTemplate>
                                         </Setter.Value>
                                     </Setter>
@@ -231,11 +203,11 @@
                                     </Grid.ColumnDefinitions>
 
                                     <TextBlock Grid.Column="1"
-                                            x:Name="SettingsTreeNoSplash"
-                                            Style="{StaticResource SettingsTreeLabelStyle}"/>
+                                               x:Name="SettingsTreeNoSplash"
+                                               Style="{StaticResource SettingsTreeLabelStyle}"/>
 
                                     <Viewbox Grid.Column="2"
-                                            Style="{StaticResource SettingsCheckBoxViewboxStyle}">
+                                             Style="{StaticResource SettingsCheckBoxViewboxStyle}">
                                         <CheckBox x:Name="NoSplashToggle"/>
                                     </Viewbox>
                                 </Grid>
@@ -252,11 +224,11 @@
                                     </Grid.ColumnDefinitions>
 
                                     <TextBlock Grid.Column="1"
-                                            x:Name="SettingsTreeNoMusic"
-                                            Style="{StaticResource SettingsTreeLabelStyle}"/>
+                                               x:Name="SettingsTreeNoMusic"
+                                               Style="{StaticResource SettingsTreeLabelStyle}"/>
 
                                     <Viewbox Grid.Column="2"
-                                            Style="{StaticResource SettingsCheckBoxViewboxStyle}">
+                                             Style="{StaticResource SettingsCheckBoxViewboxStyle}">
                                         <CheckBox x:Name="NoMusicToggle"/>
                                     </Viewbox>
                                 </Grid>
@@ -273,17 +245,17 @@
                                     </Grid.ColumnDefinitions>
 
                                     <TextBlock Grid.Column="1"
-                                            x:Name="SettingsTreeHotSwap"
-                                            Style="{StaticResource SettingsTreeLabelStyle}"/>
+                                               x:Name="SettingsTreeHotSwap"
+                                               Style="{StaticResource SettingsTreeLabelStyle}"/>
 
                                     <Viewbox Grid.Column="2"
-                                            Style="{StaticResource SettingsCheckBoxViewboxStyle}">
+                                             Style="{StaticResource SettingsCheckBoxViewboxStyle}">
                                         <CheckBox x:Name="HotSwapToggle"/>
                                     </Viewbox>
                                 </Grid>
                             </ListBoxItem>
                         </ListBox>
-                        
+
                     </Grid>
                 </ListBoxItem>
 
@@ -301,13 +273,13 @@
                                     VerticalAlignment="Center"
                                     Margin="{DynamicResource {x:Static app:UiScaleKeys.SettingsOverlayLabelMargin}}">
                             <TextBlock x:Name="SettingsFpsMonitorLabel"
-                                    Style="{StaticResource SettingsItemLabelStyle}"/>
+                                       Style="{StaticResource SettingsItemLabelStyle}"/>
                             <TextBlock x:Name="SettingsFpsMonitorDesc"
-                                    Style="{StaticResource SettingsItemDescriptionStyle}"/>
+                                       Style="{StaticResource SettingsItemDescriptionStyle}"/>
                         </StackPanel>
 
                         <Viewbox Grid.Column="2"
-                                Style="{StaticResource SettingsToggleViewboxStyle}">
+                                 Style="{StaticResource SettingsToggleViewboxStyle}">
                             <ui:ToggleSwitch x:Name="FpsMonitorToggle"/>
                         </Viewbox>
                     </Grid>
@@ -327,17 +299,17 @@
                                     VerticalAlignment="Center"
                                     Margin="{DynamicResource {x:Static app:UiScaleKeys.SettingsOverlayLabelMargin}}">
                             <TextBlock x:Name="SettingsSourceDisplayLabel"
-                                    Style="{StaticResource SettingsItemLabelStyle}"/>
+                                       Style="{StaticResource SettingsItemLabelStyle}"/>
                             <TextBlock x:Name="SettingsSourceDisplayDesc"
-                                    Style="{StaticResource SettingsItemDescriptionStyle}"/>
+                                       Style="{StaticResource SettingsItemDescriptionStyle}"/>
                         </StackPanel>
 
                         <TextBlock Grid.Column="2"
-                        HorizontalAlignment="Right"
-                        VerticalAlignment="Center"
-                        Foreground="{DynamicResource ControlStrongStrokeColorDefaultBrush}" 
-                        FontSize="{DynamicResource {x:Static app:UiScaleKeys.OverlaySecondaryFontSize}}"
-                        FontFamily="Xbox Fluent">&#xE3B2;</TextBlock>
+                                   HorizontalAlignment="Right"
+                                   VerticalAlignment="Center"
+                                   Foreground="{DynamicResource ControlStrongStrokeColorDefaultBrush}"
+                                   FontSize="{DynamicResource {x:Static app:UiScaleKeys.OverlaySecondaryFontSize}}"
+                                   FontFamily="Xbox Fluent">&#xE3B2;</TextBlock>
                     </Grid>
                 </ListBoxItem>
 
@@ -350,9 +322,9 @@
                             <ColumnDefinition Width="0.05*"/>
                         </Grid.ColumnDefinitions>
 
-                        <TextBlock Grid.Column="1" 
-                        x:Name="SettingsExitAppLabel"
-                        Margin="{DynamicResource {x:Static app:UiScaleKeys.SettingsOverlayLabelTreeMargin}}"/>
+                        <TextBlock Grid.Column="1"
+                                   x:Name="SettingsExitAppLabel"
+                                   Margin="{DynamicResource {x:Static app:UiScaleKeys.SettingsOverlayLabelTreeMargin}}"/>
                     </Grid>
                 </ListBoxItem>
 
@@ -362,13 +334,13 @@
             <Grid Grid.Row="1">
 
                 <ListBox x:Name="ExitConfirmationListBox"
-                        Visibility="Collapsed"
-                        FontSize="{DynamicResource {x:Static app:UiScaleKeys.OverlayPrimaryFontSize}}"
-                        FontWeight="600"
-                        HorizontalContentAlignment="Stretch"
-                        VerticalAlignment="Center"
-                        Background="Transparent"
-                        BorderThickness="0">
+                         Visibility="Collapsed"
+                         FontSize="{DynamicResource {x:Static app:UiScaleKeys.OverlayPrimaryFontSize}}"
+                         FontWeight="600"
+                         HorizontalContentAlignment="Stretch"
+                         VerticalAlignment="Center"
+                         Background="Transparent"
+                         BorderThickness="0">
 
                     <ListBox.ItemsPanel>
                         <ItemsPanelTemplate>
@@ -386,28 +358,11 @@
                                 <Setter.Value>
                                     <ControlTemplate TargetType="ListBoxItem">
                                         <Grid>
-                                            <Border x:Name="SelectionBorder"
-                                                    Style="{StaticResource OverlaySelectionBorderStyle}">
-                                                <Border x:Name="SelectionBackground"
-                                                        Style="{StaticResource OverlaySelectionBackgroundStyle}"/>
-                                            </Border>
-
                                             <Border Padding="{TemplateBinding Padding}"
                                                     Background="Transparent">
                                                 <ContentPresenter VerticalAlignment="Center"/>
                                             </Border>
                                         </Grid>
-
-                                        <ControlTemplate.Triggers>
-                                            <Trigger Property="IsSelected" Value="True">
-                                                <Setter TargetName="SelectionBorder"
-                                                        Property="BorderBrush"
-                                                        Value="{DynamicResource OverlaySelectionBorderBrush}"/>
-                                                <Setter TargetName="SelectionBackground"
-                                                        Property="Background"
-                                                        Value="{DynamicResource OverlaySelectionBackgroundBrush}"/>
-                                            </Trigger>
-                                        </ControlTemplate.Triggers>
                                     </ControlTemplate>
                                 </Setter.Value>
                             </Setter>
@@ -415,11 +370,13 @@
                     </ListBox.ItemContainerStyle>
 
                     <ListBoxItem x:Name="ConfirmYesItem">
-                        <TextBlock x:Name="ConfirmYes" HorizontalAlignment="Center"/>
+                        <TextBlock x:Name="ConfirmYes"
+                                   HorizontalAlignment="Center"/>
                     </ListBoxItem>
 
                     <ListBoxItem x:Name="ConfirmNoItem">
-                        <TextBlock x:Name="ConfirmNo" HorizontalAlignment="Center"/>
+                        <TextBlock x:Name="ConfirmNo"
+                                   HorizontalAlignment="Center"/>
                     </ListBoxItem>
 
                 </ListBox>
@@ -447,7 +404,7 @@
                 <Run Text="{x:Static app:AppInfo.Description}"/>
                 <Run Text="v"/><Run Text="{x:Static app:AppInfo.Version}"/>
             </TextBlock>
-            
+
         </Grid>
     </app:DitheredGradientBorder>
 </UserControl>

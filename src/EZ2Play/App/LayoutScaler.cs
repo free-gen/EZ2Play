@@ -50,12 +50,6 @@ namespace EZ2Play.App
             target[UiScaleKeys.OverlayPrimaryFontSize] = fs(32);
             target[UiScaleKeys.OverlaySecondaryFontSize] = fs(24);
 
-            target[UiScaleKeys.OverlaySelectionMargin] = new Thickness(s(8));
-            target[UiScaleKeys.OverlaySelectionThickness] = new Thickness(s(4));
-            target[UiScaleKeys.OverlaySelectionBackgroundMargin] = new Thickness(s(4));
-            target[UiScaleKeys.OverlaySelectionRadius] = new CornerRadius(s(8));
-            target[UiScaleKeys.OverlaySelectionBackgroundRadius] = new CornerRadius(s(4));
-
             // Settings
             target[UiScaleKeys.SettingsOverlayLabelMargin] = new Thickness(0, 0, 0, s(8));
             target[UiScaleKeys.SettingsOverlayLabelTreeMargin] = new Thickness(0, 0, 0, s(4));
@@ -63,11 +57,10 @@ namespace EZ2Play.App
             target[UiScaleKeys.SettingsOverlayItemPadding] = new Thickness(0, s(32), 0, s(32));
 
             target[UiScaleKeys.SettingsOverlayTreeItemsContainerMargin] = new Thickness(0, 0, 0, 0);
-            target[UiScaleKeys.SettingsOverlayTreeItemsContainerPadding] = new Thickness(s(8), 0, s(8), s(16));
+            target[UiScaleKeys.SettingsOverlayTreeItemsContainerPadding] = new Thickness(s(16), 0, s(16), s(16));
             target[UiScaleKeys.SettingsOverlayTreeItemRadius] = new CornerRadius(s(4));
-            target[UiScaleKeys.SettingsOverlayTreeItemPadding] = new Thickness(0, s(12), 0, s(12));
-            target[UiScaleKeys.SettingsOverlayTreeItemMargin] = new Thickness(s(8));
-            target[UiScaleKeys.SettingsOverlayTreeItemSelectionMargin] = new Thickness(s(0));
+            target[UiScaleKeys.SettingsOverlayTreeItemPadding] = new Thickness(0, s(16), 0, s(16));
+            target[UiScaleKeys.SettingsOverlayTreeItemMargin] = new Thickness(s(16));
 
             target[UiScaleKeys.SettingsOverlayDividerMargin] = new Thickness(0);
             target[UiScaleKeys.SettingsOverlayAppInfoMargin] = new Thickness(0, s(24), 0, s(24));
@@ -83,21 +76,17 @@ namespace EZ2Play.App
             target[UiScaleKeys.ParserGameItemHeight] = s(parserGameItemHeight);
             target[UiScaleKeys.ParserGamesViewportHeight] = s(parserGameItemHeight * parserVisibleGameRows);
 
-            const double parserMediaRadius = 16;
-            const double parserCoverSize = 256;
+            const double mediaRadius = 16;
+            const double mediaCoverSize = 256;
             
-            target[UiScaleKeys.ParserCoverSize] = s(parserCoverSize);
-            target[UiScaleKeys.ParserMediaRadius] = s(parserMediaRadius);
-            target[UiScaleKeys.ParserMediaSelectionRadius] = new CornerRadius(s(parserMediaRadius * 1.25));
-            target[UiScaleKeys.ParserMediaSelectionPadding] = new Thickness(s(4));
+            target[UiScaleKeys.ParserCoverSize] = s(mediaCoverSize);
+            target[UiScaleKeys.ParserMediaRadius] = s(mediaRadius);
 
             target[UiScaleKeys.ParserBackgroundWidth] = s(587);
             target[UiScaleKeys.ParserBackgroundHeight] = s(190);
 
             target[UiScaleKeys.ParserTabsMargin] = new Thickness(0, s(32), 0, s(32));
             target[UiScaleKeys.ParserTabMargin] = new Thickness(s(24), 0, s(24), 0);
-
-            target[UiScaleKeys.ParserSelectionMargin] = new Thickness(s(0));
 
             target[UiScaleKeys.ParserProgressHeight] = s(4);
 
@@ -106,8 +95,8 @@ namespace EZ2Play.App
             target[UiScaleKeys.ParserInputMargin] = new Thickness(s(8));
             target[UiScaleKeys.ParserManualSearchHintMargin] = new Thickness(0, s(16), 0, s(20));
 
-            target[UiScaleKeys.ParserAssetsMargin] = new Thickness(s(12));
-            target[UiScaleKeys.ParserAssetsGap] = new Thickness(s(8));
+            target[UiScaleKeys.ParserAssetsMargin] = new Thickness(s(32));
+            target[UiScaleKeys.ParserAssetsGap] = new Thickness(s(16));
             target[UiScaleKeys.ParserStatusMargin] = new Thickness(0, s(16), 0, s(16));
 
             target[UiScaleKeys.ParserStatusSurfaceMaxWidth] = s(800);
@@ -117,6 +106,7 @@ namespace EZ2Play.App
             target[UiScaleKeys.ParserStatusFontSize] = fs(22);
 
             // Main
+            target[UiScaleKeys.GameCoverRadius] = s(mediaRadius);
             target[UiScaleKeys.SplashLogoMaxHeight] = s(256);
 
             target[UiScaleKeys.NoShortcutsMargin] = new Thickness(0, 0, 0, s(96));
@@ -133,9 +123,26 @@ namespace EZ2Play.App
             target[UiScaleKeys.TopInfoSecondaryFontSize] = fs(38);
             target[UiScaleKeys.UserAvatarSize] = s(50);
 
-            target[UiScaleKeys.GameCoverRadius] = s(16);
-            target[UiScaleKeys.SelectorThickness] = s(4);
-            target[UiScaleKeys.SelectorSpacing] = s(4);
+            // Selector
+            const double strokeInset = 0;
+            const double strokeOutset = 8;
+            const double strokeThickness = 4;
+
+            target[UiScaleKeys.SelectorMediaStrokeInset] = s(strokeInset);
+            target[UiScaleKeys.SelectorMediaStrokeOutset] = s(strokeOutset);
+            target[UiScaleKeys.SelectorMediaStrokeThickness] = s(strokeThickness);
+            target[UiScaleKeys.SelectorMediaStrokeRadius] = s(mediaRadius + strokeOutset - strokeInset - strokeThickness / 2);
+            target[UiScaleKeys.SelectorMediaBackgroundInset] = s(0);
+            target[UiScaleKeys.SelectorMediaBackgroundOutset] = s(0);
+            target[UiScaleKeys.SelectorMediaBackgroundRadius] = s(mediaRadius);
+
+            target[UiScaleKeys.SelectorOverlayItemStrokeInset] = s(8);
+            target[UiScaleKeys.SelectorOverlayItemStrokeOutset] = s(0);
+            target[UiScaleKeys.SelectorOverlayItemStrokeThickness] = s(strokeThickness);
+            target[UiScaleKeys.SelectorOverlayItemStrokeRadius] = s(8);
+            target[UiScaleKeys.SelectorOverlayItemBackgroundInset] = s(16);
+            target[UiScaleKeys.SelectorOverlayItemBackgroundOutset] = s(0);
+            target[UiScaleKeys.SelectorOverlayItemBackgroundRadius] = s(4);
 
             target[UiScaleKeys.GameTitleMargin] = new Thickness(s(224), 0, 0, 0);
             target[UiScaleKeys.GameTitleFontSize] = fs(72);
@@ -192,12 +199,6 @@ namespace EZ2Play.App
         public const string OverlayPrimaryFontSize = "OverlayPrimaryFontSize";
         public const string OverlaySecondaryFontSize = "OverlaySecondaryFontSize";
 
-        public const string OverlaySelectionMargin = "OverlaySelectionMargin";
-        public const string OverlaySelectionThickness = "OverlaySelectionThickness";
-        public const string OverlaySelectionBackgroundMargin = "OverlaySelectionBackgroundMargin";
-        public const string OverlaySelectionRadius = "OverlaySelectionRadius";
-        public const string OverlaySelectionBackgroundRadius = "OverlaySelectionBackgroundRadius";
-
         // Settings
         public const string SettingsOverlayLabelMargin = "SettingsOverlayLabelMargin";
         public const string SettingsOverlayLabelTreeMargin = "SettingsOverlayLabelTreeMargin";
@@ -209,7 +210,6 @@ namespace EZ2Play.App
         public const string SettingsOverlayTreeItemRadius = "SettingsOverlayTreeItemRadius";
         public const string SettingsOverlayTreeItemPadding = "SettingsOverlayTreeItemPadding";
         public const string SettingsOverlayTreeItemMargin = "SettingsOverlayTreeItemMargin";
-        public const string SettingsOverlayTreeItemSelectionMargin = "SettingsOverlayTreeItemSelectionMargin";
 
         public const string SettingsOverlayDividerMargin = "SettingsOverlayDividerMargin";
         public const string SettingsOverlayAppInfoMargin = "SettingsOverlayAppInfoMargin";
@@ -224,16 +224,12 @@ namespace EZ2Play.App
 
         public const string ParserCoverSize = "ParserCoverSize";
         public const string ParserMediaRadius = "ParserMediaRadius";
-        public const string ParserMediaSelectionRadius = "ParserMediaSelectionRadius";
-        public const string ParserMediaSelectionPadding = "ParserMediaSelectionPadding";
 
         public const string ParserBackgroundWidth = "ParserBackgroundWidth";
         public const string ParserBackgroundHeight = "ParserBackgroundHeight";
 
         public const string ParserTabsMargin = "ParserTabsMargin";
         public const string ParserTabMargin = "ParserTabMargin";
-
-        public const string ParserSelectionMargin = "ParserSelectionMargin";
 
         public const string ParserProgressHeight = "ParserProgressHeight";
 
@@ -270,8 +266,22 @@ namespace EZ2Play.App
         public const string UserAvatarSize = "UserAvatarSize";
 
         public const string GameCoverRadius = "GameCoverRadius";
-        public const string SelectorThickness = "SelectorThickness";
-        public const string SelectorSpacing = "SelectorSpacing";
+
+        public const string SelectorMediaStrokeInset = "SelectorMediaStrokeInset";
+        public const string SelectorMediaStrokeOutset = "SelectorMediaStrokeOutset";
+        public const string SelectorMediaStrokeThickness = "SelectorMediaStrokeThickness";
+        public const string SelectorMediaStrokeRadius = "SelectorMediaStrokeRadius";
+        public const string SelectorMediaBackgroundInset = "SelectorMediaBackgroundInset";
+        public const string SelectorMediaBackgroundOutset = "SelectorMediaBackgroundOutset";
+        public const string SelectorMediaBackgroundRadius = "SelectorMediaBackgroundRadius";
+
+        public const string SelectorOverlayItemStrokeInset = "SelectorOverlayItemStrokeInset";
+        public const string SelectorOverlayItemStrokeOutset = "SelectorOverlayItemStrokeOutset";
+        public const string SelectorOverlayItemStrokeThickness = "SelectorOverlayItemStrokeThickness";
+        public const string SelectorOverlayItemStrokeRadius = "SelectorOverlayItemStrokeRadius";
+        public const string SelectorOverlayItemBackgroundInset = "SelectorOverlayItemBackgroundInset";
+        public const string SelectorOverlayItemBackgroundOutset = "SelectorOverlayItemBackgroundOutset";
+        public const string SelectorOverlayItemBackgroundRadius = "SelectorOverlayItemBackgroundRadius";
 
         public const string GameTitleMargin = "GameTitleMargin";
         public const string GameTitleFontSize = "GameTitleFontSize";

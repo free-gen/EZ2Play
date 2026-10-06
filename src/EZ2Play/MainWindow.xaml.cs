@@ -41,6 +41,7 @@ namespace EZ2Play
 
         private SettingsOverlay _settingsOverlay;
         private ParserOverlay _parserOverlay;
+        private SelectorCoordinator _selectorCoordinator;
 
         public bool IsGamepadConnected { get; private set; }
 
@@ -116,11 +117,11 @@ namespace EZ2Play
             _inputHandler = new InputHandler(_input);
             _guideHandler = new GuideExitHandler(_sound);
             _particlesCanvas = FindName("particles") as ParticlesCanvas;
-
             _config = new AppConfig();
+            _selectorCoordinator = new SelectorCoordinator(SelectionSelector, ItemsListBox);
 
-            _settingsOverlay = new SettingsOverlay(_inputHandler, this);
-            _parserOverlay = new ParserOverlay(_inputHandler, this);
+            _settingsOverlay = new SettingsOverlay(_inputHandler, this, _selectorCoordinator);
+            _parserOverlay = new ParserOverlay(_inputHandler, this, _selectorCoordinator);
 
             var overlayLayer = new Grid();
             overlayLayer.Children.Add(_settingsOverlay);
@@ -194,7 +195,8 @@ namespace EZ2Play
             _backgroundRefreshTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(300) };
             _backgroundRefreshTimer.Tick += BackgroundRefreshTimer_Tick;
 
-            ItemsListBox.ItemContainerGenerator.StatusChanged += ItemContainerGenerator_StatusChanged;
+            ItemsListBox.ItemContainerGenerator.StatusChanged +=
+                ItemContainerGenerator_StatusChanged;
         }
 
         private void ScheduleBackgroundRefresh()
@@ -359,11 +361,16 @@ namespace EZ2Play
 
         private void ItemContainerGenerator_StatusChanged(object sender, EventArgs e)
         {
-            if (ItemsListBox.ItemContainerGenerator.Status ==
+            if (ItemsListBox.ItemContainerGenerator.Status !=
                 System.Windows.Controls.Primitives.GeneratorStatus.ContainersGenerated)
             {
-                InitializeCarouselSelectedItem();
+                return;
             }
+
+            if (CarouselAnimation.RetryPendingSelection(ItemsListBox))
+                return;
+
+            InitializeCarouselSelectedItem();
         }
 
         private void UpdateUiScaleResources(double windowHeight)
@@ -387,9 +394,7 @@ namespace EZ2Play
             var listBox = sender as ListBox;
 
             if (listBox == ItemsListBox)
-            {
                 _launcher.HandleSelectionChangedAndAnimate(listBox, e);
-            }
 
             UpdatePlaytimeUI();
         }
@@ -411,6 +416,7 @@ namespace EZ2Play
             StartApplication();
 
             _isMainScreenActive = true;
+            _selectorCoordinator.ShowMain();
         }
 
         private void ShowMainScreenWithAnimation()
@@ -519,6 +525,8 @@ namespace EZ2Play
             UpdateLayout();
             InitializeCarouselSelectedItem();
             ItemsListBox.Items.Refresh();
+
+            _selectorCoordinator.UpdateMain();
             _backgroundController?.RefreshPan();
         }
 
@@ -538,6 +546,7 @@ namespace EZ2Play
             _isExiting = false;
 
             _backgroundRefreshTimer?.Stop();
+            _selectorCoordinator?.Dispose();
 
             _parserOverlay?.Dispose();
             _input?.Dispose();

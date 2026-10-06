@@ -17,26 +17,10 @@
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="ListBoxItem">
-
-                        <Border x:Name="SelectionBorder"
-                                Style="{StaticResource OverlaySelectionBorderStyle}"
-                                Margin="{DynamicResource {x:Static app:UiScaleKeys.ParserSelectionMargin}}">
-
-                            <Border x:Name="SelectionBackground"
-                                    Style="{StaticResource OverlaySelectionBackgroundStyle}">
-
-                                <ContentPresenter/>
-
-                            </Border>
+                        <Border Padding="{TemplateBinding Padding}"
+                                Background="Transparent">
+                            <ContentPresenter/>
                         </Border>
-
-                        <ControlTemplate.Triggers>
-                            <Trigger Property="IsSelected" Value="True">
-                                <Setter TargetName="SelectionBorder" Property="BorderBrush" Value="{DynamicResource OverlaySelectionBorderBrush}"/>
-                                <Setter TargetName="SelectionBackground" Property="Background" Value="{DynamicResource OverlaySelectionBackgroundBrush}"/>
-                            </Trigger>
-                        </ControlTemplate.Triggers>
-
                     </ControlTemplate>
                 </Setter.Value>
             </Setter>
@@ -52,32 +36,11 @@
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="ListBoxItem">
-
                         <Grid HorizontalAlignment="Center"
-                            VerticalAlignment="Center">
-
-                            <Border x:Name="SelectionBorder"
-                                    HorizontalAlignment="Center"
-                                    VerticalAlignment="Center"
-                                    Padding="{DynamicResource {x:Static app:UiScaleKeys.ParserMediaSelectionPadding}}"
-                                    BorderThickness="{DynamicResource {x:Static app:UiScaleKeys.OverlaySelectionThickness}}"
-                                    BorderBrush="Transparent"
-                                    CornerRadius="{DynamicResource {x:Static app:UiScaleKeys.ParserMediaSelectionRadius}}">
-
-                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-
-                            </Border>
-
+                              VerticalAlignment="Center">
+                            <ContentPresenter HorizontalAlignment="Center"
+                                              VerticalAlignment="Center"/>
                         </Grid>
-
-                        <ControlTemplate.Triggers>
-                            <Trigger Property="IsSelected" Value="True">
-                                <Setter TargetName="SelectionBorder"
-                                        Property="BorderBrush"
-                                        Value="{DynamicResource OverlaySelectionBorderBrush}"/>
-                            </Trigger>
-                        </ControlTemplate.Triggers>
-
                     </ControlTemplate>
                 </Setter.Value>
             </Setter>
@@ -92,13 +55,13 @@
                                     Visibility="Collapsed"
                                     Panel.ZIndex="1">
 
-        <Grid>
+            <Grid>
 
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="*"/>
-            </Grid.RowDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
 
                 <!-- Asset Tabs -->
                 <StackPanel x:Name="AssetTabsPanel"
@@ -109,14 +72,14 @@
                             Margin="{DynamicResource {x:Static app:UiScaleKeys.ParserTabsMargin}}">
 
                     <TextBlock x:Name="ParserCoversTabText"
-                            Style="{StaticResource OverlayPrimaryTextStyle}"
-                            FontWeight="700"
-                            Margin="{DynamicResource {x:Static app:UiScaleKeys.ParserTabMargin}}"/>
+                               Style="{StaticResource OverlayPrimaryTextStyle}"
+                               FontWeight="700"
+                               Margin="{DynamicResource {x:Static app:UiScaleKeys.ParserTabMargin}}"/>
 
                     <TextBlock x:Name="ParserBackgroundsTabText"
-                            Style="{StaticResource OverlayPrimaryTextStyle}"
-                            FontWeight="700"
-                            Margin="{DynamicResource {x:Static app:UiScaleKeys.ParserTabMargin}}"/>
+                               Style="{StaticResource OverlayPrimaryTextStyle}"
+                               FontWeight="700"
+                               Margin="{DynamicResource {x:Static app:UiScaleKeys.ParserTabMargin}}"/>
 
                 </StackPanel>
 
@@ -128,47 +91,48 @@
 
                 <!-- Assets Progress Bar -->
                 <Grid x:Name="AssetsProgressLayer"
-                    Grid.Row="1"
-                    Height="{DynamicResource {x:Static app:UiScaleKeys.DividerThickness}}"
-                    Visibility="{Binding Visibility, ElementName=AssetsProgressBar}"
-                    HorizontalAlignment="Stretch"
-                    Panel.ZIndex="10"
-                    IsHitTestVisible="False">
+                      Grid.Row="1"
+                      Height="{DynamicResource {x:Static app:UiScaleKeys.DividerThickness}}"
+                      Visibility="{Binding Visibility, ElementName=AssetsProgressBar}"
+                      HorizontalAlignment="Stretch"
+                      Panel.ZIndex="10"
+                      IsHitTestVisible="False">
 
                     <ProgressBar x:Name="AssetsProgressBar"
-                                Visibility="Collapsed"
-                                Opacity="0.75"
-                                Minimum="0"
-                                Maximum="1"
-                                Height="{DynamicResource {x:Static app:UiScaleKeys.ParserProgressHeight}}"
-                                HorizontalAlignment="Stretch"
-                                VerticalAlignment="Center"
-                                Value="0"/>
+                                 Visibility="Collapsed"
+                                 Opacity="0.75"
+                                 Minimum="0"
+                                 Maximum="1"
+                                 Height="{DynamicResource {x:Static app:UiScaleKeys.ParserProgressHeight}}"
+                                 HorizontalAlignment="Stretch"
+                                 VerticalAlignment="Center"
+                                 Value="0"/>
 
                 </Grid>
 
                 <Grid x:Name="ParserContentGrid"
-                    Grid.Row="2"
-                    Visibility="Collapsed"
-                    Margin="{DynamicResource {x:Static app:UiScaleKeys.OverlayPadding}}">
+                      Grid.Row="2"
+                      Visibility="Collapsed"
+                      Margin="0">
 
                     <!-- Results -->
                     <ListBox x:Name="GamesListBox"
-                            ItemContainerStyle="{StaticResource ParserItemStyle}"
-                            Background="Transparent"
-                            BorderThickness="0"
-                            MaxHeight="{DynamicResource {x:Static app:UiScaleKeys.ParserGamesViewportHeight}}"
-                            ScrollViewer.CanContentScroll="True"
-                            ScrollViewer.HorizontalScrollBarVisibility="Disabled"
-                            ScrollViewer.VerticalScrollBarVisibility="Hidden">
+                             ItemContainerStyle="{StaticResource ParserItemStyle}"
+                             Background="Transparent"
+                             BorderThickness="0"
+                             MaxHeight="{DynamicResource {x:Static app:UiScaleKeys.ParserGamesViewportHeight}}"
+                             ScrollViewer.CanContentScroll="True"
+                             ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                             ScrollViewer.VerticalScrollBarVisibility="Hidden"
+                             VirtualizingPanel.IsVirtualizing="False">
 
                         <ListBox.ItemTemplate>
                             <DataTemplate>
 
                                 <TextBlock Text="{Binding DisplayText}"
-                                        Style="{StaticResource OverlayPrimaryTextStyle}"
-                                        Margin="{DynamicResource {x:Static app:UiScaleKeys.ParserTabMargin}}"
-                                        Padding="{DynamicResource {x:Static app:UiScaleKeys.OverlayPadding}}"/>
+                                           Style="{StaticResource OverlayPrimaryTextStyle}"
+                                           Margin="{DynamicResource {x:Static app:UiScaleKeys.ParserTabMargin}}"
+                                           Padding="{DynamicResource {x:Static app:UiScaleKeys.OverlayPadding}}"/>
 
                             </DataTemplate>
                         </ListBox.ItemTemplate>
@@ -177,15 +141,15 @@
 
                     <!-- Covers -->
                     <ListBox x:Name="CoversListBox"
-                            Visibility="Collapsed"
-                            Margin="{DynamicResource {x:Static app:UiScaleKeys.ParserAssetsMargin}}"
-                            ItemContainerStyle="{StaticResource ParserCoverItemStyle}"
-                            Background="Transparent"
-                            BorderThickness="0"
-                            ScrollViewer.CanContentScroll="False"
-                            ScrollViewer.HorizontalScrollBarVisibility="Disabled"
-                            ScrollViewer.VerticalScrollBarVisibility="Hidden"
-                            VirtualizingPanel.IsVirtualizing="False">
+                             Visibility="Collapsed"
+                             Margin="{DynamicResource {x:Static app:UiScaleKeys.ParserAssetsMargin}}"
+                             ItemContainerStyle="{StaticResource ParserCoverItemStyle}"
+                             Background="Transparent"
+                             BorderThickness="0"
+                             ScrollViewer.CanContentScroll="False"
+                             ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                             ScrollViewer.VerticalScrollBarVisibility="Hidden"
+                             VirtualizingPanel.IsVirtualizing="False">
 
                         <ListBox.ItemsPanel>
                             <ItemsPanelTemplate>
@@ -199,12 +163,12 @@
                             <DataTemplate>
 
                                 <Rectangle Width="{DynamicResource {x:Static app:UiScaleKeys.ParserCoverSize}}"
-                                        Height="{DynamicResource {x:Static app:UiScaleKeys.ParserCoverSize}}"
-                                        RadiusX="{DynamicResource {x:Static app:UiScaleKeys.ParserMediaRadius}}"
-                                        RadiusY="{DynamicResource {x:Static app:UiScaleKeys.ParserMediaRadius}}"
-                                        HorizontalAlignment="Center"
-                                        VerticalAlignment="Center"
-                                        SnapsToDevicePixels="True">
+                                           Height="{DynamicResource {x:Static app:UiScaleKeys.ParserCoverSize}}"
+                                           RadiusX="{DynamicResource {x:Static app:UiScaleKeys.ParserMediaRadius}}"
+                                           RadiusY="{DynamicResource {x:Static app:UiScaleKeys.ParserMediaRadius}}"
+                                           HorizontalAlignment="Center"
+                                           VerticalAlignment="Center"
+                                           SnapsToDevicePixels="True">
 
                                     <Rectangle.Fill>
                                         <ImageBrush ImageSource="{Binding ImageSource}"
@@ -220,15 +184,15 @@
 
                     <!-- Backgrounds -->
                     <ListBox x:Name="BackgroundsListBox"
-                            Visibility="Collapsed"
-                            Margin="{DynamicResource {x:Static app:UiScaleKeys.ParserAssetsMargin}}"
-                            ItemContainerStyle="{StaticResource ParserCoverItemStyle}"
-                            Background="Transparent"
-                            BorderThickness="0"
-                            ScrollViewer.CanContentScroll="False"
-                            ScrollViewer.HorizontalScrollBarVisibility="Disabled"
-                            ScrollViewer.VerticalScrollBarVisibility="Hidden"
-                            VirtualizingPanel.IsVirtualizing="False">
+                             Visibility="Collapsed"
+                             Margin="{DynamicResource {x:Static app:UiScaleKeys.ParserAssetsMargin}}"
+                             ItemContainerStyle="{StaticResource ParserCoverItemStyle}"
+                             Background="Transparent"
+                             BorderThickness="0"
+                             ScrollViewer.CanContentScroll="False"
+                             ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                             ScrollViewer.VerticalScrollBarVisibility="Hidden"
+                             VirtualizingPanel.IsVirtualizing="False">
 
                         <ListBox.ItemsPanel>
                             <ItemsPanelTemplate>
@@ -242,12 +206,12 @@
                             <DataTemplate>
 
                                 <Rectangle Width="{DynamicResource {x:Static app:UiScaleKeys.ParserBackgroundWidth}}"
-                                        Height="{DynamicResource {x:Static app:UiScaleKeys.ParserBackgroundHeight}}"
-                                        RadiusX="{DynamicResource {x:Static app:UiScaleKeys.ParserMediaRadius}}"
-                                        RadiusY="{DynamicResource {x:Static app:UiScaleKeys.ParserMediaRadius}}"
-                                        HorizontalAlignment="Center"
-                                        VerticalAlignment="Center"
-                                        SnapsToDevicePixels="True">
+                                           Height="{DynamicResource {x:Static app:UiScaleKeys.ParserBackgroundHeight}}"
+                                           RadiusX="{DynamicResource {x:Static app:UiScaleKeys.ParserMediaRadius}}"
+                                           RadiusY="{DynamicResource {x:Static app:UiScaleKeys.ParserMediaRadius}}"
+                                           HorizontalAlignment="Center"
+                                           VerticalAlignment="Center"
+                                           SnapsToDevicePixels="True">
 
                                     <Rectangle.Fill>
                                         <ImageBrush ImageSource="{Binding ImageSource}"
@@ -268,19 +232,19 @@
                                 VerticalAlignment="Center">
 
                         <TextBlock x:Name="ManualSearchHintText"
-                                    Style="{StaticResource OverlaySecondaryTextStyle}"
-                                    Margin="{DynamicResource {x:Static app:UiScaleKeys.ParserManualSearchHintMargin}}"
-                                    HorizontalAlignment="Center"
-                                    TextAlignment="Center"/>
+                                   Style="{StaticResource OverlaySecondaryTextStyle}"
+                                   Margin="{DynamicResource {x:Static app:UiScaleKeys.ParserManualSearchHintMargin}}"
+                                   HorizontalAlignment="Center"
+                                   TextAlignment="Center"/>
 
                         <TextBox x:Name="SearchInputBox"
-                                Height="{DynamicResource {x:Static app:UiScaleKeys.ParserInputHeight}}"
-                                Margin="{DynamicResource {x:Static app:UiScaleKeys.ParserInputMargin}}"
-                                HorizontalAlignment="Stretch"
-                                Foreground="{DynamicResource TextFillColorSecondaryBrush}"
-                                FontSize="{DynamicResource {x:Static app:UiScaleKeys.ParserInputFontSize}}"
-                                MaxLength="120"
-                                KeyDown="SearchInputBox_KeyDown"/>
+                                 Height="{DynamicResource {x:Static app:UiScaleKeys.ParserInputHeight}}"
+                                 Margin="{DynamicResource {x:Static app:UiScaleKeys.ParserInputMargin}}"
+                                 HorizontalAlignment="Stretch"
+                                 Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                                 FontSize="{DynamicResource {x:Static app:UiScaleKeys.ParserInputFontSize}}"
+                                 MaxLength="120"
+                                 KeyDown="SearchInputBox_KeyDown"/>
 
                     </StackPanel>
 
@@ -297,23 +261,23 @@
 
         <!-- ParserStatusSurface -->
         <app:DitheredGradientBorder x:Name="ParserStatusSurface"
-                Panel.ZIndex="20"
-                Visibility="Collapsed"
-                MaxWidth="{DynamicResource {x:Static app:UiScaleKeys.ParserStatusSurfaceMaxWidth}}"
-                Margin="{DynamicResource {x:Static app:UiScaleKeys.ParserStatusSurfaceMargin}}"
-                Padding="{DynamicResource {x:Static app:UiScaleKeys.ParserStatusSurfacePadding}}"
-                CornerRadius="{DynamicResource {x:Static app:UiScaleKeys.ParserStatusSurfaceRadius}}"
-                HorizontalAlignment="Center"
-                VerticalAlignment="Bottom"
-                IsHitTestVisible="False">
+                                    Panel.ZIndex="20"
+                                    Visibility="Collapsed"
+                                    MaxWidth="{DynamicResource {x:Static app:UiScaleKeys.ParserStatusSurfaceMaxWidth}}"
+                                    Margin="{DynamicResource {x:Static app:UiScaleKeys.ParserStatusSurfaceMargin}}"
+                                    Padding="{DynamicResource {x:Static app:UiScaleKeys.ParserStatusSurfacePadding}}"
+                                    CornerRadius="{DynamicResource {x:Static app:UiScaleKeys.ParserStatusSurfaceRadius}}"
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Bottom"
+                                    IsHitTestVisible="False">
 
             <TextBlock x:Name="StatusText"
-                    FontSize="{DynamicResource {x:Static app:UiScaleKeys.ParserStatusFontSize}}"
-                    Margin="{DynamicResource {x:Static app:UiScaleKeys.ParserStatusMargin}}"
-                    HorizontalAlignment="Stretch"
-                    VerticalAlignment="Center"
-                    TextAlignment="Center"
-                    TextWrapping="Wrap">
+                       FontSize="{DynamicResource {x:Static app:UiScaleKeys.ParserStatusFontSize}}"
+                       Margin="{DynamicResource {x:Static app:UiScaleKeys.ParserStatusMargin}}"
+                       HorizontalAlignment="Stretch"
+                       VerticalAlignment="Center"
+                       TextAlignment="Center"
+                       TextWrapping="Wrap">
 
                 <TextBlock.RenderTransform>
                     <TranslateTransform Y="-1"/>

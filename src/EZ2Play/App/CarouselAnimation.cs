@@ -22,25 +22,34 @@ namespace EZ2Play.App
         // Last known selected carousel item
         private static ListBoxItem _lastSelectedCarouselItem;
 
+        private static ListBox _pendingSelectionListBox;
+        private static object _pendingSelectionItem;
+        private static bool _pendingSkipScaleUp;
+
         // Animate carousel selection change
-        public static void AnimateSelectionChanged(ListBox listBox, SelectionChangedEventArgs e, int fallbackPreviousIndex = -1, bool skipScaleUp = false)
+        public static void AnimateSelectionChanged(ListBox listBox, SelectionChangedEventArgs e,
+            int fallbackPreviousIndex = -1, bool skipScaleUp = false)
         {
             if (listBox == null) return;
 
             object previousItem = e.RemovedItems.Count > 0 ? e.RemovedItems[0] : null;
-            ListBoxItem previousContainer = TryResolvePreviousContainer(listBox, previousItem, fallbackPreviousIndex);
+            ListBoxItem previousContainer =
+                TryResolvePreviousContainer(listBox, previousItem, fallbackPreviousIndex);
 
-            // Fall back to the last known selected item
             if (previousContainer == null && IsConnectedToVisualTree(_lastSelectedCarouselItem))
                 previousContainer = _lastSelectedCarouselItem;
 
-            // Animate the newly selected item
             if (e.AddedItems.Count > 0)
             {
-                var newContainer = listBox.ItemContainerGenerator.ContainerFromItem(e.AddedItems[0]) as ListBoxItem;
+                object selectedItem = e.AddedItems[0];
+
+                var newContainer = listBox.ItemContainerGenerator.ContainerFromItem(selectedItem)
+                    as ListBoxItem;
 
                 if (newContainer != null)
                 {
+                    ClearPendingSelection(listBox);
+
                     if (skipScaleUp)
                         SetSizeInstant(newContainer, true);
                     else
@@ -48,14 +57,18 @@ namespace EZ2Play.App
 
                     _lastSelectedCarouselItem = newContainer;
                 }
+                else
+                {
+                    SetPendingSelection(listBox, selectedItem, skipScaleUp);
+                }
             }
 
             else
             {
+                ClearPendingSelection(listBox);
                 _lastSelectedCarouselItem = null;
             }
 
-            // Scale down the previously selected item
             if (previousContainer != null)
             {
                 AnimateSelection(previousContainer, false);
@@ -84,20 +97,53 @@ namespace EZ2Play.App
         }
 
         // Initialize the selected item without animation
-        public static void InitializeSelectedItem(ListBox listBox)
+        public static bool InitializeSelectedItem(ListBox listBox)
         {
-            if (listBox?.Items.Count == 0) return;
+            if (listBox?.Items.Count == 0)
+                return false;
+
+            if (CarouselLayout.NormalSize <= 0 || CarouselLayout.SelectedSize <= 0)
+                return false;
 
             int selectedIdx = listBox.SelectedIndex;
-            if (selectedIdx < 0) return;
 
-            var selectedContainer = listBox.ItemContainerGenerator.ContainerFromIndex(selectedIdx) as ListBoxItem;
+            if (selectedIdx < 0)
+                return false;
 
-            if (selectedContainer != null)
-            {
+            var selectedContainer = listBox.ItemContainerGenerator.ContainerFromIndex(selectedIdx)
+                as ListBoxItem;
+
+            if (selectedContainer == null)
+                return false;
+
+            ClearPendingSelection(listBox);
+            SetSizeInstant(selectedContainer, true);
+            _lastSelectedCarouselItem = selectedContainer;
+
+            return true;
+        }
+
+        public static bool RetryPendingSelection(ListBox listBox)
+        {
+            if (listBox == null ||
+                !ReferenceEquals(_pendingSelectionListBox, listBox))
+                return false;
+
+            var selectedContainer = TryGetContainerByItem(
+                listBox, _pendingSelectionItem);
+
+            if (selectedContainer == null)
+                return false;
+
+            if (_pendingSkipScaleUp)
                 SetSizeInstant(selectedContainer, true);
-                _lastSelectedCarouselItem = selectedContainer;
-            }
+            else
+                AnimateSelection(selectedContainer, true);
+
+            _lastSelectedCarouselItem = selectedContainer;
+            ClearPendingSelection(listBox);
+
+            return true;
         }
 
         // Animate item scaling for selected and normal states
@@ -207,6 +253,23 @@ namespace EZ2Play.App
         {
             if (listBox == null || index < 0 || index >= listBox.Items.Count) return null;
             return listBox.ItemContainerGenerator.ContainerFromIndex(index) as ListBoxItem;
+        }
+
+        private static void SetPendingSelection(ListBox listBox, object selectedItem, bool skipScaleUp)
+        {
+            _pendingSelectionListBox = listBox;
+            _pendingSelectionItem = selectedItem;
+            _pendingSkipScaleUp = skipScaleUp;
+        }
+
+        private static void ClearPendingSelection(ListBox listBox)
+        {
+            if (!ReferenceEquals(_pendingSelectionListBox, listBox))
+                return;
+
+            _pendingSelectionListBox = null;
+            _pendingSelectionItem = null;
+            _pendingSkipScaleUp = false;
         }
 
         // Retry scaling down after the item container is generated

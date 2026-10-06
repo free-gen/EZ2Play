@@ -1,6 +1,6 @@
 using System;
-using System.Collections.Generic;
 using System.Windows;
+using System.Collections.Generic;
 using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Shapes;
@@ -9,42 +9,6 @@ namespace EZ2Play.App
 {
     public class CarouselItem : ContentControl
     {
-        private const double GlowStartOffset = -2;
-        private const double GlowEndOffset = 2;
-        private const double AnimDuration = 1.5;
-        private const double AnimDelay = 4;
-
-        // Active items share one global rendering loop.
-        private static readonly HashSet<CarouselItem> _activeItems = new HashSet<CarouselItem>();
-        private static DateTime _startTime = DateTime.UtcNow;
-        private static bool _isRenderingHooked = false;
-
-        public static readonly DependencyProperty IsSelectedProperty =
-            DependencyProperty.Register(
-                nameof(IsSelected),
-                typeof(bool),
-                typeof(CarouselItem),
-                new PropertyMetadata(false, OnIsSelectedChanged));
-
-        public bool IsSelected
-        {
-            get => (bool)GetValue(IsSelectedProperty);
-            set => SetValue(IsSelectedProperty, value);
-        }
-
-        public static readonly DependencyProperty GlowOffsetProperty =
-            DependencyProperty.Register(
-                nameof(GlowOffset),
-                typeof(double),
-                typeof(CarouselItem),
-                new FrameworkPropertyMetadata(GlowStartOffset, FrameworkPropertyMetadataOptions.AffectsRender));
-
-        public double GlowOffset
-        {
-            get => (double)GetValue(GlowOffsetProperty);
-            set => SetValue(GlowOffsetProperty, value);
-        }
-
         private readonly Rectangle _cover;
         private readonly Rectangle _background;
 
@@ -78,66 +42,6 @@ namespace EZ2Play.App
             Content = grid;
 
             DataContextChanged += OnDataContextChanged;
-
-            if (!_isRenderingHooked)
-            {
-                CompositionTarget.Rendering += OnRendering;
-                _isRenderingHooked = true;
-            }
-        }
-
-        private static void OnIsSelectedChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
-        {
-            var item = (CarouselItem)d;
-
-            item.UpdateContent();
-
-            if ((bool)e.NewValue)
-            {
-                _activeItems.Add(item);
-            }
-
-            else
-            {
-                _activeItems.Remove(item);
-                item.GlowOffset = GlowStartOffset;
-            }
-
-            item.InvalidateVisual();
-        }
-
-        // Advance the glow animation for all selected items.
-        private static void OnRendering(object sender, EventArgs e)
-        {
-            var now = DateTime.UtcNow;
-            var totalSeconds = (now - _startTime).TotalSeconds;
-
-            double cycle = AnimDelay + AnimDuration;
-            double t = totalSeconds % cycle;
-
-            foreach (var item in _activeItems)
-            {
-                item.UpdateGlow(t);
-            }
-        }
-
-        private void UpdateGlow(double t)
-        {
-            if (!IsSelected) return;
-
-            if (t < AnimDelay)
-            {
-                GlowOffset = GlowStartOffset;
-            }
-
-            else
-            {
-                double animT = (t - AnimDelay) / AnimDuration;
-                animT = animT * animT * (3 - 2 * animT);
-                GlowOffset = GlowStartOffset + (GlowEndOffset - GlowStartOffset) * animT;
-            }
-
-            InvalidateVisual();
         }
 
         private void OnDataContextChanged(object sender, DependencyPropertyChangedEventArgs e)
@@ -174,49 +78,6 @@ namespace EZ2Play.App
             }
 
             return new Size(size, size);
-        }
-
-        protected override void OnRender(DrawingContext dc)
-        {
-            base.OnRender(dc);
-
-            if (!IsSelected) return;
-
-            double thickness = (double)TryFindResource(UiScaleKeys.SelectorThickness);
-            double spacing = (double)TryFindResource(UiScaleKeys.SelectorSpacing);
-            double half = thickness / 2.0;
-            double radiusOffset = spacing * 1.25;
-
-            Rect rect = new Rect(
-                -spacing - half,
-                -spacing - half,
-                ActualWidth + (spacing + half) * 2,
-                ActualHeight + (spacing + half) * 2);
-
-            var baseBrush = (SolidColorBrush)FindResource("FocusStrokeColorOuterBrush");
-            Color c = baseBrush.Color;
-
-            double o = GlowOffset;
-
-            var brush = new LinearGradientBrush
-            {
-                StartPoint = new Point(0, 0),
-                EndPoint = new Point(1, 0),
-                RelativeTransform = new RotateTransform(45, 0.5, 0.5),
-                GradientStops = new GradientStopCollection
-                {
-                    new GradientStop(Color.FromArgb((byte)(0.55 * 255), c.R, c.G, c.B), o - 0.75),
-                    new GradientStop(Color.FromArgb((byte)(1.0 * 255), c.R, c.G, c.B), o),
-                    new GradientStop(Color.FromArgb((byte)(0.55 * 255), c.R, c.G, c.B), o + 0.75)
-                }
-            };
-
-            Pen pen = new Pen(brush, thickness);
-            pen.Freeze();
-
-            double radius = (double)TryFindResource(UiScaleKeys.GameCoverRadius) + radiusOffset;
-
-            dc.DrawRoundedRectangle(null, pen, rect, radius, radius);
         }
 
         // Reuse frozen brushes for shortcut images across carousel items.

@@ -5,6 +5,7 @@ using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
 using System.Windows.Media.Imaging;
+using System.Threading.Tasks;
 using System.Windows.Threading;
 
 namespace EZ2Play.App
@@ -30,6 +31,9 @@ namespace EZ2Play.App
         private TimeSpan _panLastRenderTime;
         private double _panRampElapsed;
         private readonly DispatcherTimer _panStartTimer;
+
+        private int _backgroundRequestId;
+        private bool _disposed;
 
         private TranslateTransform ImageTranslate => _image?.RenderTransform as TranslateTransform;
         private TranslateTransform PreviousTranslate => _previousImage?.RenderTransform as TranslateTransform;
@@ -57,7 +61,10 @@ namespace EZ2Play.App
 
         public bool Load(string shortcutPath)
         {
-            if (_image == null) return false;
+            if (_image == null || _disposed)
+                return false;
+
+            ++_backgroundRequestId;
 
             StopPan();
 
@@ -114,9 +121,19 @@ namespace EZ2Play.App
 
         public void TransitionTo(string shortcutPath, int direction = 0)
         {
-            if (_image == null) return;
+            if (_image == null || _disposed)
+                return;
 
-            var nextBitmap = LoadBitmap(shortcutPath);
+            int requestId = ++_backgroundRequestId;
+            _ = TransitionToAsync(shortcutPath, direction, requestId);
+        }
+
+        private async Task TransitionToAsync(string shortcutPath, int direction, int requestId)
+        {
+            var nextBitmap = await Task.Run(() => LoadBitmap(shortcutPath));
+
+            if (_disposed || requestId != _backgroundRequestId)
+                return;
 
             bool hasCurrentBackground = _image.Source != null;
             bool hasNextBackground = nextBitmap != null;
@@ -474,6 +491,9 @@ namespace EZ2Play.App
 
         public void Dispose()
         {
+            _disposed = true;
+            ++_backgroundRequestId;
+
             StopPan();
             _panStartTimer.Tick -= PanStartTimer_Tick;
         }

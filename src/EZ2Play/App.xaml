@@ -22,8 +22,8 @@
 
             <!-- Overlay -->
             <SolidColorBrush x:Key="OverlayBackdropBrush" Color="#B4000000"/>
-            <SolidColorBrush x:Key="OverlaySelectionBorderBrush" Color="#80F7FBFF"/>
-            <SolidColorBrush x:Key="OverlaySelectionBackgroundBrush" Color="#0DF7FBFF"/>
+            <SolidColorBrush x:Key="SelectionBrush" Color="#E0F0FF"/>
+
             <SolidColorBrush x:Key="OverlayGradientStartBrush" Color="#24282C"/>
             <SolidColorBrush x:Key="OverlayGradientEndBrush" Color="#181C20"/>
 
@@ -41,19 +41,6 @@
             <Style x:Key="OverlaySecondaryTextStyle" TargetType="TextBlock" BasedOn="{StaticResource {x:Type TextBlock}}">
                 <Setter Property="FontSize" Value="{DynamicResource {x:Static app:UiScaleKeys.OverlaySecondaryFontSize}}"/>
                 <Setter Property="Foreground" Value="{DynamicResource TextFillColorTertiaryBrush}"/>
-            </Style>
-
-            <Style x:Key="OverlaySelectionBorderStyle" TargetType="Border">
-                <Setter Property="Margin" Value="{DynamicResource {x:Static app:UiScaleKeys.OverlaySelectionMargin}}"/>
-                <Setter Property="BorderThickness" Value="{DynamicResource {x:Static app:UiScaleKeys.OverlaySelectionThickness}}"/>
-                <Setter Property="BorderBrush" Value="Transparent"/>
-                <Setter Property="CornerRadius" Value="{DynamicResource {x:Static app:UiScaleKeys.OverlaySelectionRadius}}"/>
-            </Style>
-
-            <Style x:Key="OverlaySelectionBackgroundStyle" TargetType="Border">
-                <Setter Property="Margin" Value="{DynamicResource {x:Static app:UiScaleKeys.OverlaySelectionBackgroundMargin}}"/>
-                <Setter Property="Background" Value="Transparent"/>
-                <Setter Property="CornerRadius" Value="{DynamicResource {x:Static app:UiScaleKeys.OverlaySelectionBackgroundRadius}}"/>
             </Style>
 
             <!-- AppDividerStyle -->
