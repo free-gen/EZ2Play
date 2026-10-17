@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.Windows;
 using System.Windows.Controls;
+using System.Collections.Generic;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
 using System.Windows.Media.Imaging;
@@ -28,17 +29,56 @@ namespace EZ2Play.App
         private double _panOverflow;
         private double _panPosition;
         private double _panDirection = 1;
+        private double _lastPanViewportWidth;
+        private double _lastPanViewportHeight;
+        private BitmapSource _lastPanSource;
         private TimeSpan _panLastRenderTime;
         private double _panRampElapsed;
         private readonly DispatcherTimer _panStartTimer;
 
         private int _backgroundRequestId;
+        private int _lifecycleGeneration;
+        private int _backgroundTransitionGeneration;
+        private bool _backgroundTransitionInProgress;
         private bool _disposed;
 
-        private TranslateTransform ImageTranslate => _image?.RenderTransform as TranslateTransform;
-        private TranslateTransform PreviousTranslate => _previousImage?.RenderTransform as TranslateTransform;
+        private readonly Dictionary<string, BitmapImage> _backgroundCache =
+            new Dictionary<string, BitmapImage>(StringComparer.OrdinalIgnoreCase);
+
+        private readonly LinkedList<string> _backgroundCacheLru =
+            new LinkedList<string>();
+
+        private const long BackgroundCacheBudgetBytes = 64L * 1024 * 1024;
+        private readonly object _backgroundCacheLock = new object();
+        private int _backgroundCacheGeneration;
+        private long _backgroundCacheBytes;
+        private Task _backgroundWorkerTask;
+        private string _pendingShortcutPath;
+        private int _pendingDirection;
+        private int _pendingDecodePixelHeight;
+        private int _pendingRequestId;
+        private int _pendingLifecycleGeneration;
+        private bool _isActive = true;
+
+        private TranslateTransform ImageTranslate =>
+            (_image?.RenderTransform as TransformGroup)?.Children[0] as TranslateTransform;
+        private TranslateTransform PreviousTranslate =>
+            (_previousImage?.RenderTransform as TransformGroup)?.Children[0] as TranslateTransform;
+        private TranslateTransform ImageSlide =>
+            (_image?.RenderTransform as TransformGroup)?.Children[1] as TranslateTransform;
+        private TranslateTransform PreviousSlide =>
+            (_previousImage?.RenderTransform as TransformGroup)?.Children[1] as TranslateTransform;
 
         private bool UseImageBackground => _image?.Source != null;
+
+        private int GetDecodePixelHeight()
+        {
+            if (_viewport == null || _viewport.ActualHeight <= 0)
+                return 2160;
+
+            double scale = VisualTreeHelper.GetDpi(_viewport).DpiScaleY;
+            return Math.Max(1, (int)Math.Ceiling(_viewport.ActualHeight * scale));
+        }
 
         public BackgroundController(
             Grid viewport,
@@ -65,17 +105,28 @@ namespace EZ2Play.App
                 return false;
 
             ++_backgroundRequestId;
+            ++_lifecycleGeneration;
+            ++_backgroundTransitionGeneration;
+            _backgroundTransitionInProgress = false;
+
+            _pendingShortcutPath = null;
+            _pendingRequestId = 0;
+            _pendingLifecycleGeneration = 0;
 
             StopPan();
+
+            ResetSlides();
 
             _image.BeginAnimation(UIElement.OpacityProperty, null);
             _image.Source = null;
             _image.Visibility = Visibility.Collapsed;
             _image.Opacity = 0;
 
+            _lastPanSource = null;
+
             ClearPrevious();
 
-            var bitmap = LoadBitmap(shortcutPath);
+            var bitmap = LoadBitmap(shortcutPath, GetDecodePixelHeight());
 
             if (bitmap == null)
                 return false;
@@ -89,7 +140,40 @@ namespace EZ2Play.App
             return true;
         }
 
-        private BitmapImage LoadBitmap(string shortcutPath)
+        public void InvalidateBackgroundCache(string shortcutPath)
+        {
+            if (string.IsNullOrWhiteSpace(shortcutPath))
+                return;
+
+            string backgroundPath = IconExtractor.GetCustomBackgroundPath(shortcutPath);
+
+            if (string.IsNullOrWhiteSpace(backgroundPath))
+                return;
+
+            string cachePath = Path.GetFullPath(backgroundPath);
+            var keysToRemove = new List<string>();
+
+            lock (_backgroundCacheLock)
+            {
+                ++_backgroundCacheGeneration;
+
+                foreach (var key in _backgroundCache.Keys)
+                {
+                    if (key.StartsWith(cachePath + "|", StringComparison.OrdinalIgnoreCase))
+                        keysToRemove.Add(key);
+                }
+
+                foreach (var key in keysToRemove)
+                {
+                    var bitmap = _backgroundCache[key];
+                    _backgroundCache.Remove(key);
+                    _backgroundCacheLru.Remove(key);
+                    _backgroundCacheBytes -= (long)bitmap.PixelWidth * bitmap.PixelHeight * 4;
+                }
+            }
+        }
+
+        private BitmapImage LoadBitmap(string shortcutPath, int decodePixelHeight)
         {
             try
             {
@@ -98,17 +182,70 @@ namespace EZ2Play.App
                 if (string.IsNullOrWhiteSpace(backgroundPath) || !File.Exists(backgroundPath))
                     return null;
 
+                string cachePath = Path.GetFullPath(backgroundPath);
+                var fileInfo = new FileInfo(cachePath);
+                string cacheKey = cachePath + "|" + fileInfo.Length + "|" +
+                    fileInfo.LastWriteTimeUtc.Ticks + "|" + decodePixelHeight;
+
+                int cacheGeneration;
+
+                lock (_backgroundCacheLock)
+                {
+                    cacheGeneration = _backgroundCacheGeneration;
+
+                    if (_backgroundCache.TryGetValue(cacheKey, out var cachedBitmap))
+                    {
+                        _backgroundCacheLru.Remove(cacheKey);
+                        _backgroundCacheLru.AddLast(cacheKey);
+                        return cachedBitmap;
+                    }
+                }
+
                 var bitmap = new BitmapImage();
 
                 using (var stream = new FileStream(backgroundPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
                 {
                     bitmap.BeginInit();
                     bitmap.CacheOption = BitmapCacheOption.OnLoad;
+                    bitmap.DecodePixelHeight = decodePixelHeight;
                     bitmap.StreamSource = stream;
                     bitmap.EndInit();
                 }
 
                 bitmap.Freeze();
+
+                long bitmapBytes = (long)bitmap.PixelWidth * bitmap.PixelHeight * 4;
+
+                if (bitmapBytes <= BackgroundCacheBudgetBytes)
+                {
+                    lock (_backgroundCacheLock)
+                    {
+                        if (_disposed || cacheGeneration != _backgroundCacheGeneration)
+                            return bitmap;
+
+                        if (_backgroundCache.TryGetValue(cacheKey, out var existing))
+                        {
+                            _backgroundCacheLru.Remove(cacheKey);
+                            _backgroundCacheLru.AddLast(cacheKey);
+                            return existing;
+                        }
+
+                        while (_backgroundCacheLru.Count > 0 &&
+                            _backgroundCacheBytes + bitmapBytes > BackgroundCacheBudgetBytes)
+                        {
+                            string oldestKey = _backgroundCacheLru.First.Value;
+                            _backgroundCacheLru.RemoveFirst();
+
+                            var oldestBitmap = _backgroundCache[oldestKey];
+                            _backgroundCache.Remove(oldestKey);
+                            _backgroundCacheBytes -= (long)oldestBitmap.PixelWidth * oldestBitmap.PixelHeight * 4;
+                        }
+
+                        _backgroundCache[cacheKey] = bitmap;
+                        _backgroundCacheLru.AddLast(cacheKey);
+                        _backgroundCacheBytes += bitmapBytes;
+                    }
+                }
 
                 return bitmap;
             }
@@ -121,43 +258,104 @@ namespace EZ2Play.App
 
         public void TransitionTo(string shortcutPath, int direction = 0)
         {
-            if (_image == null || _disposed)
+            if (_image == null || _disposed || !_isActive)
                 return;
 
             int requestId = ++_backgroundRequestId;
-            _ = TransitionToAsync(shortcutPath, direction, requestId);
+
+            int lifecycleGeneration = _lifecycleGeneration;
+
+            _pendingShortcutPath = shortcutPath;
+            _pendingDirection = direction;
+            _pendingDecodePixelHeight = GetDecodePixelHeight();
+            _pendingRequestId = requestId;
+            _pendingLifecycleGeneration = lifecycleGeneration;
+
+            StartPendingBackgroundQueue();
         }
 
-        private async Task TransitionToAsync(string shortcutPath, int direction, int requestId)
+        private void StartPendingBackgroundQueue()
         {
-            var nextBitmap = await Task.Run(() => LoadBitmap(shortcutPath));
-
-            if (_disposed || requestId != _backgroundRequestId)
+            if (_disposed || !_isActive || _backgroundTransitionInProgress ||
+                _pendingShortcutPath == null)
                 return;
 
-            bool hasCurrentBackground = _image.Source != null;
-            bool hasNextBackground = nextBitmap != null;
+            if (_backgroundWorkerTask == null || _backgroundWorkerTask.IsCompleted)
+                _backgroundWorkerTask = ProcessBackgroundQueueAsync();
+        }
 
-            if (hasCurrentBackground && hasNextBackground)
+        private async Task ProcessBackgroundQueueAsync()
+        {
+            while (!_disposed)
             {
-                Crossfade(nextBitmap, direction);
-                return;
+                if (_backgroundTransitionInProgress)
+                    return;
+
+                string shortcutPath = _pendingShortcutPath;
+                int direction = _pendingDirection;
+                int decodePixelHeight = _pendingDecodePixelHeight;
+                int requestId = _pendingRequestId;
+                int lifecycleGeneration = _pendingLifecycleGeneration;
+
+                _pendingShortcutPath = null;
+
+                if (shortcutPath == null)
+                    return;
+
+                var nextBitmap = await Task.Run(() => LoadBitmap(shortcutPath, decodePixelHeight));
+
+                if (_disposed || !_isActive ||
+                    lifecycleGeneration != _lifecycleGeneration ||
+                    requestId != _backgroundRequestId)
+                {
+                    continue;
+                }
+
+                if (_pendingShortcutPath != null)
+                {
+                    continue;
+                }
+
+                bool hasCurrentBackground = _image.Source != null;
+                bool hasNextBackground = nextBitmap != null;
+
+                if (hasCurrentBackground && hasNextBackground)
+                {
+                    Crossfade(nextBitmap, direction);
+                    continue;
+                }
+
+                if (hasCurrentBackground)
+                {
+                    FadeToParticles();
+                    continue;
+                }
+
+                if (hasNextBackground)
+                {
+                    FadeFromParticles(nextBitmap);
+                    continue;
+                }
+
+                ++_backgroundTransitionGeneration;
+                ClearPrevious();
+                _particles?.SetParticlesVisible(true, true, BackgroundTransitionDuration);
+            }
+        }
+
+        private void ResetSlides()
+        {
+            if (ImageSlide != null)
+            {
+                ImageSlide.BeginAnimation(TranslateTransform.XProperty, null);
+                ImageSlide.X = 0;
             }
 
-            if (hasCurrentBackground)
+            if (PreviousSlide != null)
             {
-                FadeToParticles();
-                return;
+                PreviousSlide.BeginAnimation(TranslateTransform.XProperty, null);
+                PreviousSlide.X = 0;
             }
-
-            if (hasNextBackground)
-            {
-                FadeFromParticles(nextBitmap);
-                return;
-            }
-
-            ClearPrevious();
-            _particles?.SetParticlesVisible(true, true, BackgroundTransitionDuration);
         }
 
         private void Crossfade(BitmapImage nextBitmap, int direction)
@@ -169,11 +367,10 @@ namespace EZ2Play.App
                 return;
             }
 
-            _image.BeginAnimation(Canvas.LeftProperty, null);
-            _previousImage.BeginAnimation(Canvas.LeftProperty, null);
+            int transitionGeneration = ++_backgroundTransitionGeneration;
+            _backgroundTransitionInProgress = true;
 
-            Canvas.SetLeft(_image, 0);
-            Canvas.SetLeft(_previousImage, 0);
+            ResetSlides();
 
             double previousOpacity = _image.Opacity;
             double previousX = ImageTranslate?.X ?? 0;
@@ -237,16 +434,33 @@ namespace EZ2Play.App
                 EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut }
             };
 
-            fadeOut.Completed += (s, e) => ClearPrevious();
+            fadeOut.Completed += (s, e) =>
+            {
+                if (_disposed || transitionGeneration != _backgroundTransitionGeneration)
+                    return;
+
+                ClearPrevious();
+            };
 
             fadeIn.Completed += (s, e) =>
             {
-                _image.BeginAnimation(Canvas.LeftProperty, null);
-                Canvas.SetLeft(_image, 0);
+                if (_disposed || transitionGeneration != _backgroundTransitionGeneration)
+                    return;
+
+                if (ImageSlide != null)
+                {
+                    ImageSlide.BeginAnimation(TranslateTransform.XProperty, null);
+                    ImageSlide.X = 0;
+                }
+
+                ClearPrevious();
+                _backgroundTransitionInProgress = false;
+
+                StartPendingBackgroundQueue();
             };
 
-            _previousImage.BeginAnimation(Canvas.LeftProperty, previousSlide);
-            _image.BeginAnimation(Canvas.LeftProperty, nextSlide);
+            PreviousSlide.BeginAnimation(TranslateTransform.XProperty, previousSlide);
+            ImageSlide.BeginAnimation(TranslateTransform.XProperty, nextSlide);
 
             _previousImage.BeginAnimation(UIElement.OpacityProperty, fadeOut);
             _image.BeginAnimation(UIElement.OpacityProperty, fadeIn);
@@ -254,6 +468,13 @@ namespace EZ2Play.App
 
         private void FadeToParticles()
         {
+            int transitionGeneration = ++_backgroundTransitionGeneration;
+            _backgroundTransitionInProgress = true;
+
+            ClearPrevious();
+
+            ResetSlides();
+            
             double currentOpacity = _image.Opacity;
 
             _image.BeginAnimation(UIElement.OpacityProperty, null);
@@ -270,12 +491,19 @@ namespace EZ2Play.App
 
             fadeOut.Completed += (s, e) =>
             {
-                StopPan();
+                if (_disposed || transitionGeneration != _backgroundTransitionGeneration)
+                    return;
 
+                StopPan();
+                
                 _image.BeginAnimation(UIElement.OpacityProperty, null);
                 _image.Source = null;
                 _image.Visibility = Visibility.Collapsed;
                 _image.Opacity = 0;
+
+                _backgroundTransitionInProgress = false;
+
+                StartPendingBackgroundQueue();
             };
 
             _image.BeginAnimation(UIElement.OpacityProperty, fadeOut);
@@ -283,6 +511,11 @@ namespace EZ2Play.App
 
         private void FadeFromParticles(BitmapImage nextBitmap)
         {
+            int transitionGeneration = ++_backgroundTransitionGeneration;
+            _backgroundTransitionInProgress = true;
+
+            ResetSlides();
+
             StopPan();
             ClearPrevious();
 
@@ -305,11 +538,25 @@ namespace EZ2Play.App
                 EasingFunction = new CubicEase { EasingMode = EasingMode.EaseInOut }
             };
 
+            fadeIn.Completed += (s, e) =>
+            {
+                if (_disposed ||
+                    transitionGeneration != _backgroundTransitionGeneration)
+                    return;
+
+                _backgroundTransitionInProgress = false;
+                StartPendingBackgroundQueue();
+            };
+
             _image.BeginAnimation(UIElement.OpacityProperty, fadeIn);
         }
 
         private void LoadFromBitmap(BitmapImage bitmap)
         {
+            ++_backgroundTransitionGeneration;
+
+            ResetSlides();
+
             StopPan();
 
             _image.BeginAnimation(UIElement.OpacityProperty, null);
@@ -327,13 +574,16 @@ namespace EZ2Play.App
             if (_previousImage == null) return;
 
             _previousImage.BeginAnimation(UIElement.OpacityProperty, null);
-            _previousImage.BeginAnimation(Canvas.LeftProperty, null);
+
+            if (PreviousSlide != null)
+            {
+                PreviousSlide.BeginAnimation(TranslateTransform.XProperty, null);
+                PreviousSlide.X = 0;
+            }
 
             _previousImage.Source = null;
             _previousImage.Visibility = Visibility.Collapsed;
             _previousImage.Opacity = 0;
-
-            Canvas.SetLeft(_previousImage, 0);
 
             if (PreviousTranslate != null)
                 PreviousTranslate.X = 0;
@@ -341,18 +591,25 @@ namespace EZ2Play.App
 
         public void RefreshPan()
         {
-            StopPan();
-
             if (!(_image?.Source is BitmapSource source) || _viewport == null || ImageTranslate == null)
                 return;
-
-            _viewport.UpdateLayout();
 
             double viewportWidth = _viewport.ActualWidth;
             double viewportHeight = _viewport.ActualHeight;
 
             if (viewportWidth <= 0 || viewportHeight <= 0 || source.PixelWidth <= 0 || source.PixelHeight <= 0)
                 return;
+
+            if (ReferenceEquals(source, _lastPanSource) &&
+                Math.Abs(viewportWidth - _lastPanViewportWidth) < 0.1 &&
+                Math.Abs(viewportHeight - _lastPanViewportHeight) < 0.1)
+                return;
+
+            StopPan();
+
+            _lastPanSource = source;
+            _lastPanViewportWidth = viewportWidth;
+            _lastPanViewportHeight = viewportHeight;
 
             double aspect = (double)source.PixelWidth / source.PixelHeight;
             double renderedHeight = viewportHeight;
@@ -383,7 +640,7 @@ namespace EZ2Play.App
         {
             _panStartTimer.Stop();
 
-            if (_panOverflow <= 0 || ImageTranslate == null)
+            if (!_isActive || _panOverflow <= 0 || ImageTranslate == null)
                 return;
 
             _panLastRenderTime = TimeSpan.Zero;
@@ -399,6 +656,7 @@ namespace EZ2Play.App
             CompositionTarget.Rendering -= Pan_Rendering;
 
             _panOverflow = 0;
+            _lastPanSource = null;
             _panLastRenderTime = TimeSpan.Zero;
             _panRampElapsed = 0;
 
@@ -408,8 +666,11 @@ namespace EZ2Play.App
 
         private void Pan_Rendering(object sender, EventArgs e)
         {
-            if (_panOverflow <= 0 || ImageTranslate == null) return;
-            if (!(e is RenderingEventArgs renderingArgs)) return;
+            if (!_isActive || _panOverflow <= 0 || ImageTranslate == null)
+                return;
+
+            if (!(e is RenderingEventArgs renderingArgs))
+                return;
 
             TimeSpan renderTime = renderingArgs.RenderingTime;
 
@@ -454,6 +715,23 @@ namespace EZ2Play.App
 
         public void Show(bool visible)
         {
+            _isActive = visible;
+
+            if (!visible)
+            {
+                ++_lifecycleGeneration;
+                ++_backgroundTransitionGeneration;
+                _backgroundTransitionInProgress = false;
+                _pendingShortcutPath = null;
+                _pendingRequestId = 0;
+                _pendingLifecycleGeneration = 0;
+                _panStartTimer.Stop();
+                ClearPrevious();
+            }
+
+            if (visible && _backgroundTransitionInProgress)
+                return;
+
             if (UseImageBackground)
             {
                 if (visible)
@@ -468,7 +746,7 @@ namespace EZ2Play.App
 
                 animation.Completed += (s, e) =>
                 {
-                    if (!visible)
+                    if (!visible && !_isActive)
                         _image.Visibility = Visibility.Collapsed;
                 };
 
@@ -476,7 +754,18 @@ namespace EZ2Play.App
                 _image.BeginAnimation(UIElement.OpacityProperty, animation);
             }
 
-            else
+            if (!visible)
+                CompositionTarget.Rendering -= Pan_Rendering;
+
+            else if (_panOverflow > 0 && ImageTranslate != null)
+            {
+                _panLastRenderTime = TimeSpan.Zero;
+                _panRampElapsed = 0;
+                CompositionTarget.Rendering -= Pan_Rendering;
+                CompositionTarget.Rendering += Pan_Rendering;
+            }
+
+            else if (!UseImageBackground)
             {
                 if (_image != null)
                 {
@@ -491,11 +780,29 @@ namespace EZ2Play.App
 
         public void Dispose()
         {
+            if (_disposed)
+                return;
+
             _disposed = true;
+            _backgroundTransitionInProgress = false;
             ++_backgroundRequestId;
+            ++_lifecycleGeneration;
+            ++_backgroundTransitionGeneration;
+
+            _pendingShortcutPath = null;
+            _pendingRequestId = 0;
+            _pendingLifecycleGeneration = 0;
+            _backgroundWorkerTask = null;
 
             StopPan();
             _panStartTimer.Tick -= PanStartTimer_Tick;
+            lock (_backgroundCacheLock)
+            {
+                ++_backgroundCacheGeneration;
+                _backgroundCache.Clear();
+                _backgroundCacheLru.Clear();
+                _backgroundCacheBytes = 0;
+            }
         }
     }
 }

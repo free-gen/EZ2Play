@@ -554,23 +554,6 @@ namespace EZ2Play.App
 
             return null;
         }
-
-        public static bool HasShortcuts()
-        {
-            try
-            {
-                var shortcutsDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, ShortcutsDirectory);
-
-                return Directory.Exists(shortcutsDir) && Directory.GetFiles(shortcutsDir)
-                    .Any(f => f.EndsWith(".lnk", StringComparison.OrdinalIgnoreCase) ||
-                              f.EndsWith(".url", StringComparison.OrdinalIgnoreCase));
-            }
-
-            catch
-            {
-                return false;
-            }
-        }
     }
 
     public class ShortcutInfo

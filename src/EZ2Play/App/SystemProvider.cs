@@ -17,6 +17,9 @@ namespace EZ2Play.App
         private static IntPtr _mainWindowHandle;
         private const string AutorunShortcutName = "EZ2Play Helper.lnk";
 
+        private static readonly Lazy<bool> XboxGameBarInstalled =
+            new Lazy<bool>(DetectXboxGameBarInstalled);
+
         public static BitmapImage GetUserAvatar()
         {
             try
@@ -73,21 +76,40 @@ namespace EZ2Play.App
 
         public static bool IsXboxGameBarInstalled()
         {
+            return XboxGameBarInstalled.Value;
+        }
+
+        private static bool DetectXboxGameBarInstalled()
+        {
             try
             {
                 using (var process = new System.Diagnostics.Process())
                 {
                     process.StartInfo.FileName = "powershell.exe";
-                    process.StartInfo.Arguments = "-NoProfile -Command \"if(Get-AppxPackage Microsoft.XboxGamingOverlay){exit 0}else{exit 1}\"";
+                    process.StartInfo.Arguments =
+                        "-NoProfile -Command \"if(Get-AppxPackage Microsoft.XboxGamingOverlay){exit 0}else{exit 1}\"";
                     process.StartInfo.UseShellExecute = false;
                     process.StartInfo.CreateNoWindow = true;
-                    process.Start();
-                    process.WaitForExit();
+
+                    if (!process.Start())
+                        return false;
+
+                    if (!process.WaitForExit(8000))
+                    {
+                        try
+                        {
+                            process.Kill();
+                        }
+                        catch
+                        {
+                        }
+
+                        return false;
+                    }
 
                     return process.ExitCode == 0;
                 }
             }
-
             catch
             {
                 return false;
@@ -537,7 +559,22 @@ namespace EZ2Play.App
                         return false;
                     }
 
-                    process.WaitForExit();
+                    if (!process.WaitForExit(15000))
+                    {
+                        DebugLog.Write("FPS Monitor", "taskkill timed out after 15 seconds.");
+
+                        try
+                        {
+                            if (!process.HasExited)
+                                process.Kill();
+                        }
+                        catch (Exception ex)
+                        {
+                            DebugLog.Error("FPS Monitor", ex, "Failed to terminate timed-out taskkill.");
+                        }
+
+                        return false;
+                    }
 
                     // taskkill may exit before FPSMonitor disappears from the process list.
                     const int maxAttempts = 20;
@@ -630,16 +667,24 @@ namespace EZ2Play.App
             {
                 var inputView = CoreInputView.GetForCurrentView();
 
-                if (inputView == null) return;
+                if (inputView == null)
+                    return;
 
-                var gamepadKeyboard = CoreInputViewKind.Gamepad;
+                try
+                {
+                    if (inputView.TryShow(CoreInputViewKind.Gamepad))
+                        return;
+                }
+                catch (Exception ex)
+                {
+                    DebugLog.Error("Keyboard", ex, "Gamepad keyboard failed.");
+                }
 
-                if (inputView.IsKindSupported(gamepadKeyboard))
-                    inputView.TryShow(gamepadKeyboard);
+                inputView.TryShow(CoreInputViewKind.Keyboard);
             }
-
-            catch
+            catch (Exception ex)
             {
+                DebugLog.Error("Keyboard", ex, "Failed to show system keyboard.");
             }
         }
 

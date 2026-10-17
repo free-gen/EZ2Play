@@ -34,7 +34,7 @@ namespace EZ2Play.App
                 SnapsToDevicePixels = true
             };
 
-            RenderOptions.SetBitmapScalingMode(_cover, BitmapScalingMode.HighQuality);
+            RenderOptions.SetBitmapScalingMode(_cover, BitmapScalingMode.Linear);
 
             var grid = new Grid();
             grid.Children.Add(_background);

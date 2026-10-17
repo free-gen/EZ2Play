@@ -86,10 +86,6 @@ namespace EZ2Play.App
             else if (Mode == HintMode.ParserAssets)
             {
                 _container.Children.Add(CreateHintBlock("BtnA", Locals.GetString("Select")));
-
-                // if (Device == InputDevice.Gamepad)
-                //     _container.Children.Add(CreateHintBlock("BtnLb", Locals.GetString("SwitchTabs"), "BtnRb"));
-
                 _container.Children.Add(CreateHintBlock("BtnB", Locals.GetString("Back")));
             }
 
@@ -100,7 +96,7 @@ namespace EZ2Play.App
             }
         }
 
-        private FrameworkElement CreateHintBlock(string buttonKey, string text, string secondButtonKey = null)
+        private FrameworkElement CreateHintBlock(string buttonKey, string text)
         {
             var stack = new StackPanel
             {
@@ -114,17 +110,6 @@ namespace EZ2Play.App
 
             if (firstIcon != null)
                 stack.Children.Add(firstIcon);
-
-            if (!string.IsNullOrEmpty(secondButtonKey))
-            {
-                var secondIcon = CreateHintIcon(secondButtonKey);
-
-                if (secondIcon != null)
-                {
-                    secondIcon.SetResourceReference(FrameworkElement.MarginProperty, UiScaleKeys.HintTextMargin);
-                    stack.Children.Add(secondIcon);
-                }
-            }
 
             var textBlock = new TextBlock
             {

@@ -3,18 +3,22 @@
     <OutputType>WinExe</OutputType>
     <TargetFramework>net472</TargetFramework>
     <UseWPF>true</UseWPF>
+
     <ApplicationIcon>Assets/app.ico</ApplicationIcon>
     <ApplicationManifest>app.manifest</ApplicationManifest>
-    <Copyright>Copyright © FreeGen</Copyright>
-    <Company>FreeGen</Company>
-    <Description>EZ2Play Game Launcher</Description>
-    <Product>EZ2Play Game Launcher</Product>
+    
     <AppName>EZ2Play</AppName>
     <AppDescription>EZ2Play Game Launcher</AppDescription>
-    <Version>1.3.12</Version>
-    <AssemblyVersion>1.3.12</AssemblyVersion>
-    <FileVersion>1.3.12</FileVersion>
-    <InformationalVersion>1.3.12</InformationalVersion>
+    <Version>1.3.36</Version>
+
+    <Company>FreeGen</Company>
+    <Copyright>Copyright © FreeGen</Copyright>
+
+    <Description>$(AppDescription)</Description>
+    <Product>$(AppDescription)</Product>
+    <AssemblyVersion>$(Version)</AssemblyVersion>
+    <FileVersion>$(Version)</FileVersion>
+    <InformationalVersion>$(Version)</InformationalVersion>
   </PropertyGroup>
 
   <PropertyGroup>

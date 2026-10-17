@@ -121,12 +121,8 @@ namespace EZ2Play.App
         private VolumeWaveProvider _musicVolumeProvider;
         private MemoryStream _menuStream;
 
-        private bool _isBackgroundPlaying;
-
         private readonly object _musicStopLock = new object();
         private CancellationTokenSource _pendingMusicStopCts;
-
-        public bool IsBackgroundPlaying => _isBackgroundPlaying;
 
         public Sound()
         {
@@ -273,7 +269,6 @@ namespace EZ2Play.App
             if (DisableMusic || _backgroundPlayer == null || _backgroundReader == null)
                 return;
 
-            _isBackgroundPlaying = true;
             _backgroundReader.Position = 0;
             _backgroundPlayer.Play();
 
@@ -309,8 +304,6 @@ namespace EZ2Play.App
                             return;
 
                         _pendingMusicStopCts = null;
-
-                        _isBackgroundPlaying = false;
                         _backgroundPlayer?.Stop();
                     }
                 }
@@ -475,8 +468,6 @@ namespace EZ2Play.App
         public void Dispose()
         {
             CancelPendingMusicStop();
-
-            _isBackgroundPlaying = false;
 
             List<SfxVoice> voices;
 

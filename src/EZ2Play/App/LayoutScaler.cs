@@ -59,7 +59,7 @@ namespace EZ2Play.App
             target[UiScaleKeys.SettingsOverlayTreeItemsContainerMargin] = new Thickness(0, 0, 0, 0);
             target[UiScaleKeys.SettingsOverlayTreeItemsContainerPadding] = new Thickness(s(16), 0, s(16), s(16));
             target[UiScaleKeys.SettingsOverlayTreeItemRadius] = new CornerRadius(s(4));
-            target[UiScaleKeys.SettingsOverlayTreeItemPadding] = new Thickness(0, s(16), 0, s(16));
+            target[UiScaleKeys.SettingsOverlayTreeItemPadding] = new Thickness(0, s(12), 0, s(12));
             target[UiScaleKeys.SettingsOverlayTreeItemMargin] = new Thickness(s(16));
 
             target[UiScaleKeys.SettingsOverlayDividerMargin] = new Thickness(0);
@@ -92,8 +92,8 @@ namespace EZ2Play.App
 
             target[UiScaleKeys.ParserInputHeight] = s(72);
             target[UiScaleKeys.ParserInputFontSize] = fs(40);
-            target[UiScaleKeys.ParserInputMargin] = new Thickness(s(8));
-            target[UiScaleKeys.ParserManualSearchHintMargin] = new Thickness(0, s(16), 0, s(20));
+            target[UiScaleKeys.ParserInputMargin] = new Thickness(s(16));
+            target[UiScaleKeys.ParserManualSearchHintMargin] = new Thickness(0, s(16), 0, s(4));
 
             target[UiScaleKeys.ParserAssetsMargin] = new Thickness(s(32));
             target[UiScaleKeys.ParserAssetsGap] = new Thickness(s(16));
@@ -113,9 +113,6 @@ namespace EZ2Play.App
             target[UiScaleKeys.NoShortcutsFontSize] = fs(30);
 
             target[UiScaleKeys.ExitMessageFontSize] = fs(36);
-
-            target[UiScaleKeys.AppInfoLabelMargin] = new Thickness(s(64));
-            target[UiScaleKeys.AppInfoLabelFontSize] = fs(16);
 
             target[UiScaleKeys.TopPanelMargin] = new Thickness(0, s(24), 0, 0);
             target[UiScaleKeys.TopInfoTabsMargin] = new Thickness(s(72), 0, 0, 0);

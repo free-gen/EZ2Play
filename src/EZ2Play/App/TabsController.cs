@@ -101,9 +101,6 @@ namespace EZ2Play.App
         {
             if (_carouselWrapper == null) return;
 
-            if (_carouselWrapper.CacheMode == null)
-                _carouselWrapper.CacheMode = new BitmapCache();
-
             if (!(_carouselWrapper.RenderTransform is TranslateTransform))
                 _carouselWrapper.RenderTransform = new TranslateTransform();
 
@@ -113,41 +110,62 @@ namespace EZ2Play.App
             transform.BeginAnimation(TranslateTransform.XProperty, null);
 
             _carouselWrapper.IsHitTestVisible = false;
-            transform.X = _getWindowWidth() * 0.05 * direction;
-            _carouselWrapper.Opacity = 0;
 
-            await _dispatcher.InvokeAsync(() => { }, DispatcherPriority.Render);
-
-            sortAction?.Invoke();
-
-            await _dispatcher.InvokeAsync(() => { }, DispatcherPriority.Background);
-
-            var duration = TimeSpan.FromMilliseconds(150);
-
-            var fadeIn = new DoubleAnimation(0, 1, duration);
-
-            var slide = new DoubleAnimation(transform.X, 0, duration)
+            try
             {
-                EasingFunction = new CubicEase
-                {
-                    EasingMode = EasingMode.EaseOut
-                }
-            };
+                transform.X = _getWindowWidth() * 0.05 * direction;
+                _carouselWrapper.Opacity = 0;
 
-            fadeIn.Completed += (s, e) =>
+                await _dispatcher.InvokeAsync(() => { }, DispatcherPriority.Render);
+                if (!_carouselWrapper.IsVisible) return;
+
+                sortAction?.Invoke();
+
+                await _dispatcher.InvokeAsync(() => { }, DispatcherPriority.Background);
+                if (!_carouselWrapper.IsVisible) return;
+
+                var duration = TimeSpan.FromMilliseconds(150);
+                var fadeIn = new DoubleAnimation(0, 1, duration);
+                var slide = new DoubleAnimation(transform.X, 0, duration)
+                {
+                    EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut }
+                };
+
+                var completion = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+
+                EventHandler onCompleted = (s, e) => completion.TrySetResult(true);
+                RoutedEventHandler onUnloaded = (s, e) => completion.TrySetResult(false);
+                DependencyPropertyChangedEventHandler onVisibilityChanged = (s, e) =>
+                {
+                    if (!(bool)e.NewValue) completion.TrySetResult(false);
+                };
+
+                fadeIn.Completed += onCompleted;
+                _carouselWrapper.Unloaded += onUnloaded;
+                _carouselWrapper.IsVisibleChanged += onVisibilityChanged;
+
+                try
+                {
+                    _carouselWrapper.BeginAnimation(UIElement.OpacityProperty, fadeIn);
+                    transform.BeginAnimation(TranslateTransform.XProperty, slide);
+                    await completion.Task;
+                }
+                finally
+                {
+                    fadeIn.Completed -= onCompleted;
+                    _carouselWrapper.Unloaded -= onUnloaded;
+                    _carouselWrapper.IsVisibleChanged -= onVisibilityChanged;
+                }
+            }
+            finally
             {
                 _carouselWrapper.BeginAnimation(UIElement.OpacityProperty, null);
                 transform.BeginAnimation(TranslateTransform.XProperty, null);
 
                 _carouselWrapper.Opacity = 1;
                 transform.X = 0;
-
-                _carouselWrapper.CacheMode = null;
                 _carouselWrapper.IsHitTestVisible = true;
-            };
-
-            _carouselWrapper.BeginAnimation(UIElement.OpacityProperty, fadeIn);
-            transform.BeginAnimation(TranslateTransform.XProperty, slide);
+            }
         }
 
         private void AnimateTabText(TextBlock text, bool active)

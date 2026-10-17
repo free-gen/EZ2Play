@@ -16,7 +16,11 @@ namespace EZ2Play.App
         private SelectorCoordinator _selectorCoordinator;
         private double fadeDuration = 0.1;
         private bool _exitConfirmationMode = false;
+        private bool _isClosing;
         private int _subOptionsSelectedIndex = 0;
+        private bool _selectionHandlersAttached;
+        private bool _autorunActionPending;
+        private bool _fpsMonitorActionPending;
 
         public SettingsOverlay(InputHandler inputHandler, MainWindow mainWindow, SelectorCoordinator selectorCoordinator)
         {
@@ -33,7 +37,10 @@ namespace EZ2Play.App
                 SetDescriptionWithIcon(SettingsAutorunAppDesc, "SettingsAutorunAppDesc", "\uE3E3");
 
                 RefreshDisplayList();
-                RefreshAutorunState();
+
+                if (!_autorunActionPending)
+                    RefreshAutorunState();
+
                 RefreshFpsMonitorVisibility();
                 RefreshFpsMonitorState();
 
@@ -46,13 +53,17 @@ namespace EZ2Play.App
                 if (ExitConfirmationListBox.Items.Count > 0)
                     ExitConfirmationListBox.SelectedIndex = 0;
 
-                SettingsListBox.SelectionChanged += OnSelectionChanged;
-                UpdateOverlaySelector();
-                SubOptionsListBox.SelectionChanged += OnSelectionChanged;
-                ExitConfirmationListBox.SelectionChanged += OnSelectionChanged;
+                if (!_selectionHandlersAttached)
+                {
+                    SettingsListBox.SelectionChanged += OnSelectionChanged;
+                    SubOptionsListBox.SelectionChanged += OnSelectionChanged;
+                    ExitConfirmationListBox.SelectionChanged += OnSelectionChanged;
+                    AutorunToggle.Checked += (sender, args) => ScheduleUpdateTreeHeaderDivider();
+                    AutorunToggle.Unchecked += (sender, args) => ScheduleUpdateTreeHeaderDivider();
+                    _selectionHandlersAttached = true;
+                }
 
-                AutorunToggle.Checked += (sender, args) => ScheduleUpdateTreeHeaderDivider();
-                AutorunToggle.Unchecked += (sender, args) => ScheduleUpdateTreeHeaderDivider();
+                UpdateOverlaySelector();
 
                 UpdateSelectionState();
                 ScheduleUpdateTreeHeaderDivider();
@@ -64,12 +75,18 @@ namespace EZ2Play.App
             Visibility = Visibility.Collapsed;
         }
 
+        public void RefreshSelector()
+        {
+            if (Visibility == Visibility.Visible && !_isClosing)
+                UpdateOverlaySelector();
+        }
+
         private void UpdateOverlaySelector()
         {
             if (_selectorCoordinator == null)
                 return;
 
-            if (Visibility != Visibility.Visible)
+            if (Visibility != Visibility.Visible || _isClosing)
             {
                 _selectorCoordinator.Hide(SelectorCoordinator.Owner.Settings);
                 return;
@@ -79,7 +96,11 @@ namespace EZ2Play.App
 
             if (_exitConfirmationMode)
             {
-                activeListBox = ExitConfirmationListBox;
+                var target = ExitConfirmationListBox.SelectedItem as ListBoxItem;
+
+                _selectorCoordinator.ShowOverlay(SelectorCoordinator.Owner.Settings,
+                    target, _selectorCoordinator.CreateOverlayItemProfile(), ExitConfirmationListBox);
+                return;
             }
             else if (SettingsListBox.SelectedItem == TreeItemsContainer &&
                     TreeItemsContainer.Visibility == Visibility.Visible)
@@ -93,7 +114,7 @@ namespace EZ2Play.App
 
             if (activeListBox.SelectedIndex < 0)
             {
-                _selectorCoordinator.Hide(SelectorCoordinator.Owner.Settings);
+                _selectorCoordinator.ShowOverlay(SelectorCoordinator.Owner.Settings, null, null);
                 return;
             }
 
@@ -101,16 +122,18 @@ namespace EZ2Play.App
 
             if (selectedItem == null)
             {
-                _selectorCoordinator.Hide(SelectorCoordinator.Owner.Settings);
+                _selectorCoordinator.ShowOverlay(SelectorCoordinator.Owner.Settings, null, null);
                 return;
             }
 
-            _selectorCoordinator.ShowOverlay(
-                SelectorCoordinator.Owner.Settings, selectedItem, _selectorCoordinator.CreateOverlayItemProfile());
+            _selectorCoordinator.ShowOverlay(SelectorCoordinator.Owner.Settings,
+                selectedItem, _selectorCoordinator.CreateOverlayItemProfile(), activeListBox);
         }
 
         private void OnSelectionChanged(object sender, SelectionChangedEventArgs e)
         {
+            if (!ReferenceEquals(e.OriginalSource, sender)) return;
+
             UpdateSelectionState();
             UpdateOverlaySelector();
         }
@@ -167,12 +190,14 @@ namespace EZ2Play.App
         {
             if (Visibility == Visibility.Visible) return;
 
+            _isClosing = false;
             _mainWindow.GetSound()?.PlayLaunchSound();
             HideExitDisplayConfirmation(false);
 
             _mainWindow.SetHintsMode(HintPanel.HintMode.Settings);
 
             _inputHandler.SetMode(InputHandler.InputMode.Settings);
+            _selectorCoordinator.ShowOverlay(SelectorCoordinator.Owner.Settings, null, null);
             Visibility = Visibility.Visible;
 
             RefreshDisplayList();
@@ -184,7 +209,9 @@ namespace EZ2Play.App
                 new Action(UpdateOverlaySelector),
                 DispatcherPriority.Loaded);
 
-            RefreshAutorunState();
+            if (!_autorunActionPending)
+                RefreshAutorunState();
+
             RefreshFpsMonitorVisibility();
             RefreshFpsMonitorState();
             ScheduleUpdateTreeHeaderDivider();
@@ -205,8 +232,9 @@ namespace EZ2Play.App
 
         public void Close()
         {
-            if (Visibility != Visibility.Visible) return;
+            if (Visibility != Visibility.Visible || _isClosing) return;
 
+            _isClosing = true;
             _mainWindow.GetSound()?.PlayBackSound();
             _selectorCoordinator.Hide(SelectorCoordinator.Owner.Settings);
 
@@ -267,16 +295,34 @@ namespace EZ2Play.App
             FpsMonitorToggle.IsChecked = SystemProvider.IsFpsMonitorRunning();
         }
 
-        private void SetFpsMonitorState(bool enabled)
+        private async void SetFpsMonitorState(bool enabled)
         {
-            bool success = enabled
-                ? SystemProvider.StartFpsMonitor()
-                : SystemProvider.StopFpsMonitor();
+            if (_fpsMonitorActionPending)
+                return;
 
-            if (success)
-                FpsMonitorToggle.IsChecked = enabled;
-            else
+            _fpsMonitorActionPending = true;
+
+            try
+            {
+                bool success = enabled
+                    ? SystemProvider.StartFpsMonitor()
+                    : await System.Threading.Tasks.Task.Run(() 
+                    => SystemProvider.StopFpsMonitor());
+
+                if (success)
+                    FpsMonitorToggle.IsChecked = enabled;
+                else
+                    RefreshFpsMonitorState();
+            }
+            catch (Exception ex)
+            {
+                DebugLog.Error("FPS Monitor", ex, "Failed to change FPS Monitor state.");
                 RefreshFpsMonitorState();
+            }
+            finally
+            {
+                _fpsMonitorActionPending = false;
+            }
         }
 
         private void RefreshAutorunState()
@@ -300,8 +346,6 @@ namespace EZ2Play.App
             UpdateTreeHeaderDivider();
             UpdateSubOptionsVisibility(effectiveState);
             LoadSubOptionsStates();
-
-            UpdateSelectionState();
         }
 
         private void UpdateSubOptionsVisibility(bool enabled)
@@ -420,6 +464,11 @@ namespace EZ2Play.App
                 return;
             }
 
+            if (_autorunActionPending &&
+                (SettingsListBox.SelectedItem == TreeItemsContainer ||
+                SettingsListBox.SelectedItem == SettingsAutorunApp))
+                return;
+
             if (SettingsListBox.SelectedItem is ListBoxItem selectedItem &&
                 selectedItem.Visibility != Visibility.Visible)
             {
@@ -484,13 +533,17 @@ namespace EZ2Play.App
             }
         }
 
-        private void SetAutorunState(bool enabled)
+        private async void SetAutorunState(bool enabled)
         {
+            if (_autorunActionPending)
+                return;
+
+            _autorunActionPending = true;
+
             try
             {
-                bool success = enabled
-                    ? SystemProvider.EnableAutorun()
-                    : SystemProvider.DisableAutorun();
+                bool success = await System.Threading.Tasks.Task.Run(() =>
+                    enabled ? SystemProvider.EnableAutorun() : SystemProvider.DisableAutorun());
 
                 if (!success || SystemProvider.IsAutorunEnabled() != enabled)
                 {
@@ -504,43 +557,62 @@ namespace EZ2Play.App
                 _config.Save();
 
                 AutorunToggle.IsChecked = enabled;
-
                 LoadSubOptionsStates();
             }
-
             catch (Exception ex)
             {
                 DebugLog.Error("Autorun", ex, "Failed to change autorun state.");
                 RefreshAutorunState();
             }
+            finally
+            {
+                _autorunActionPending = false;
+            }
         }
 
-        private void UpdateAutorunArguments()
+        private async void UpdateAutorunArguments()
         {
-            string args = " ";
-
-            if (NoSplashToggle.IsChecked.GetValueOrDefault(false))
-                args += "--nosplash ";
-
-            if (NoMusicToggle.IsChecked.GetValueOrDefault(false))
-                args += "--nomusic ";
-
-            if (HotSwapToggle.IsChecked.GetValueOrDefault(false))
-                args += "--hotswap ";
-
-            args = args.TrimEnd();
-
-            bool success = SystemProvider.SetAutorunArguments(args);
-
-            if (!success)
-            {
-                // Restore the UI to the arguments actually stored in the shortcut.
-                LoadSubOptionsStates();
+            if (_autorunActionPending)
                 return;
-            }
 
-            if (AutorunToggle.IsChecked.GetValueOrDefault(false))
-                UpdateSubOptionsVisibility(true);
+            _autorunActionPending = true;
+
+            try
+            {
+                string args = " ";
+
+                if (NoSplashToggle.IsChecked.GetValueOrDefault(false))
+                    args += "--nosplash ";
+
+                if (NoMusicToggle.IsChecked.GetValueOrDefault(false))
+                    args += "--nomusic ";
+
+                if (HotSwapToggle.IsChecked.GetValueOrDefault(false))
+                    args += "--hotswap ";
+
+                args = args.TrimEnd();
+
+                bool success = await System.Threading.Tasks.Task.Run(
+                    () => SystemProvider.SetAutorunArguments(args));
+
+                if (!success)
+                {
+                    LoadSubOptionsStates();
+                    return;
+                }
+
+                if (AutorunToggle.IsChecked.GetValueOrDefault(false))
+                    UpdateSubOptionsVisibility(true);
+            }
+            catch (Exception ex)
+            {
+                DebugLog.Error("Autorun", ex, "Failed to update autorun arguments.");
+                LoadSubOptionsStates();
+            }
+            finally
+            {
+                _autorunActionPending = false;
+            }
         }
 
         private void LoadSubOptionsStates()

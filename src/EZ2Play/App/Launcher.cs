@@ -1,11 +1,9 @@
 using System;
-using System.IO;
 using System.Linq;
 using System.Diagnostics;
 using System.Windows;
 using System.Windows.Controls;
 using System.Threading.Tasks;
-using System.Windows.Threading;
 
 namespace EZ2Play.App
 {
@@ -24,7 +22,6 @@ namespace EZ2Play.App
         public ShortcutInfo[] Shortcuts => _navigation?.Shortcuts ?? Array.Empty<ShortcutInfo>();
         public int SelectedIndex => _navigation?.SelectedIndex ?? -1;
         public GameMetadata Playtime => _metadata;
-        public bool SkipScaleUpAnimationOnEdgeScroll { get; set; }
 
         public event Action<int> SelectionChanged;
 
@@ -55,7 +52,6 @@ namespace EZ2Play.App
                 .ToArray();
 
             _navigation = new CarouselNavigation(sorted);
-            _navigation.ResetView();
 
             ApplyVisibleWindow();
             UpdateSelectedName();
@@ -66,7 +62,6 @@ namespace EZ2Play.App
             if (_defaultShortcuts.Length == 0) return;
 
             _navigation = new CarouselNavigation(_defaultShortcuts);
-            _navigation.ResetView();
 
             ApplyVisibleWindow();
             UpdateSelectedName();
@@ -163,7 +158,6 @@ namespace EZ2Play.App
         {
             if (_itemsListBox == null || _navigation.IsEmpty) return;
 
-            int centerCount = _navigation.GetCenterVisibleCount();
             CarouselLayout.HasLeftOverflow = _navigation.HasLeftOverflow;
             CarouselLayout.HasRightOverflow = _navigation.HasRightOverflow;
 
@@ -190,8 +184,7 @@ namespace EZ2Play.App
 
         private void ApplySelectionAnimations(ListBox listBox, SelectionChangedEventArgs e, int currentVisibleIndex, int previousAbsoluteIndex, int currentAbsoluteIndex)
         {
-            bool wasWindowShift = _navigation.ConsumePendingWindowShiftAnimation();
-            bool skipScaleUp = wasWindowShift && SkipScaleUpAnimationOnEdgeScroll;
+            _navigation.ConsumePendingWindowShiftAnimation();
 
             int fallbackPreviousIndex = _navigation.GetFallbackPreviousIndex(
                 currentVisibleIndex,
@@ -199,7 +192,7 @@ namespace EZ2Play.App
                 currentAbsoluteIndex,
                 listBox.Items.Count);
 
-            CarouselAnimation.AnimateSelectionChanged(listBox, e, fallbackPreviousIndex, skipScaleUp: skipScaleUp);
+            CarouselAnimation.AnimateSelectionChanged(listBox, e, fallbackPreviousIndex);
         }
     }
 }

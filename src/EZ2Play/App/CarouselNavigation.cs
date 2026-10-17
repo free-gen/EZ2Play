@@ -9,10 +9,8 @@ namespace EZ2Play.App
         private int _selectedIndex = 0;
         private int _visibleWindowStart = 0;
         private bool _pendingWindowShiftAnimation;
-        private int _pendingMoveDirection;
 
         public int SelectedIndex => _selectedIndex;
-        public int VisibleWindowStart => _visibleWindowStart;
         public bool HasLeftOverflow => _visibleWindowStart > 0;
         public bool HasRightOverflow => GetHasRightOverflow();
 
@@ -24,20 +22,12 @@ namespace EZ2Play.App
             _shortcuts = shortcuts ?? Array.Empty<ShortcutInfo>();
         }
 
-        public void ResetView()
-        {
-            _selectedIndex = 0;
-            _visibleWindowStart = 0;
-        }
-
         public void MoveSelection(int direction)
         {
             if (_shortcuts.Length == 0) return;
 
             direction = Math.Sign(direction);
             if (direction == 0) return;
-
-            _pendingMoveDirection = direction;
 
             int count = _shortcuts.Length;
             int oldStart = _visibleWindowStart;
@@ -147,13 +137,6 @@ namespace EZ2Play.App
         {
             bool value = _pendingWindowShiftAnimation;
             _pendingWindowShiftAnimation = false;
-            return value;
-        }
-
-        public int ConsumePendingMoveDirection()
-        {
-            int value = _pendingMoveDirection;
-            _pendingMoveDirection = 0;
             return value;
         }
 

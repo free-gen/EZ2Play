@@ -55,20 +55,6 @@ namespace EZ2Play.App
             set => SetValue(GapProperty, value);
         }
 
-        public double ItemHeight { get; private set; }
-
-        public double VerticalGap => _layoutVerticalGap > 0 ? _layoutVerticalGap : Math.Ceiling(Gap.Top + Gap.Bottom);
-
-        public double GetViewportHeight(int visibleRows, double fallbackItemHeight)
-        {
-            double itemHeight = InternalChildren.Count > 0 && ItemHeight > 0 ? ItemHeight : fallbackItemHeight;
-
-            if (itemHeight <= 0 || visibleRows <= 0)
-                return 0;
-
-            return Math.Ceiling(itemHeight * visibleRows + VerticalGap * Math.Max(0, visibleRows - 1));
-        }
-
         protected override Size MeasureOverride(Size availableSize)
         {
             int columns = Math.Max(1, Columns);
@@ -76,7 +62,6 @@ namespace EZ2Play.App
 
             if (InternalChildren.Count == 0)
             {
-                ItemHeight = 0;
                 return new Size();
             }
 
@@ -86,31 +71,37 @@ namespace EZ2Play.App
             double maxWidth = 0;
             double maxHeight = 0;
 
-            foreach (UIElement child in InternalChildren)
-            {
-                child.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
+            bool infiniteWidth = double.IsInfinity(availableSize.Width);
 
-                maxWidth = Math.Max(maxWidth, child.DesiredSize.Width);
-                maxHeight = Math.Max(maxHeight, child.DesiredSize.Height);
+            // Natural width is needed only when the parent provides no width limit.
+            if (infiniteWidth)
+            {
+                foreach (UIElement child in InternalChildren)
+                {
+                    child.Measure(new Size(
+                        double.PositiveInfinity,
+                        double.PositiveInfinity));
+
+                    maxWidth = Math.Max(maxWidth, child.DesiredSize.Width);
+                }
             }
 
-            double cellWidth = double.IsInfinity(availableSize.Width)
+            double cellWidth = infiniteWidth
                 ? maxWidth
-                : Math.Max(0, (availableSize.Width - horizontalGap * (columns - 1)) / columns);
+                : Math.Max(0,
+                    (availableSize.Width - horizontalGap * (columns - 1)) / columns);
 
+            // Measure each item using its actual column width.
             foreach (UIElement child in InternalChildren)
             {
                 child.Measure(new Size(cellWidth, double.PositiveInfinity));
-            }
 
-            maxHeight = InternalChildren
-                .Cast<UIElement>()
-                .Max(child => child.DesiredSize.Height);
+                maxHeight = Math.Max(maxHeight, child.DesiredSize.Height);
+            }
 
             _layoutCellHeight = Math.Ceiling(maxHeight);
             _layoutVerticalGap = Math.Ceiling(verticalGap);
             _layoutHorizontalGap = Math.Ceiling(horizontalGap);
-            ItemHeight = _layoutCellHeight;
 
             double desiredWidth = double.IsInfinity(availableSize.Width)
                 ? cellWidth * columns + horizontalGap * (columns - 1) : availableSize.Width;
@@ -157,6 +148,9 @@ namespace EZ2Play.App
         private const int MaxGames = 15;
         private const int MaxCovers = 30;
         private const int MaxBackgrounds = 30;
+        private const int MaxSourceImageDimension = 16384;
+        private const long MaxSourceImagePixels = 40_000_000L;
+        private const int MaxThumbnailDownloadBytes = 12 * 1024 * 1024;
         private const double FadeDuration = 0.1;
         private const int GameSearchTimeoutSeconds = 3;
         private const double ManualSearchKeyboardGap = 32;
@@ -189,6 +183,8 @@ namespace EZ2Play.App
         private CancellationTokenSource _assetLoadCts;
         private CoreInputView _manualSearchInputView;
         private bool _manualSearchFromNoMatches;
+        private bool _parserSelectorUpdateScheduled;
+        private bool _isClosing;
 
         private enum ParserMode
         {
@@ -228,6 +224,10 @@ namespace EZ2Play.App
             GamesListBox.ItemsSource = _gameResults;
             CoversListBox.ItemsSource = _gridResults;
             BackgroundsListBox.ItemsSource = _heroResults;
+
+            GamesListBox.SelectionChanged += OnParserSelectionChanged;
+            CoversListBox.SelectionChanged += OnParserSelectionChanged;
+            BackgroundsListBox.SelectionChanged += OnParserSelectionChanged;
 
             Opacity = 0;
             Visibility = Visibility.Collapsed;
@@ -305,9 +305,29 @@ namespace EZ2Play.App
             ParserContentGrid.Visibility = Visibility.Collapsed;
         }
 
+        private void OnParserSelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (!ReferenceEquals(e.OriginalSource, sender)) return;
+            ScheduleParserSelectorUpdate();
+        }
+
         private void ScheduleParserSelectorUpdate()
         {
-            Dispatcher.BeginInvoke(new Action(UpdateParserSelector), DispatcherPriority.Loaded);
+            if (_disposed || _parserSelectorUpdateScheduled) return;
+
+            _parserSelectorUpdateScheduled = true;
+
+            Dispatcher.BeginInvoke(new Action(() =>
+            {
+                _parserSelectorUpdateScheduled = false;
+                if (!_disposed) UpdateParserSelector();
+            }), DispatcherPriority.Loaded);
+        }
+
+        public void RefreshSelector()
+        {
+            if (!_disposed && !_isClosing && Visibility == Visibility.Visible)
+                UpdateParserSelector();
         }
 
         private void UpdateParserSelector()
@@ -315,7 +335,7 @@ namespace EZ2Play.App
             if (_selectorCoordinator == null)
                 return;
 
-            if (Visibility != Visibility.Visible)
+            if (Visibility != Visibility.Visible || _isClosing)
             {
                 _selectorCoordinator.Hide(SelectorCoordinator.Owner.Parser);
                 return;
@@ -332,7 +352,7 @@ namespace EZ2Play.App
 
             if (activeListBox == null || activeListBox.SelectedIndex < 0)
             {
-                _selectorCoordinator.Hide(SelectorCoordinator.Owner.Parser);
+                _selectorCoordinator.ShowOverlay(SelectorCoordinator.Owner.Parser, null, null);
                 return;
             }
 
@@ -340,26 +360,29 @@ namespace EZ2Play.App
 
             if (selectedItem == null)
             {
-                _selectorCoordinator.Hide(SelectorCoordinator.Owner.Parser);
+                _selectorCoordinator.ShowOverlay(SelectorCoordinator.Owner.Parser, null, null);
                 return;
             }
 
-            FrameworkElement target = selectedItem;
-            Selector.SelectorProfile profile = _selectorCoordinator.CreateOverlayItemProfile();
+            bool isMedia = _mode == ParserMode.Covers ||
+                _mode == ParserMode.Backgrounds;
 
-            if (_mode == ParserMode.Covers || _mode == ParserMode.Backgrounds)
-            {
-                target = FindVisualChild<Rectangle>(selectedItem);
-                profile = _selectorCoordinator.CreateMediaProfile();
-            }
+            FrameworkElement target = isMedia
+                ? (FrameworkElement)FindVisualChild<Rectangle>(selectedItem)
+                : selectedItem;
+
+            Selector.SelectorProfile profile = isMedia
+                ? _selectorCoordinator.CreateMediaProfile()
+                : _selectorCoordinator.CreateOverlayItemProfile();
 
             if (target == null)
             {
-                _selectorCoordinator.Hide(SelectorCoordinator.Owner.Parser);
+                _selectorCoordinator.ShowOverlay(SelectorCoordinator.Owner.Parser, null, null);
                 return;
             }
 
-            _selectorCoordinator.ShowOverlay(SelectorCoordinator.Owner.Parser, target, profile);
+            _selectorCoordinator.ShowOverlay(SelectorCoordinator.Owner.Parser, target, profile, 
+                _mode == ParserMode.Games ? (FrameworkElement)activeListBox : ParserContentGrid);
         }
 
         private static T FindVisualChild<T>(DependencyObject parent)
@@ -386,31 +409,23 @@ namespace EZ2Play.App
 
         private void UpdateAssetViewportHeight(ListBox listBox, int visibleRows, string mediaHeightKey)
         {
-            listBox.ApplyTemplate();
-            listBox.UpdateLayout();
+            double itemHeight = Math.Ceiling((double)FindResource(mediaHeightKey));
 
-            ParserAssetsPanel panel = FindVisualChild<ParserAssetsPanel>(listBox);
+            Thickness gap = (Thickness)FindResource(UiScaleKeys.ParserAssetsGap);
+            double verticalGap = Math.Ceiling(gap.Top + gap.Bottom);
 
-            double mediaHeight = (double)FindResource(mediaHeightKey);
-            double fallbackItemHeight = mediaHeight;
-            double contentHeight;
-
-            if (panel != null)
-            {
-                contentHeight = panel.GetViewportHeight(visibleRows, fallbackItemHeight);
-            }
-            else
-            {
-                Thickness gap = (Thickness)FindResource(UiScaleKeys.ParserAssetsGap);
-
-                double verticalGap = gap.Top + gap.Bottom;
-
-                contentHeight = Math.Ceiling(fallbackItemHeight * visibleRows + verticalGap * Math.Max(0, visibleRows - 1));
-            }
+            double contentHeight = Math.Ceiling(
+                itemHeight * visibleRows +
+                verticalGap * Math.Max(0, visibleRows - 1));
 
             double outerMargin = listBox.Margin.Top + listBox.Margin.Bottom;
+            double targetHeight = Math.Ceiling(contentHeight + outerMargin);
 
-            ParserContentGrid.Height = Math.Ceiling(contentHeight + outerMargin);
+            if (double.IsNaN(ParserContentGrid.Height) ||
+                Math.Abs(ParserContentGrid.Height - targetHeight) > 0.01)
+            {
+                ParserContentGrid.Height = targetHeight;
+            }
         }
 
         public async void Open()
@@ -424,6 +439,7 @@ namespace EZ2Play.App
             if (launcher == null || launcher.SelectedIndex < 0 || launcher.SelectedIndex >= launcher.Shortcuts.Length)
                 return;
 
+            _isClosing = false;
             _sessionCts?.Dispose();
             _sessionCts = new CancellationTokenSource();
 
@@ -453,6 +469,7 @@ namespace EZ2Play.App
 
             _inputHandler.SetMode(InputHandler.InputMode.Parser);
 
+            _selectorCoordinator.ShowOverlay(SelectorCoordinator.Owner.Parser, null, null);
             Visibility = Visibility.Visible;
 
             ScheduleParserSelectorUpdate();
@@ -474,8 +491,9 @@ namespace EZ2Play.App
 
         public void Close()
         {
-            if (Visibility != Visibility.Visible) return;
+            if (Visibility != Visibility.Visible || _isClosing) return;
 
+            _isClosing = true;
             _mainWindow.GetSound()?.PlayBackSound();
             CancelSession();
             CancelAssetLoading();
@@ -754,8 +772,6 @@ namespace EZ2Play.App
             UpdateParserSelector();
             listBox.ScrollIntoView(listBox.SelectedItem);
 
-            ScheduleParserSelectorUpdate();
-
             _mainWindow.GetSound()?.PlayMoveSound();
         }
 
@@ -770,7 +786,7 @@ namespace EZ2Play.App
             GamesListBox.Visibility = Visibility.Collapsed;
             CoversListBox.Visibility = Visibility.Collapsed;
 
-            ScheduleParserSelectorUpdate();
+            _selectorCoordinator.ShowOverlay(SelectorCoordinator.Owner.Parser, null, null);
 
             SearchInputBox.Text = string.Empty;
 
@@ -798,7 +814,7 @@ namespace EZ2Play.App
 
             SearchInputBox.UpdateLayout();
 
-            await Dispatcher.InvokeAsync(() => { }, DispatcherPriority.ApplicationIdle);
+            await Dispatcher.InvokeAsync(() => { }, DispatcherPriority.Loaded);
 
             if (!IsSessionActive(cancellationToken))
             {
@@ -905,6 +921,7 @@ namespace EZ2Play.App
                 GamesListBox.SelectedIndex = 0;
 
             GamesListBox.Focus();
+            ScheduleParserSelectorUpdate();
         }
 
         private async Task SearchCurrentGameAsync(string customQuery, CancellationToken cancellationToken)
@@ -919,23 +936,27 @@ namespace EZ2Play.App
                     ? (_shortcut.DisplayName ?? _shortcut.Name)
                     : customQuery.Trim();
 
-                Task<List<ParserGameResult>> searchTask = _steamGridDbClient.SearchGamesAsync(query, MaxGames, cancellationToken);
-                Task timeoutTask = Task.Delay(TimeSpan.FromSeconds(GameSearchTimeoutSeconds), cancellationToken);
-                Task completedTask = await Task.WhenAny(searchTask, timeoutTask);
+                List<ParserGameResult> results;
 
-                if (completedTask != searchTask)
+                using (var timeoutCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken))
                 {
-                    if (cancellationToken.IsCancellationRequested)
-                        return;
+                    timeoutCts.CancelAfter(TimeSpan.FromSeconds(GameSearchTimeoutSeconds));
 
-                    if (!searchTask.IsCompleted)
+                    try
                     {
-                        ShowErrorNotification(Locals.GetString("GridDBError"));
+                        results = await _steamGridDbClient.SearchGamesAsync(
+                            query, MaxGames, timeoutCts.Token);
+                    }
+                    catch (OperationCanceledException) when (
+                        !cancellationToken.IsCancellationRequested &&
+                        timeoutCts.IsCancellationRequested)
+                    {
+                        if (IsSessionActive(cancellationToken))
+                            ShowErrorNotification(Locals.GetString("GridDBError"));
+
                         return;
                     }
                 }
-
-                var results = await searchTask;
 
                 if (!IsSessionActive(cancellationToken)) return;
 
@@ -1014,7 +1035,6 @@ namespace EZ2Play.App
 
             ManualSearchPanel.Visibility = Visibility.Collapsed;
             HideParserSurface();
-            ParserContentGrid.Visibility = Visibility.Collapsed;
 
             ShowStatus(Locals.GetString("GridDBSearch"));
 
@@ -1100,6 +1120,7 @@ namespace EZ2Play.App
                 AssetsProgressBar.Value = 0;
 
                 int loadedCount = 0;
+                int totalThumbnails = _gridResults.Count;
 
                 using (var thumbnailSemaphore = new SemaphoreSlim(6, 6))
                 {
@@ -1114,11 +1135,17 @@ namespace EZ2Play.App
 
                             int completed = Interlocked.Increment(ref loadedCount);
 
-                            await Dispatcher.InvokeAsync(() =>
+                            if (completed % 4 == 0 || completed == totalThumbnails)
                             {
-                                if (!cancellationToken.IsCancellationRequested)
-                                    AssetsProgressBar.Value = completed;
-                            });
+                                await Dispatcher.InvokeAsync(() =>
+                                {
+                                    if (!cancellationToken.IsCancellationRequested &&
+                                        ReferenceEquals(_assetLoadCts, cts))
+                                    {
+                                        AssetsProgressBar.Value = completed;
+                                    }
+                                });
+                            }
                         }
 
                         finally
@@ -1147,8 +1174,12 @@ namespace EZ2Play.App
             {
                 DebugLog.Error("Parser", ex, "SteamGridDB API key is not configured.");
 
-                if (IsSessionActive(cancellationToken))
+                if (IsSessionActive(sessionToken) &&
+                    ReferenceEquals(_assetLoadCts, cts) &&
+                    !cancellationToken.IsCancellationRequested)
+                {
                     ShowErrorNotification(Locals.GetString("GridDbApiMiss"));
+                }
             }
 
             catch (SteamGridDbAuthException ex)
@@ -1182,12 +1213,14 @@ namespace EZ2Play.App
 
             finally
             {
-                if (_assetLoadCts == cts)
+                bool isCurrentLoad = ReferenceEquals(_assetLoadCts, cts);
+
+                if (isCurrentLoad)
                     _assetLoadCts = null;
 
                 cts.Dispose();
 
-                if (IsCurrentSession(sessionToken))
+                if (isCurrentLoad && IsCurrentSession(sessionToken))
                     _isBusy = false;
             }
         }
@@ -1262,6 +1295,7 @@ namespace EZ2Play.App
                 AssetsProgressBar.Value = 0;
 
                 int loadedCount = 0;
+                int totalThumbnails = _heroResults.Count;
 
                 using (var thumbnailSemaphore = new SemaphoreSlim(6, 6))
                 {
@@ -1276,11 +1310,17 @@ namespace EZ2Play.App
 
                             int completed = Interlocked.Increment(ref loadedCount);
 
-                            await Dispatcher.InvokeAsync(() =>
+                            if (completed % 4 == 0 || completed == totalThumbnails)
                             {
-                                if (!cancellationToken.IsCancellationRequested)
-                                    AssetsProgressBar.Value = completed;
-                            });
+                                await Dispatcher.InvokeAsync(() =>
+                                {
+                                    if (!cancellationToken.IsCancellationRequested &&
+                                        ReferenceEquals(_assetLoadCts, cts))
+                                    {
+                                        AssetsProgressBar.Value = completed;
+                                    }
+                                });
+                            }
                         }
 
                         finally
@@ -1309,8 +1349,12 @@ namespace EZ2Play.App
             {
                 DebugLog.Error("Parser", ex, "SteamGridDB API key is not configured.");
 
-                if (IsSessionActive(cancellationToken))
+                if (IsSessionActive(sessionToken) &&
+                    ReferenceEquals(_assetLoadCts, cts) &&
+                    !cancellationToken.IsCancellationRequested)
+                {
                     ShowErrorNotification(Locals.GetString("GridDbApiMiss"));
+                }
             }
 
             catch (SteamGridDbAuthException ex)
@@ -1344,59 +1388,194 @@ namespace EZ2Play.App
 
             finally
             {
-                if (_assetLoadCts == cts)
+                bool isCurrentLoad = ReferenceEquals(_assetLoadCts, cts);
+
+                if (isCurrentLoad)
                     _assetLoadCts = null;
 
                 cts.Dispose();
 
-                if (IsCurrentSession(sessionToken))
+                if (isCurrentLoad && IsCurrentSession(sessionToken))
                     _isBusy = false;
             }
         }
 
-        private async Task LoadThumbnailAsync(ParserGridResult result, CancellationToken cancellationToken, int decodePixelWidth, int decodePixelHeight = 0)
+        private async Task LoadThumbnailAsync(ParserGridResult result, CancellationToken cancellationToken,
+            int decodePixelWidth, int decodePixelHeight = 0)
         {
             try
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                byte[] bytes = await _steamGridDbClient.DownloadImageAsync(result.Thumb, cancellationToken);
+                byte[] bytes = await _steamGridDbClient.DownloadImageAsync(
+                    result.Thumb, cancellationToken, MaxThumbnailDownloadBytes);
 
-                using (var stream = new MemoryStream(bytes))
+                cancellationToken.ThrowIfCancellationRequested();
+
+                BitmapImage bitmap = await Task.Run(() =>
                 {
-                    var bitmap = new BitmapImage();
-
-                    bitmap.BeginInit();
-                    bitmap.CacheOption = BitmapCacheOption.OnLoad;
-                    bitmap.DecodePixelWidth = decodePixelWidth;
-
-                    if (decodePixelHeight > 0)
-                        bitmap.DecodePixelHeight = decodePixelHeight;
-
-                    bitmap.StreamSource = stream;
-                    bitmap.EndInit();
-                    bitmap.Freeze();
-
                     cancellationToken.ThrowIfCancellationRequested();
 
-                    result.ImageSource = bitmap;
-                }
-            }
+                    ValidateSourceImageHeader(bytes);
 
+                    using (var stream = new MemoryStream(bytes))
+                    {
+                        var image = new BitmapImage();
+
+                        image.BeginInit();
+                        image.CacheOption = BitmapCacheOption.OnLoad;
+                        image.DecodePixelWidth = decodePixelWidth;
+
+                        if (decodePixelHeight > 0)
+                            image.DecodePixelHeight = decodePixelHeight;
+
+                        image.StreamSource = stream;
+                        image.EndInit();
+                        image.Freeze();
+
+                        cancellationToken.ThrowIfCancellationRequested();
+
+                        return image;
+                    }
+                }, cancellationToken);
+
+                cancellationToken.ThrowIfCancellationRequested();
+
+                // Возвращаемся на UI-поток для обновления привязки.
+                result.ImageSource = bitmap;
+            }
             catch (OperationCanceledException)
             {
                 throw;
             }
-
             catch
             {
-                // A broken thumbnail must not cancel the remaining downloads.
+                // Ошибка одной миниатюры не отменяет остальные.
+            }
+        }
+
+        private static void ValidateSourceImageHeader(byte[] bytes)
+        {
+            if (bytes == null || bytes.Length < 24)
+                throw new InvalidDataException("Invalid image header.");
+
+            long width = 0;
+            long height = 0;
+
+            // PNG: signature + IHDR
+            if (bytes[0] == 137 && bytes[1] == 80 &&
+                bytes[2] == 78 && bytes[3] == 71 &&
+                bytes[4] == 13 && bytes[5] == 10 &&
+                bytes[6] == 26 && bytes[7] == 10)
+            {
+                if (bytes[8] != 0 || bytes[9] != 0 ||
+                    bytes[10] != 0 || bytes[11] != 13 ||
+                    bytes[12] != 73 || bytes[13] != 72 ||
+                    bytes[14] != 68 || bytes[15] != 82)
+                {
+                    throw new InvalidDataException("Invalid PNG header.");
+                }
+
+                width = ((long)bytes[16] << 24) |
+                        ((long)bytes[17] << 16) |
+                        ((long)bytes[18] << 8) |
+                        bytes[19];
+
+                height = ((long)bytes[20] << 24) |
+                        ((long)bytes[21] << 16) |
+                        ((long)bytes[22] << 8) |
+                        bytes[23];
+            }
+            // JPEG: find Start Of Frame marker
+            else if (bytes[0] == 0xFF && bytes[1] == 0xD8)
+            {
+                int offset = 2;
+                bool found = false;
+
+                while (offset < bytes.Length)
+                {
+                    if (bytes[offset++] != 0xFF)
+                        break;
+
+                    while (offset < bytes.Length && bytes[offset] == 0xFF)
+                        offset++;
+
+                    if (offset >= bytes.Length)
+                        break;
+
+                    int marker = bytes[offset++];
+
+                    if (marker == 0xD9 || marker == 0xDA)
+                        break;
+
+                    if (marker == 0x01 || marker == 0xD8 ||
+                        (marker >= 0xD0 && marker <= 0xD7))
+                        continue;
+
+                    if (offset > bytes.Length - 2)
+                        break;
+
+                    int length = (bytes[offset] << 8) | bytes[offset + 1];
+
+                    if (length < 2 || length > bytes.Length - offset)
+                        break;
+
+                    bool isSof = marker >= 0xC0 && marker <= 0xCF &&
+                                marker != 0xC4 && marker != 0xC8 &&
+                                marker != 0xCC;
+
+                    if (isSof)
+                    {
+                        if (length < 7)
+                            break;
+
+                        height = (bytes[offset + 3] << 8) | bytes[offset + 4];
+                        width = (bytes[offset + 5] << 8) | bytes[offset + 6];
+
+                        found = true;
+                        break;
+                    }
+
+                    offset += length;
+                }
+
+                if (!found)
+                    throw new InvalidDataException("Invalid JPEG header.");
+            }
+            else
+            {
+                throw new InvalidDataException("Unsupported image format.");
+            }
+
+            if (width <= 0 || height <= 0 ||
+                width > MaxSourceImageDimension ||
+                height > MaxSourceImageDimension ||
+                width * height > MaxSourceImagePixels)
+            {
+                throw new InvalidDataException(
+                    $"Image dimensions exceed supported limits: {width}x{height}.");
+            }
+        }
+
+        private static void ValidateSourceImageDimensions(Drawing.Image image)
+        {
+            int width = image.Width;
+            int height = image.Height;
+
+            if (width <= 0 || height <= 0 ||
+                width > MaxSourceImageDimension ||
+                height > MaxSourceImageDimension ||
+                (long)width * height > MaxSourceImagePixels)
+            {
+                throw new InvalidDataException(
+                    $"Image dimensions exceed supported limits: {width}x{height}.");
             }
         }
 
         private async Task DownloadCoverAsync(ParserGridResult cover, CancellationToken cancellationToken)
         {
             _isBusy = true;
+            string coverTempPath = null;
 
             AssetsProgressBar.Value = 0;
             AssetsProgressBar.IsIndeterminate = true;
@@ -1410,17 +1589,27 @@ namespace EZ2Play.App
 
                 if (!IsSessionActive(cancellationToken)) return;
 
-                string coversDirectory = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "shortcuts", "covers");
+                string shortcutName = _shortcut.Name;
+
+                await Task.Run(() =>
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+                    ValidateSourceImageHeader(bytes);
+
+                    string coversDirectory = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "shortcuts", "covers");
 
                 Directory.CreateDirectory(coversDirectory);
 
                 // Use the actual shortcut name instead of DisplayName.
-                string coverPath = Path.Combine(coversDirectory, _shortcut.Name + ".png");
+                string coverPath = Path.Combine(coversDirectory, shortcutName + ".png");
+                coverTempPath = Path.Combine(coversDirectory, shortcutName + "." + Guid.NewGuid().ToString("N") + ".tmp");
 
                 using (var input = new MemoryStream(bytes))
                 using (var sourceImage = Drawing.Image.FromStream(input, true, true))
                 using (var resizedImage = new Drawing.Bitmap(512, 512, DrawingImaging.PixelFormat.Format32bppArgb))
                 {
+                    ValidateSourceImageDimensions(sourceImage);
+
                     using (var graphics = Drawing.Graphics.FromImage(resizedImage))
                     {
                         graphics.Clear(Drawing.Color.Transparent);
@@ -1441,13 +1630,30 @@ namespace EZ2Play.App
 
                     cancellationToken.ThrowIfCancellationRequested();
 
-                    using (var output = new FileStream(coverPath, FileMode.Create, FileAccess.Write, FileShare.None))
+                    using (var output = new FileStream(coverTempPath, FileMode.CreateNew, FileAccess.Write, FileShare.None))
                     {
                         resizedImage.Save(output, DrawingImaging.ImageFormat.Png);
                     }
-                }
 
-                cancellationToken.ThrowIfCancellationRequested();
+                    using (var verifyStream = new FileStream(coverTempPath, FileMode.Open, FileAccess.Read, FileShare.Read))
+                    using (var verifyImage = Drawing.Image.FromStream(verifyStream, true, true))
+                    {
+                        if (verifyImage.Width != 512 || verifyImage.Height != 512)
+                            throw new InvalidDataException("Saved cover has invalid dimensions.");
+                    }
+
+                    cancellationToken.ThrowIfCancellationRequested();
+
+                    if (File.Exists(coverPath))
+                        File.Replace(coverTempPath, coverPath, null);
+                    else
+                        File.Move(coverTempPath, coverPath);
+
+                    coverTempPath = null;
+                    }
+                    }, cancellationToken);
+
+                    cancellationToken.ThrowIfCancellationRequested();
 
                 if (!IsSessionActive(cancellationToken)) return;
 
@@ -1474,9 +1680,24 @@ namespace EZ2Play.App
 
             finally
             {
-                AssetsProgressBar.IsIndeterminate = false;
-                AssetsProgressBar.Visibility = Visibility.Collapsed;
-                AssetsProgressBar.Value = 0;
+                if (IsCurrentSession(cancellationToken))
+                {
+                    AssetsProgressBar.IsIndeterminate = false;
+                    AssetsProgressBar.Visibility = Visibility.Collapsed;
+                    AssetsProgressBar.Value = 0;
+                }
+
+                if (coverTempPath != null)
+                {
+                    try
+                    {
+                        if (File.Exists(coverTempPath))
+                            File.Delete(coverTempPath);
+                    }
+                    catch
+                    {
+                    }
+                }
 
                 if (IsCurrentSession(cancellationToken))
                     _isBusy = false;
@@ -1501,11 +1722,20 @@ namespace EZ2Play.App
 
                 if (!IsSessionActive(cancellationToken)) return;
 
-                string extension;
+                string shortcutName = _shortcut.Name;
+
+                await Task.Run(() =>
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+                    ValidateSourceImageHeader(bytes);
+
+                    string extension;
 
                 using (var input = new MemoryStream(bytes))
                 using (var sourceImage = Drawing.Image.FromStream(input, true, true))
                 {
+                    ValidateSourceImageDimensions(sourceImage);
+
                     if (sourceImage.Width < 3840)
                         throw new InvalidDataException($"Background width is only {sourceImage.Width}px. Minimum required width is 3840px.");
 
@@ -1516,33 +1746,58 @@ namespace EZ2Play.App
 
                 Directory.CreateDirectory(backgroundsDirectory);
 
-                string backgroundPath = Path.Combine(backgroundsDirectory, _shortcut.Name + extension);
-                tempPath = Path.Combine(backgroundsDirectory, _shortcut.Name + ".tmp");
+                string backgroundPath = Path.Combine(backgroundsDirectory, shortcutName + extension);
+                tempPath = Path.Combine(backgroundsDirectory, shortcutName + "." + Guid.NewGuid().ToString("N") + ".tmp");
 
-                if (File.Exists(tempPath))
-                    File.Delete(tempPath);
+                using (var output = new FileStream(tempPath, FileMode.CreateNew, FileAccess.Write, FileShare.None))
+                {
+                    output.Write(bytes, 0, bytes.Length);
+                }
 
-                File.WriteAllBytes(tempPath, bytes);
+                using (var verifyStream = new FileStream(tempPath, FileMode.Open, FileAccess.Read, FileShare.Read))
+
+                using (var verifyImage = Drawing.Image.FromStream(verifyStream, true, true))
+                {
+                    ValidateSourceImageDimensions(verifyImage);
+
+                    if (verifyImage.Width < 3840)
+                        throw new InvalidDataException("Saved background has invalid dimensions.");
+                }
 
                 cancellationToken.ThrowIfCancellationRequested();
+
+                if (File.Exists(backgroundPath))
+                    File.Replace(tempPath, backgroundPath, null);
+                else
+                    File.Move(tempPath, backgroundPath);
+
+                tempPath = null;
 
                 string[] extensions = { ".png", ".jpg", ".jpeg" };
 
                 foreach (string oldExtension in extensions)
                 {
-                    string oldPath = Path.Combine(backgroundsDirectory, _shortcut.Name + oldExtension);
+                    string oldPath = Path.Combine(backgroundsDirectory, shortcutName + oldExtension);
 
-                    if (File.Exists(oldPath))
-                        File.Delete(oldPath);
+                    if (!string.Equals(oldPath, backgroundPath, StringComparison.OrdinalIgnoreCase) && File.Exists(oldPath))
+                    {
+                        try
+                        {
+                            File.Delete(oldPath);
+                        }
+                        catch (Exception ex)
+                        {
+                            DebugLog.Error("Parser", ex, $"Failed to remove old background '{oldPath}'.");
+                        }
+                    }
                 }
+            }, cancellationToken);
 
-                File.Move(tempPath, backgroundPath);
-                tempPath = null;
+            cancellationToken.ThrowIfCancellationRequested();
 
-                cancellationToken.ThrowIfCancellationRequested();
+                                if (!IsSessionActive(cancellationToken)) return;
 
-                if (!IsSessionActive(cancellationToken)) return;
-
+                                _mainWindow.InvalidateBackgroundCache(_shortcut.FullPath);
                 _mainWindow.RefreshSelectedBackground();
 
                 Close();
@@ -1566,9 +1821,12 @@ namespace EZ2Play.App
 
             finally
             {
-                AssetsProgressBar.IsIndeterminate = false;
-                AssetsProgressBar.Visibility = Visibility.Collapsed;
-                AssetsProgressBar.Value = 0;
+                if (IsCurrentSession(cancellationToken))
+                {
+                    AssetsProgressBar.IsIndeterminate = false;
+                    AssetsProgressBar.Visibility = Visibility.Collapsed;
+                    AssetsProgressBar.Value = 0;
+                }
 
                 if (tempPath != null)
                 {
@@ -1618,6 +1876,10 @@ namespace EZ2Play.App
             if (_disposed) return;
 
             _disposed = true;
+
+            GamesListBox.SelectionChanged -= OnParserSelectionChanged;
+            CoversListBox.SelectionChanged -= OnParserSelectionChanged;
+            BackgroundsListBox.SelectionChanged -= OnParserSelectionChanged;
 
             CancelSession();
             CancelAssetLoading();

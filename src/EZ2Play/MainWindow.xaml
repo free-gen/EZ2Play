@@ -1,38 +1,40 @@
 <ui:FluentWindow x:Class="EZ2Play.MainWindow"
-                 xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-                 xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-                 xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
-                 xmlns:app="clr-namespace:EZ2Play.App"
-                 Title="EZ2Play Game Launcher"
-                 ExtendsContentIntoTitleBar="True"
-                 WindowState="Maximized"
-                 WindowStyle="None"
-                 Topmost="False"
-                 ShowInTaskbar="True"
-                 Cursor="None"
-                 SnapsToDevicePixels="True"
-                 UseLayoutRounding="True"
-                 Background="Transparent"
-                 WindowBackdropType="Mica"
-                 ResizeMode="NoResize"
-                 MinWidth="1024"
-                 MinHeight="576">
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+    xmlns:app="clr-namespace:EZ2Play.App"
+    Title="EZ2Play Game Launcher"
+    ExtendsContentIntoTitleBar="True"
+    WindowState="Maximized"
+    WindowStyle="None"
+    Topmost="False"
+    ShowInTaskbar="True"
+    Cursor="None"
+    SnapsToDevicePixels="True"
+    UseLayoutRounding="True"
+    Background="Transparent"
+    WindowBackdropType="Mica"
+    ResizeMode="NoResize"
+    MinWidth="1024"
+    MinHeight="576">
 
     <Window.Resources>
         <DropShadowEffect x:Key="TextShadowEffect"
-                        Color="Black"
-                        Opacity="0.35"
-                        BlurRadius="32"/>
+            Color="Black"
+            Opacity="0.5"
+            BlurRadius="8"
+            ShadowDepth="0"
+            RenderingBias="Performance"/>
     </Window.Resources>
     
 
     <Border Background="{DynamicResource CardBackgroundFillColorDefaultBrush}" Margin="0">
 
         <Grid x:Name="RootGrid"
-              HorizontalAlignment="Stretch"
-              VerticalAlignment="Stretch"
-              SnapsToDevicePixels="True"
-              UseLayoutRounding="True">
+            HorizontalAlignment="Stretch"
+            VerticalAlignment="Stretch"
+            SnapsToDevicePixels="True"
+            UseLayoutRounding="True">
 
             <!-- Outer Background -->
             <Grid x:Name="BackgroundViewport"
@@ -41,15 +43,18 @@
                 ClipToBounds="True">
 
                 <Canvas>
+                
                     <Image x:Name="BackgroundPreviousImage"
                         Stretch="Fill"
                         Opacity="0"
                         Visibility="Collapsed"
-                        RenderOptions.BitmapScalingMode="HighQuality"
-                        CacheMode="BitmapCache">
+                        RenderOptions.BitmapScalingMode="HighQuality">
 
                         <Image.RenderTransform>
-                            <TranslateTransform x:Name="BackgroundPreviousTranslate"/>
+                            <TransformGroup>
+                                <TranslateTransform x:Name="BackgroundPreviousTranslate"/>
+                                <TranslateTransform x:Name="BackgroundPreviousSlide"/>
+                            </TransformGroup>
                         </Image.RenderTransform>
 
                     </Image>
@@ -62,10 +67,14 @@
                         CacheMode="BitmapCache">
 
                         <Image.RenderTransform>
-                            <TranslateTransform x:Name="BackgroundTranslate"/>
+                            <TransformGroup>
+                                <TranslateTransform x:Name="BackgroundTranslate"/>
+                                <TranslateTransform x:Name="BackgroundSlide"/>
+                            </TransformGroup>
                         </Image.RenderTransform>
 
                     </Image>
+
                 </Canvas>
 
             </Grid>
@@ -75,38 +84,42 @@
 
             <!-- SplashOverlay -->
             <Grid x:Name="SplashOverlay" Visibility="Hidden"
-                  HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
-                  Background="Transparent" IsHitTestVisible="True">
+                HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
+                Background="Transparent" IsHitTestVisible="True">
 
                 <Image x:Name="SplashLogo"
-                       MaxHeight="{DynamicResource {x:Static app:UiScaleKeys.SplashLogoMaxHeight}}"
-                       HorizontalAlignment="Center" VerticalAlignment="Center"
-                       Opacity="0" RenderOptions.BitmapScalingMode="HighQuality"/>
+                    MaxHeight="{DynamicResource {x:Static app:UiScaleKeys.SplashLogoMaxHeight}}"
+                    HorizontalAlignment="Center" VerticalAlignment="Center"
+                    Opacity="0" RenderOptions.BitmapScalingMode="HighQuality"/>
+
             </Grid>
 
             <!-- NoShortcutsMessage -->
             <TextBlock x:Name="NoShortcutsMessage"
-                       HorizontalAlignment="Center"
-                       VerticalAlignment="Bottom"
-                       TextAlignment="Center"
-                       Margin="{DynamicResource {x:Static app:UiScaleKeys.NoShortcutsMargin}}"
-                       FontSize="{DynamicResource {x:Static app:UiScaleKeys.NoShortcutsFontSize}}"
-                       FontWeight="300"
-                       Visibility="Collapsed">
+                HorizontalAlignment="Center"
+                VerticalAlignment="Bottom"
+                TextAlignment="Center"
+                Margin="{DynamicResource {x:Static app:UiScaleKeys.NoShortcutsMargin}}"
+                FontSize="{DynamicResource {x:Static app:UiScaleKeys.NoShortcutsFontSize}}"
+                FontWeight="300"
+                Visibility="Collapsed">
+
                 <Run x:Name="NoShortcutsMessageTop"/>
                 <LineBreak/><LineBreak/>
                 <Run x:Name="NoShortcutsMessageBottom"/>
+
             </TextBlock>
 
             <!-- ExitOverlay -->
             <Border x:Name="ExitOverlay" Visibility="Hidden"/>
+
             <TextBlock x:Name="ExitMessageText"
-                       HorizontalAlignment="Center"
-                       TextAlignment="Center"
-                       FontSize="{DynamicResource {x:Static app:UiScaleKeys.ExitMessageFontSize}}"
-                       FontWeight="300"
-                       Visibility="Hidden"
-                       Panel.ZIndex="11">
+                HorizontalAlignment="Center"
+                TextAlignment="Center"
+                FontSize="{DynamicResource {x:Static app:UiScaleKeys.ExitMessageFontSize}}"
+                FontWeight="300"
+                Visibility="Hidden"
+                Panel.ZIndex="11">
                 <Run Text="Assembled by"/>
                 <Run Text="{x:Static app:AppInfo.Company}"/>
             </TextBlock>
@@ -116,6 +129,7 @@
 
             <!-- MainScreenGrid -->
             <Grid x:Name="MainScreenGrid" Visibility="Collapsed" Panel.ZIndex="5">
+                
                 <Grid.RowDefinitions>
                     <RowDefinition Height="15*"/>
                     <RowDefinition Height="35*"/>
@@ -125,10 +139,10 @@
 
                 <!-- TopPanel -->
                 <Grid x:Name="TopPanel" Grid.Row="0"
-                      Margin="{DynamicResource {x:Static app:UiScaleKeys.TopPanelMargin}}"
-                      HorizontalAlignment="Stretch"
-                      VerticalAlignment="Center"
-                      Background="Transparent">
+                    Margin="{DynamicResource {x:Static app:UiScaleKeys.TopPanelMargin}}"
+                    HorizontalAlignment="Stretch"
+                    VerticalAlignment="Center"
+                    Background="Transparent">
 
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="05*"/> <!-- 0 Offset -->
@@ -142,39 +156,39 @@
                     <!-- Tabs -->
                     <StackPanel Orientation="Horizontal" Grid.Column="1">
                         <TextBlock x:Name="TabGamelistText"
-                                Opacity="1"
-                                Effect="{StaticResource TextShadowEffect}"
-                                FontSize="{DynamicResource {x:Static app:UiScaleKeys.TopInfoPrimaryFontSize}}"
-                                FontWeight="900"/>
+                            Opacity="1"
+                            Effect="{StaticResource TextShadowEffect}"
+                            FontSize="{DynamicResource {x:Static app:UiScaleKeys.TopInfoPrimaryFontSize}}"
+                            FontWeight="900"/>
                         <TextBlock x:Name="TabLastPlayedText"
-                                Margin="{DynamicResource {x:Static app:UiScaleKeys.TopInfoTabsMargin}}"
-                                Opacity="0.8"
-                                Effect="{StaticResource TextShadowEffect}"
-                                FontSize="{DynamicResource {x:Static app:UiScaleKeys.TopInfoSecondaryFontSize}}"/>
+                            Margin="{DynamicResource {x:Static app:UiScaleKeys.TopInfoTabsMargin}}"
+                            Opacity="0.8"
+                            Effect="{StaticResource TextShadowEffect}"
+                            FontSize="{DynamicResource {x:Static app:UiScaleKeys.TopInfoSecondaryFontSize}}"/>
                     </StackPanel>
 
                     <!-- NotificationPanel -->
                     <app:DitheredGradientBorder x:Name="NotificationPanel"
-                                                Grid.Column="2"
-                                                Visibility="Collapsed"
-                                                CornerRadius="{DynamicResource {x:Static app:UiScaleKeys.NotificationPanelRadius}}"
-                                                Height="{DynamicResource {x:Static app:UiScaleKeys.NotificationPanelHeight}}"
-                                                Padding="{DynamicResource {x:Static app:UiScaleKeys.NotificationPanelPadding}}"
-                                                Margin="{DynamicResource {x:Static app:UiScaleKeys.NotificationPanelOuterMargin}}"
-                                                HorizontalAlignment="Right" 
-                                                VerticalAlignment="Center">
+                        Grid.Column="2"
+                        Visibility="Collapsed"
+                        CornerRadius="{DynamicResource {x:Static app:UiScaleKeys.NotificationPanelRadius}}"
+                        Height="{DynamicResource {x:Static app:UiScaleKeys.NotificationPanelHeight}}"
+                        Padding="{DynamicResource {x:Static app:UiScaleKeys.NotificationPanelPadding}}"
+                        Margin="{DynamicResource {x:Static app:UiScaleKeys.NotificationPanelOuterMargin}}"
+                        HorizontalAlignment="Right" 
+                        VerticalAlignment="Center">
 
                         <StackPanel Orientation="Horizontal">
 
                             <TextBlock x:Name="NotificationIcon"
-                                        FontSize="{DynamicResource {x:Static app:UiScaleKeys.NotificationPanelIconSize}}"
-                                        Margin="{DynamicResource {x:Static app:UiScaleKeys.NotificationPanelMargin}}"
-                                        FontFamily="/Assets/#Xbox Fluent"/>
+                                FontSize="{DynamicResource {x:Static app:UiScaleKeys.NotificationPanelIconSize}}"
+                                Margin="{DynamicResource {x:Static app:UiScaleKeys.NotificationPanelMargin}}"
+                                FontFamily="/Assets/#Xbox Fluent"/>
 
                             <TextBlock  x:Name="NotificationText"
-                                        MaxWidth="{DynamicResource {x:Static app:UiScaleKeys.NotificationPanelMaxWidth}}"
-                                        FontSize="{DynamicResource {x:Static app:UiScaleKeys.NotificationPanelFontSize}}"
-                                        TextWrapping="Wrap">
+                                MaxWidth="{DynamicResource {x:Static app:UiScaleKeys.NotificationPanelMaxWidth}}"
+                                FontSize="{DynamicResource {x:Static app:UiScaleKeys.NotificationPanelFontSize}}"
+                                TextWrapping="Wrap">
                                         
                                 <TextBlock.RenderTransform>
                                     <TranslateTransform Y="-2"/>
@@ -188,138 +202,157 @@
 
                     <!-- UserAvatar -->
                     <Image  x:Name="UserAvatar" Grid.Column="3"
-                            Width="{DynamicResource {x:Static app:UiScaleKeys.UserAvatarSize}}"
-                            Height="{DynamicResource {x:Static app:UiScaleKeys.UserAvatarSize}}"
-                            Stretch="UniformToFill"
-                            HorizontalAlignment="Center"
-                            VerticalAlignment="Center"/>
+                        Width="{DynamicResource {x:Static app:UiScaleKeys.UserAvatarSize}}"
+                        Height="{DynamicResource {x:Static app:UiScaleKeys.UserAvatarSize}}"
+                        Stretch="UniformToFill"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center"/>
 
                     <!-- Time -->
                     <TextBlock x:Name="TimeLabelText" Grid.Column="4"
-                               HorizontalAlignment="Right"
-                               Effect="{StaticResource TextShadowEffect}"
-                               FontSize="{DynamicResource {x:Static app:UiScaleKeys.TopInfoPrimaryFontSize}}"
-                               FontWeight="600"/>
+                        HorizontalAlignment="Right"
+                        Effect="{StaticResource TextShadowEffect}"
+                        FontSize="{DynamicResource {x:Static app:UiScaleKeys.TopInfoPrimaryFontSize}}"
+                        FontWeight="600"/>
 
                 </Grid>
 
                 <!-- ItemsListBox -->
                 <Grid x:Name="CarouselWrapper" Grid.Row="1" ClipToBounds="True">
+                    
                     <ListBox x:Name="ItemsListBox" 
-                            HorizontalAlignment="Stretch"
-                            VerticalAlignment="Stretch"
-                            BorderThickness="0"
-                            Padding="0"
-                            ClipToBounds="False"
-                            ScrollViewer.HorizontalScrollBarVisibility="Disabled"
-                            ScrollViewer.VerticalScrollBarVisibility="Disabled"
-                            SelectionChanged="ItemsListBox_SelectionChanged"
-                            ItemContainerStyle="{StaticResource ListBoxItemStyle}"
-                            VirtualizingPanel.IsVirtualizing="False">
+                        HorizontalAlignment="Stretch"
+                        VerticalAlignment="Stretch"
+                        BorderThickness="0"
+                        Padding="0"
+                        ClipToBounds="False"
+                        ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                        ScrollViewer.VerticalScrollBarVisibility="Disabled"
+                        SelectionChanged="ItemsListBox_SelectionChanged"
+                        ItemContainerStyle="{StaticResource ListBoxItemStyle}"
+                        VirtualizingPanel.IsVirtualizing="False">
+                        
                         <ListBox.ItemsPanel>
                             <ItemsPanelTemplate>
                                 <app:CarouselPanel/>
                             </ItemsPanelTemplate>
                         </ListBox.ItemsPanel>
+                        
                         <ListBox.ItemTemplate>
                             <DataTemplate>
                                 <app:CarouselItem/>
                             </DataTemplate>
+                        
                         </ListBox.ItemTemplate>
+
                     </ListBox>
+
                 </Grid>
 
                 <!-- SelectedGameTitle -->
                 <Grid Grid.Row="2">
+                
                     <StackPanel Orientation="Vertical"
-                                Margin="{DynamicResource {x:Static app:UiScaleKeys.GameTitleMargin}}"
-                                HorizontalAlignment="Stretch"
-                                VerticalAlignment="Center">
+                        Margin="{DynamicResource {x:Static app:UiScaleKeys.GameTitleMargin}}"
+                        HorizontalAlignment="Stretch"
+                        VerticalAlignment="Center">
 
                         <TextBlock x:Name="SelectedGameTitle"
-                                    FontSize="{DynamicResource {x:Static app:UiScaleKeys.GameTitleFontSize}}"
-                                    FontWeight="500"
-                                    TextAlignment="Left"
-                                    TextWrapping="Wrap"
-                                    HorizontalAlignment="Stretch"
-                                    Effect="{StaticResource TextShadowEffect}"/>
+                            FontSize="{DynamicResource {x:Static app:UiScaleKeys.GameTitleFontSize}}"
+                            FontWeight="500"
+                            TextAlignment="Left"
+                            TextWrapping="Wrap"
+                            HorizontalAlignment="Stretch"
+                            Effect="{StaticResource TextShadowEffect}"/>
 
                         <StackPanel Orientation="Horizontal" 
-                                    Margin="{DynamicResource {x:Static app:UiScaleKeys.SourcePillMargin}}">
+                            Margin="{DynamicResource {x:Static app:UiScaleKeys.SourcePillMargin}}">
                             
                             <!-- GameSourcePill -->
                             <Border x:Name="GameSourcePill"
-                                    Style="{StaticResource LightSurfaceStyle}"
-                                    CornerRadius="{DynamicResource {x:Static app:UiScaleKeys.SourcePillRadius}}"
-                                    Width="{DynamicResource {x:Static app:UiScaleKeys.SourcePillWidth}}"
-                                    Height="{DynamicResource {x:Static app:UiScaleKeys.SourcePillHeight}}"
-                                    VerticalAlignment="Center"
-                                    HorizontalAlignment="Left">
+                                Style="{StaticResource LightSurfaceStyle}"
+                                CornerRadius="{DynamicResource {x:Static app:UiScaleKeys.SourcePillRadius}}"
+                                Width="{DynamicResource {x:Static app:UiScaleKeys.SourcePillWidth}}"
+                                Height="{DynamicResource {x:Static app:UiScaleKeys.SourcePillHeight}}"
+                                VerticalAlignment="Center"
+                                HorizontalAlignment="Left">
 
                                 <TextBlock Text="{Binding ElementName=ItemsListBox, Path=SelectedItem.SourceType}"
-                                        Foreground="{DynamicResource SolidBackgroundFillColorBaseAltBrush}"
-                                        FontSize="{DynamicResource {x:Static app:UiScaleKeys.SourcePillFontSize}}"
-                                        FontWeight="900"
-                                        TextAlignment="Center"/>
+                                    Foreground="{DynamicResource SolidBackgroundFillColorBaseAltBrush}"
+                                    FontSize="{DynamicResource {x:Static app:UiScaleKeys.SourcePillFontSize}}"
+                                    FontWeight="900"
+                                    TextAlignment="Center"/>
+
                             </Border>
 
                             <!-- GameCounterPill -->
                             <Border x:Name="GameCounterPill"
-                                    Style="{StaticResource DarkSurfaceStyle}"
-                                    Padding="{DynamicResource {x:Static app:UiScaleKeys.CounterPillPadding}}"
-                                    Margin="{DynamicResource {x:Static app:UiScaleKeys.CounterPillMargin}}"
-                                    Height="{DynamicResource {x:Static app:UiScaleKeys.CounterPillHeight}}"
-                                    CornerRadius="{DynamicResource {x:Static app:UiScaleKeys.SourcePillRadius}}"
-                                    VerticalAlignment="Center"
-                                    HorizontalAlignment="Right">
+                                Style="{StaticResource DarkSurfaceStyle}"
+                                Padding="{DynamicResource {x:Static app:UiScaleKeys.CounterPillPadding}}"
+                                Margin="{DynamicResource {x:Static app:UiScaleKeys.CounterPillMargin}}"
+                                Height="{DynamicResource {x:Static app:UiScaleKeys.CounterPillHeight}}"
+                                CornerRadius="{DynamicResource {x:Static app:UiScaleKeys.SourcePillRadius}}"
+                                VerticalAlignment="Center"
+                                HorizontalAlignment="Right">
 
                                 <StackPanel Orientation="Horizontal">
+
                                     <TextBlock  FontSize="{DynamicResource {x:Static app:UiScaleKeys.CounterPillIconSize}}"
-                                                Margin="{DynamicResource {x:Static app:UiScaleKeys.CounterPillIconMargin}}"
-                                                FontFamily="/Assets/#Xbox Fluent">&#xE7FB;</TextBlock>
+                                        Margin="{DynamicResource {x:Static app:UiScaleKeys.CounterPillIconMargin}}"
+                                        FontFamily="/Assets/#Xbox Fluent">&#xE7FB;</TextBlock>
                                     
                                     <TextBlock x:Name="GameCounterText"
-                                            FontSize="{DynamicResource {x:Static app:UiScaleKeys.CounterPillFontSize}}"
-                                            FontWeight="900"
-                                            TextAlignment="Center">
+                                        FontSize="{DynamicResource {x:Static app:UiScaleKeys.CounterPillFontSize}}"
+                                        FontWeight="900"
+                                        TextAlignment="Center">
+
                                         <TextBlock.RenderTransform>
                                             <TranslateTransform X="5" Y="-1"/>
                                         </TextBlock.RenderTransform>
+
                                     </TextBlock>
+
                                 </StackPanel>
+
                             </Border>
 
                             <!-- LoadingProgress -->
                             <ui:ProgressRing x:Name="LoadingProgress" 
-                                    Margin="{DynamicResource {x:Static app:UiScaleKeys.CounterPillMargin}}"
-                                    Width="{DynamicResource {x:Static app:UiScaleKeys.LoadingProgressSize}}" 
-                                    Height="{DynamicResource {x:Static app:UiScaleKeys.LoadingProgressSize}}"
-                                    IsIndeterminate="True"
-                                    Visibility="Collapsed"/>
+                                Margin="{DynamicResource {x:Static app:UiScaleKeys.CounterPillMargin}}"
+                                Width="{DynamicResource {x:Static app:UiScaleKeys.LoadingProgressSize}}" 
+                                Height="{DynamicResource {x:Static app:UiScaleKeys.LoadingProgressSize}}"
+                                IsIndeterminate="True"
+                                Visibility="Collapsed"/>
+
                         </StackPanel>
+
                     </StackPanel>
+
                 </Grid>
+
             </Grid>
 
             <app:Selector x:Name="SelectionSelector"
-                        Panel.ZIndex="104"
-                        HorizontalAlignment="Stretch"
-                        VerticalAlignment="Stretch"
-                        IsHitTestVisible="False"/>
+                Panel.ZIndex="104"
+                HorizontalAlignment="Stretch"
+                VerticalAlignment="Stretch"
+                IsHitTestVisible="False"/>
 
             <!-- HintPanel -->
             <app:HintPanel x:Name="HintPanel"
-                        Grid.Row="3"
-                        Panel.ZIndex="105"
-                        Mode="Main"
-                        Device="Keyboard"
-                        Style="{StaticResource DarkSurfaceStyle}"
-                        Visibility="Collapsed"
-                        Margin="{DynamicResource {x:Static app:UiScaleKeys.HintPanelMargin}}"
-                        CornerRadius="{DynamicResource {x:Static app:UiScaleKeys.SourcePillRadius}}"
-                        Height="{DynamicResource {x:Static app:UiScaleKeys.HintPanelHeight}}"
-                        Padding="{DynamicResource {x:Static app:UiScaleKeys.HintPanelPadding}}" />
+                Grid.Row="3"
+                Panel.ZIndex="105"
+                Mode="Main"
+                Device="Keyboard"
+                Style="{StaticResource DarkSurfaceStyle}"
+                Visibility="Collapsed"
+                Margin="{DynamicResource {x:Static app:UiScaleKeys.HintPanelMargin}}"
+                CornerRadius="{DynamicResource {x:Static app:UiScaleKeys.SourcePillRadius}}"
+                Height="{DynamicResource {x:Static app:UiScaleKeys.HintPanelHeight}}"
+                Padding="{DynamicResource {x:Static app:UiScaleKeys.HintPanelPadding}}" />
 
         </Grid>
+
     </Border>
+
 </ui:FluentWindow>

@@ -1,11 +1,13 @@
 <Application x:Class="EZ2Play.Main.App"
-             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
-             xmlns:app="clr-namespace:EZ2Play.App"
-             xmlns:sys="clr-namespace:System;assembly=mscorlib">
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+    xmlns:app="clr-namespace:EZ2Play.App"
+    xmlns:sys="clr-namespace:System;assembly=mscorlib">
     <Application.Resources>
+
         <ResourceDictionary>
+
             <ResourceDictionary.MergedDictionaries>
                 <ui:ThemesDictionary Theme="Dark"/>
                 <ui:ControlsDictionary/>
@@ -65,8 +67,8 @@
                     <Setter.Value>
                         <ControlTemplate TargetType="ListBoxItem">
                             <Grid HorizontalAlignment="Center"
-                                  VerticalAlignment="Center"
-                                  ClipToBounds="False">
+                                VerticalAlignment="Center"
+                                ClipToBounds="False">
                                 <ContentPresenter Margin="0"/>
                             </Grid>
                         </ControlTemplate>
@@ -105,5 +107,7 @@
             </Style>
 
         </ResourceDictionary>
+
     </Application.Resources>
+
 </Application>

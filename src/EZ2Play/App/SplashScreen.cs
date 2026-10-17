@@ -127,27 +127,28 @@ namespace EZ2Play.App
         }
 
         // Load the logo from ui.pack and fall back to the embedded asset.
-        private static bool TryLoadLogoInto(Image image)
+        private static void TryLoadLogoInto(Image image)
         {
-            if (image == null) return false;
+            if (image == null) return;
 
             try
             {
-                var logoFromPack = PackLoader.LoadFromPack("Logo.png");
-
-                if (logoFromPack != null)
+                using (var logoFromPack = PackLoader.LoadFromPack("Logo.png"))
                 {
-                    var bitmap = new BitmapImage();
+                    if (logoFromPack != null)
+                    {
+                        var bitmap = new BitmapImage();
 
-                    bitmap.BeginInit();
-                    bitmap.StreamSource = logoFromPack;
-                    bitmap.CacheOption = BitmapCacheOption.OnLoad;
-                    bitmap.EndInit();
+                        bitmap.BeginInit();
+                        bitmap.StreamSource = logoFromPack;
+                        bitmap.CacheOption = BitmapCacheOption.OnLoad;
+                        bitmap.EndInit();
 
-                    image.Source = bitmap;
-                    RenderOptions.SetBitmapScalingMode(image, BitmapScalingMode.HighQuality);
+                        image.Source = bitmap;
+                        RenderOptions.SetBitmapScalingMode(image, BitmapScalingMode.HighQuality);
 
-                    return true;
+                        return;
+                    }
                 }
             }
 
@@ -163,12 +164,11 @@ namespace EZ2Play.App
                 RenderOptions.SetBitmapScalingMode(image, BitmapScalingMode.HighQuality);
                 image.Source = bitmap;
 
-                return true;
+                return;
             }
 
             catch
             {
-                return false;
             }
         }
     }

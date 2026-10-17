@@ -3,21 +3,14 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
-using System.Windows.Shapes;
 
 namespace EZ2Play.App
 {
     public class UIRegistry
     {
-        public Image SplashLogo { get; set; }
-        public Grid SplashOverlay { get; set; }
         public TextBlock NoShortcutsMessage { get; set; }
         public TextBlock ExitMessageText { get; set; }
 
-
-        public Border NotificationPanel { get; set; }
-        public TextBlock NotificationIcon { get; set; }
-        public TextBlock NotificationText { get; set; }
         public Notifications Notifications { get; private set; }
 
         public Image UserAvatar { get; set; }
@@ -130,11 +123,6 @@ namespace EZ2Play.App
 
                 ExitMessageText.BeginAnimation(UIElement.OpacityProperty, animation);
             }
-        }
-
-        public void RunSplashSequence(Action onComplete)
-        {
-            _splash?.RunSequence(onComplete);
         }
 
         public void ShowWithAnimation(bool skipSplash, Action onAfterSplash)

@@ -13,12 +13,11 @@ namespace EZ2Play.App
     {
         private readonly FrameworkElement _window;
         private readonly Sound _sound;
-        private bool _wasLaunchedWithHotswap = false;
-        private bool _hasMultipleDisplays = false;
-        private bool _isExternalDisplay = false;
-        private bool _isXboxGameBarInstalled = false;
+        private bool _wasLaunchedWithHotswap;
+        private bool _hasMultipleDisplays;
+        private bool _isExternalDisplay;
 
-        private int _currentDisplayIndex = 0;
+        private int _currentDisplayIndex;
         private List<string> _displayNames = new List<string>();
 
         private DateTime _lastLayoutRefresh = DateTime.MinValue;
@@ -50,14 +49,12 @@ namespace EZ2Play.App
             _wasLaunchedWithHotswap = wasLaunchedWithHotswap;
             _sound = audioManager;
 
-            _isXboxGameBarInstalled = SystemProvider.IsXboxGameBarInstalled();
-
             if (_wasLaunchedWithHotswap)
             {
                 window.Dispatcher.BeginInvoke(new Action(() =>
                 {
                     TryInitialHotSwap();
-                }), DispatcherPriority.ApplicationIdle);
+                }), DispatcherPriority.Loaded);
             }
 
             CheckMultipleDisplays();
@@ -127,7 +124,6 @@ namespace EZ2Play.App
         public void RefreshDisplayList()
         {
             _displayNames.Clear();
-            _currentDisplayIndex = 0;
             _displayNames.Add("Default");
             _displayNames.Add("External");
         }

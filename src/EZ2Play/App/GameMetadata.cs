@@ -162,7 +162,7 @@ namespace EZ2Play.App
                 {
                     var current = JsonConvert.DeserializeObject<Dictionary<string, PlaytimeEntry>>(json);
 
-                    if (current != null)
+                    if (current != null && ValidateEntries(current))
                     {
                         result = new Dictionary<string, PlaytimeEntry>(current, StringComparer.OrdinalIgnoreCase);
                         return true;
@@ -178,6 +178,12 @@ namespace EZ2Play.App
                 var legacy = JsonConvert.DeserializeObject<Dictionary<string, int>>(json);
 
                 if (legacy == null) return false;
+
+                foreach (var entry in legacy)
+                {
+                    if (string.IsNullOrWhiteSpace(entry.Key) || entry.Value < 0)
+                        return false;
+                }
 
                 result = new Dictionary<string, PlaytimeEntry>(StringComparer.OrdinalIgnoreCase);
 
@@ -199,6 +205,20 @@ namespace EZ2Play.App
 
                 return false;
             }
+        }
+
+        private bool ValidateEntries(Dictionary<string, PlaytimeEntry> entries)
+        {
+            foreach (var entry in entries)
+            {
+                if (string.IsNullOrWhiteSpace(entry.Key) || entry.Value == null)
+                    return false;
+
+                if (entry.Value.Playtime < 0)
+                    return false;
+            }
+
+            return true;
         }
 
         private void RestorePrimaryFromBackup()

@@ -1,10 +1,6 @@
 using System;
-using System.Diagnostics;
 using System.Runtime.InteropServices;
-using System.Windows;
-using System.Windows.Interop;
 using System.Windows.Threading;
-using SharpDX.XInput;
 
 namespace EZ2Play.App
 {
@@ -45,12 +41,14 @@ namespace EZ2Play.App
         private DispatcherTimer _timer;
         private readonly Sound _audio;
         private long _lastPressMs = 0;
-        private readonly bool _isXboxGameBarInstalled;
 
         public GuideExitHandler(Sound audio)
         {
             _audio = audio;
-            _isXboxGameBarInstalled = SystemProvider.IsXboxGameBarInstalled();
+
+            // Game Bar owns the Guide button when installed.
+            if (SystemProvider.IsXboxGameBarInstalled())
+                return;
 
             _timer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(16) };
             _timer.Tick += Poll;
@@ -80,9 +78,6 @@ namespace EZ2Play.App
             try
             {
                 if (!IsGuidePressed()) return;
-
-                // Ignore the Guide button completely when Xbox Game Bar is installed.
-                if (_isXboxGameBarInstalled) return;
 
                 // Do not close the launcher while it is in the foreground.
                 if (SystemProvider.IsForeground()) return;

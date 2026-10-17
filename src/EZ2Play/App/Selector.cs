@@ -27,6 +27,8 @@ namespace EZ2Play.App
 
         private bool _selectionColorInitialized;
         private Rect _targetBounds;
+        private FrameworkElement _clipScope;
+        private readonly RectangleGeometry _clipGeometry = new RectangleGeometry();
 
         public sealed class SelectorProfile
         {
@@ -103,9 +105,34 @@ namespace EZ2Play.App
             ClipToBounds = false;
         }
 
-        public void Attach(FrameworkElement target)
+        public void SetClipScope(FrameworkElement scope)
         {
-            Attach(target, CreateOverlayItemProfile());
+            if (ReferenceEquals(_clipScope, scope)) return;
+
+            _clipScope = scope;
+            Clip = scope == null ? null : _clipGeometry;
+            UpdateClipBounds();
+        }
+
+        private void UpdateClipBounds()
+        {
+            if (_clipScope == null) return;
+
+            Rect bounds = Rect.Empty;
+
+            if (_clipScope.IsVisible &&
+                _clipScope.ActualWidth > 0 && _clipScope.ActualHeight > 0)
+            {
+                try
+                {
+                    bounds = _clipScope.TransformToVisual(this).TransformBounds(
+                        new Rect(0, 0, _clipScope.ActualWidth, _clipScope.ActualHeight));
+                }
+                catch (InvalidOperationException) { }
+            }
+
+            if (!_clipGeometry.Rect.Equals(bounds))
+                _clipGeometry.Rect = bounds;
         }
 
         public void Attach(FrameworkElement target, SelectorProfile profile)
@@ -130,7 +157,6 @@ namespace EZ2Play.App
             _target = target;
             _profile = profile;
 
-            _target.LayoutUpdated += OnTargetLayoutUpdated;
             _target.IsVisibleChanged += OnTargetVisibilityChanged;
             _target.Unloaded += OnTargetUnloaded;
 
@@ -160,7 +186,6 @@ namespace EZ2Play.App
         {
             if (_target != null)
             {
-                _target.LayoutUpdated -= OnTargetLayoutUpdated;
                 _target.IsVisibleChanged -= OnTargetVisibilityChanged;
                 _target.Unloaded -= OnTargetUnloaded;
             }
@@ -191,14 +216,11 @@ namespace EZ2Play.App
             _isRenderingHooked = false;
         }
 
-        private void OnTargetLayoutUpdated(object sender, EventArgs e)
+        private void OnTargetVisibilityChanged(
+            object sender, DependencyPropertyChangedEventArgs e)
         {
             UpdateTargetBounds();
-        }
-
-        private void OnTargetVisibilityChanged(object sender, DependencyPropertyChangedEventArgs e)
-        {
-            UpdateTargetBounds();
+            InvalidateVisual();
         }
 
         private void OnTargetUnloaded(object sender, RoutedEventArgs e)
@@ -210,6 +232,9 @@ namespace EZ2Play.App
         {
             if (_target == null)
                 return;
+
+            UpdateTargetBounds();
+            UpdateClipBounds();
 
             double totalSeconds = (DateTime.UtcNow - _startTime).TotalSeconds;
 
@@ -226,14 +251,12 @@ namespace EZ2Play.App
 
         private void UpdateGlow(double animationTime)
         {
-            if (_target == null)
-                return;
+            if (_target == null) return;
 
             if (animationTime < GlowDuration)
             {
                 double progress = animationTime / GlowDuration;
                 progress = progress * progress * (3 - 2 * progress);
-
                 SetGlowOffset(GlowStartOffset + (GlowEndOffset - GlowStartOffset) * progress);
             }
             else
@@ -345,6 +368,7 @@ namespace EZ2Play.App
 
             if (_target == null ||
                 _profile == null ||
+                _targetBounds.IsEmpty ||
                 !_target.IsVisible ||
                 ActualWidth <= 0 ||
                 ActualHeight <= 0)
@@ -397,22 +421,12 @@ namespace EZ2Play.App
             }
             catch (InvalidOperationException)
             {
+                if (!_targetBounds.IsEmpty)
+                {
+                    _targetBounds = Rect.Empty;
+                    InvalidateVisual();
+                }
             }
-        }
-
-        private Rect GetVisualBounds()
-        {
-            if (_profile == null || _targetBounds.IsEmpty)
-                return Rect.Empty;
-
-            Rect strokeBounds = GetOffsetRect(
-                _targetBounds, _profile.StrokeInset, _profile.StrokeOutset);
-            strokeBounds = GetOffsetRect(strokeBounds, _profile.StrokeThickness / 2.0, 0);
-
-            Rect backgroundBounds = GetOffsetRect(
-                _targetBounds, _profile.BackgroundInset, _profile.BackgroundOutset);
-
-            return Union(strokeBounds, backgroundBounds);
         }
 
         private static Rect GetOffsetRect(Rect rect, double inset, double outset)
@@ -421,22 +435,6 @@ namespace EZ2Play.App
 
             return new Rect(rect.X - offset, rect.Y - offset, Math.Max(0, rect.Width + offset * 2), 
                 Math.Max(0, rect.Height + offset * 2));
-        }
-
-        private static Rect Union(Rect first, Rect second)
-        {
-            if (first.IsEmpty)
-                return second;
-
-            if (second.IsEmpty)
-                return first;
-
-            double left = Math.Min(first.Left, second.Left);
-            double top = Math.Min(first.Top, second.Top);
-            double right = Math.Max(first.Right, second.Right);
-            double bottom = Math.Max(first.Bottom, second.Bottom);
-
-            return new Rect(left, top, right - left, bottom - top);
         }
 
         private static bool AreClose(double first, double second)

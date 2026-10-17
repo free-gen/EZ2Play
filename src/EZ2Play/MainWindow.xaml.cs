@@ -24,20 +24,27 @@ namespace EZ2Play
         private BackgroundController _backgroundController;
         private GuideExitHandler _guideHandler;
 
+        private DispatcherTimer _dispatcherPulseTimer;
+
         private ParticlesCanvas _particlesCanvas;
 
         private GameMetadata _metadata;
         private AppConfig _config;
 
-        private DispatcherTimer _activityTimer;
         private DispatcherTimer _backgroundRefreshTimer;
         private string _displayedBackgroundShortcutPath;
         private int _backgroundTransitionDirection;
         private bool _isMainScreenActive = false;
         private bool _wasActive;
+        private DateTime _foregroundCandidateSince = DateTime.MinValue;
+        private const int ForegroundActivationDelayMs = 600;
+
         private bool _isEmptyState;
         private bool _hotSwapLaunch;
         private bool _isExiting;
+
+        private bool _displayLayoutRefreshScheduled;
+        private double _lastUiScaleFactor = double.NaN;
 
         private SettingsOverlay _settingsOverlay;
         private ParserOverlay _parserOverlay;
@@ -52,8 +59,16 @@ namespace EZ2Play
         public Launcher GetLauncher() => _launcher;
         public Sound GetSound() => _sound;
 
+        public void InvalidateBackgroundCache(string shortcutPath)
+        {
+            _backgroundController?.InvalidateBackgroundCache(shortcutPath);
+        }
+
         public void RefreshSelectedBackground()
         {
+            if (_isExiting)
+                return;
+
             if (_launcher == null || _launcher.Shortcuts.Length == 0 || _launcher.SelectedIndex < 0)
                 return;
 
@@ -118,10 +133,14 @@ namespace EZ2Play
             _guideHandler = new GuideExitHandler(_sound);
             _particlesCanvas = FindName("particles") as ParticlesCanvas;
             _config = new AppConfig();
-            _selectorCoordinator = new SelectorCoordinator(SelectionSelector, ItemsListBox);
+
+            _selectorCoordinator = new SelectorCoordinator(
+                SelectionSelector, ItemsListBox, MainScreenGrid, CarouselWrapper);
 
             _settingsOverlay = new SettingsOverlay(_inputHandler, this, _selectorCoordinator);
             _parserOverlay = new ParserOverlay(_inputHandler, this, _selectorCoordinator);
+
+            _selectorCoordinator.SetOverlaySurfaces(_settingsOverlay, _parserOverlay);
 
             var overlayLayer = new Grid();
             overlayLayer.Children.Add(_settingsOverlay);
@@ -141,14 +160,9 @@ namespace EZ2Play
                 UserAvatar = FindName("UserAvatar") as System.Windows.Controls.Image,
                 NoShortcutsMessage = FindName("NoShortcutsMessage") as System.Windows.Controls.TextBlock,
                 SelectedGameTitle = FindName("SelectedGameTitle") as System.Windows.Controls.TextBlock,
-                SplashLogo = FindName("SplashLogo") as System.Windows.Controls.Image,
-                SplashOverlay = FindName("SplashOverlay") as System.Windows.Controls.Grid,
                 MainScreenGrid = FindName("MainScreenGrid") as System.Windows.Controls.Grid,
                 ExitMessageText = FindName("ExitMessageText") as System.Windows.Controls.TextBlock,
                 BottomHintPanel = FindName("HintPanel") as HintPanel,
-                NotificationPanel = FindName("NotificationPanel") as System.Windows.Controls.Border,
-                NotificationIcon = FindName("NotificationIcon") as System.Windows.Controls.TextBlock,
-                NotificationText = FindName("NotificationText") as System.Windows.Controls.TextBlock,
                 GameCounterText = FindName("GameCounterText") as System.Windows.Controls.TextBlock,
                 GameCounterPill = FindName("GameCounterPill") as System.Windows.Controls.Border,
             };
@@ -189,10 +203,10 @@ namespace EZ2Play
 
         private void InitializeTimers()
         {
-            _activityTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(300) };
-            _activityTimer.Tick += CheckAppActivity;
-
-            _backgroundRefreshTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(300) };
+            _backgroundRefreshTimer = new DispatcherTimer(DispatcherPriority.Normal)
+            {
+                Interval = TimeSpan.FromMilliseconds(500)
+            };
             _backgroundRefreshTimer.Tick += BackgroundRefreshTimer_Tick;
 
             ItemsListBox.ItemContainerGenerator.StatusChanged +=
@@ -201,7 +215,7 @@ namespace EZ2Play
 
         private void ScheduleBackgroundRefresh()
         {
-            if (!_isMainScreenActive || _isEmptyState) return;
+            if (_isExiting || !_isMainScreenActive || _isEmptyState) return;
 
             _backgroundRefreshTimer.Stop();
             _backgroundRefreshTimer.Start();
@@ -211,7 +225,7 @@ namespace EZ2Play
         {
             _backgroundRefreshTimer.Stop();
 
-            if (!_isMainScreenActive || _isEmptyState) return;
+            if (_isExiting || !_isMainScreenActive || _isEmptyState) return;
             if (_launcher == null || _launcher.Shortcuts.Length == 0 || _launcher.SelectedIndex < 0) return;
 
             string selectedShortcutPath = _launcher.Shortcuts[_launcher.SelectedIndex].FullPath;
@@ -231,21 +245,17 @@ namespace EZ2Play
             _uiRegistry.LoadUserAvatar();
         }
 
-        private void CheckAppActivity(object sender, EventArgs e)
+        private void UpdateAppActivity(bool isActive)
         {
-            bool isActive = SystemProvider.IsForeground();
-
-            if (isActive && !_wasActive)
-            {
-                OnBecameActive();
-            }
-
-            else if (!isActive && _wasActive)
-            {
-                OnBecameInactive();
-            }
+            if (_isExiting || !_isMainScreenActive || isActive == _wasActive)
+                return;
 
             _wasActive = isActive;
+
+            if (isActive)
+                OnBecameActive();
+            else
+                OnBecameInactive();
         }
 
         private void OnBecameActive()
@@ -285,6 +295,9 @@ namespace EZ2Play
         {
             _inputHandler.OnMoveSelection += direction =>
             {
+                if (_isExiting)
+                    return;
+
                 _backgroundTransitionDirection = Math.Sign(direction);
                 _launcher.MoveSelection(direction);
             };
@@ -296,8 +309,17 @@ namespace EZ2Play
                 _launcher.LaunchSelected();
             };
 
-            _inputHandler.OnSwitchToGamelist += _tabsController.SwitchToGamelist;
-            _inputHandler.OnSwitchToLastPlayed += _tabsController.SwitchToLastPlayed;
+            _inputHandler.OnSwitchToGamelist += () =>
+            {
+                if (_isExiting) return;
+                _tabsController.SwitchToGamelist();
+            };
+
+            _inputHandler.OnSwitchToLastPlayed += () =>
+            {
+                if (_isExiting) return;
+                _tabsController.SwitchToLastPlayed();
+            };
 
             _inputHandler.OnOpenSettings += () =>
             {
@@ -375,7 +397,11 @@ namespace EZ2Play
 
         private void UpdateUiScaleResources(double windowHeight)
         {
+            double scale = LayoutScaler.GetScaleFactor(windowHeight);
+            if (Math.Abs(_lastUiScaleFactor - scale) < 0.0001) return;
+
             LayoutScaler.ApplyUiScaleToDictionary(this.Resources, windowHeight);
+            _lastUiScaleFactor = scale;
         }
 
         private void OnGamepadConnectionChanged(bool connected, string deviceName)
@@ -417,6 +443,8 @@ namespace EZ2Play
 
             _isMainScreenActive = true;
             _selectorCoordinator.ShowMain();
+
+            UpdateAppActivity(SystemProvider.IsForeground());
         }
 
         private void ShowMainScreenWithAnimation()
@@ -468,7 +496,47 @@ namespace EZ2Play
         {
             SystemProvider.SetDisplaySleepBlocked(true);
 
-            _activityTimer.Start();
+            _dispatcherPulseTimer = new DispatcherTimer
+            {
+                Interval = TimeSpan.Zero
+            };
+
+            _dispatcherPulseTimer.Tick += (s, e) =>
+            {
+                bool isForeground = SystemProvider.IsForeground();
+
+                if (_isExiting || !_isMainScreenActive)
+                    return;
+
+                if (!isForeground)
+                {
+                    _foregroundCandidateSince = DateTime.MinValue;
+
+                    if (_wasActive)
+                        UpdateAppActivity(false);
+
+                    return;
+                }
+
+                if (_wasActive)
+                    return;
+
+                DateTime now = DateTime.UtcNow;
+
+                if (_foregroundCandidateSince == DateTime.MinValue)
+                {
+                    _foregroundCandidateSince = now;
+                    return;
+                }
+
+                if ((now - _foregroundCandidateSince).TotalMilliseconds >= ForegroundActivationDelayMs)
+                {
+                    UpdateAppActivity(true);
+                }
+            };
+
+            _dispatcherPulseTimer.Start();
+
             SetupInputEvents();
 
             KeyDown += MainWindow_KeyDown;
@@ -481,8 +549,14 @@ namespace EZ2Play
 
         public void ExitApplication()
         {
+            _dispatcherPulseTimer?.Stop();
+
+            if (_isExiting)
+                return;
+
             _isExiting = true;
             _isMainScreenActive = false;
+            _backgroundRefreshTimer?.Stop();
 
             _display?.HandleHotswapOnExit();
 
@@ -514,20 +588,46 @@ namespace EZ2Play
             });
         }
 
+        private void RefreshActiveSelector()
+        {
+            if (_isExiting) return;
+
+            if (_settingsOverlay?.Visibility == Visibility.Visible)
+                _settingsOverlay.RefreshSelector();
+            else if (_parserOverlay?.Visibility == Visibility.Visible)
+                _parserOverlay.RefreshSelector();
+            else
+                _selectorCoordinator?.UpdateMain();
+        }
+
+        private void ScheduleDisplayLayoutRefresh()
+        {
+            if (_displayLayoutRefreshScheduled || _isExiting) return;
+            _displayLayoutRefreshScheduled = true;
+
+            Dispatcher.BeginInvoke(new Action(() =>
+            {
+                if (!_isExiting && ActualHeight > 0)
+                {
+                    UpdateUiScaleResources(ActualHeight);
+                    ItemsListBox?.InvalidateMeasure();
+                }
+
+                Dispatcher.BeginInvoke(new Action(() =>
+                {
+                    _displayLayoutRefreshScheduled = false;
+                    if (_isExiting || ActualHeight <= 0) return;
+
+                    InitializeCarouselSelectedItem();
+                    RefreshActiveSelector();
+                    _backgroundController?.RefreshPan();
+                }), DispatcherPriority.Loaded);
+            }), DispatcherPriority.Loaded);
+        }
+
         private void OnWindowSizeChanged(object sender, SizeChangedEventArgs e)
         {
-            double h = ActualHeight;
-
-            if (h <= 0) return;
-
-            UpdateUiScaleResources(h);
-            ItemsListBox.InvalidateMeasure();
-            UpdateLayout();
-            InitializeCarouselSelectedItem();
-            ItemsListBox.Items.Refresh();
-
-            _selectorCoordinator.UpdateMain();
-            _backgroundController?.RefreshPan();
+            ScheduleDisplayLayoutRefresh();
         }
 
         protected override void OnActivated(EventArgs e)
@@ -537,12 +637,22 @@ namespace EZ2Play
             if (ActualHeight > 0)
             {
                 UpdateUiScaleResources(ActualHeight);
-                ItemsListBox?.Items.Refresh();
+                Dispatcher.BeginInvoke(new Action(RefreshActiveSelector), DispatcherPriority.Loaded);
             }
+        }
+
+        protected override void OnDeactivated(EventArgs e)
+        {
+            base.OnDeactivated(e);
+
+            _foregroundCandidateSince = DateTime.MinValue;
+            UpdateAppActivity(false);
         }
 
         protected override void OnClosed(EventArgs e)
         {
+            _dispatcherPulseTimer?.Stop();
+
             _isExiting = false;
 
             _backgroundRefreshTimer?.Stop();
@@ -554,6 +664,7 @@ namespace EZ2Play
             _sound?.Dispose();
             _backgroundController?.Dispose();
             _uiRegistry?.Dispose();
+
             _display?.Dispose();
 
             SystemProvider.SetDisplaySleepBlocked(false);
@@ -581,15 +692,7 @@ namespace EZ2Play
         protected override void OnDpiChanged(DpiScale oldDpi, DpiScale newDpi)
         {
             base.OnDpiChanged(oldDpi, newDpi);
-
-            Dispatcher.BeginInvoke(new Action(() =>
-            {
-                if (ActualHeight > 0)
-                {
-                    UpdateUiScaleResources(ActualHeight);
-                    ItemsListBox?.Items.Refresh();
-                }
-            }));
+            ScheduleDisplayLayoutRefresh();
         }
 
         private void MainWindow_PreviewKeyDown(object sender, KeyEventArgs e)
