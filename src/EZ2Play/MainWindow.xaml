@@ -36,7 +36,7 @@
             SnapsToDevicePixels="True"
             UseLayoutRounding="True">
 
-            <!-- Outer Background -->
+            <!-- Two image layers support background transitions and panning. -->
             <Grid x:Name="BackgroundViewport"
                 HorizontalAlignment="Stretch"
                 VerticalAlignment="Stretch"
@@ -79,10 +79,10 @@
 
             </Grid>
 
-            <!-- ParticlesCanvas -->
+            <!-- Particle background used when image backgrounds are unavailable. -->
             <app:ParticlesCanvas x:Name="particles" />
 
-            <!-- SplashOverlay -->
+            <!-- Startup splash layer controlled by the splash screen manager. -->
             <Grid x:Name="SplashOverlay" Visibility="Hidden"
                 HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
                 Background="Transparent" IsHitTestVisible="True">
@@ -94,7 +94,7 @@
 
             </Grid>
 
-            <!-- NoShortcutsMessage -->
+            <!-- Empty-library message with separately localized text runs. -->
             <TextBlock x:Name="NoShortcutsMessage"
                 HorizontalAlignment="Center"
                 VerticalAlignment="Bottom"
@@ -110,7 +110,7 @@
 
             </TextBlock>
 
-            <!-- ExitOverlay -->
+            <!-- Exit overlay shown during the application shutdown sequence. -->
             <Border x:Name="ExitOverlay" Visibility="Hidden"/>
 
             <TextBlock x:Name="ExitMessageText"
@@ -124,10 +124,10 @@
                 <Run Text="{x:Static app:AppInfo.Company}"/>
             </TextBlock>
 
-            <!-- Overlay -->
+            <!-- Hosts the settings and artwork parser overlays above the main screen. -->
             <ContentControl x:Name="OverlayHost" Panel.ZIndex="100"/>
 
-            <!-- MainScreenGrid -->
+            <!-- Main layout containing the header, carousel, game details, and hints. -->
             <Grid x:Name="MainScreenGrid" Visibility="Collapsed" Panel.ZIndex="5">
                 
                 <Grid.RowDefinitions>
@@ -137,7 +137,7 @@
                     <RowDefinition Height="20*"/>
                 </Grid.RowDefinitions>
 
-                <!-- TopPanel -->
+                <!-- Header containing tabs, notifications, user avatar, and clock. -->
                 <Grid x:Name="TopPanel" Grid.Row="0"
                     Margin="{DynamicResource {x:Static app:UiScaleKeys.TopPanelMargin}}"
                     HorizontalAlignment="Stretch"
@@ -153,7 +153,7 @@
                         <ColumnDefinition Width="05*"/> <!-- 5 Offset -->
                     </Grid.ColumnDefinitions>
 
-                    <!-- Tabs -->
+                    <!-- Game list and Last Played tabs controlled by TabsController. -->
                     <StackPanel Orientation="Horizontal" Grid.Column="1">
                         <TextBlock x:Name="TabGamelistText"
                             Opacity="1"
@@ -167,7 +167,7 @@
                             FontSize="{DynamicResource {x:Static app:UiScaleKeys.TopInfoSecondaryFontSize}}"/>
                     </StackPanel>
 
-                    <!-- NotificationPanel -->
+                    <!-- Notification surface managed by UIRegistry. -->
                     <app:DitheredGradientBorder x:Name="NotificationPanel"
                         Grid.Column="2"
                         Visibility="Collapsed"
@@ -185,7 +185,7 @@
                                 Margin="{DynamicResource {x:Static app:UiScaleKeys.NotificationPanelMargin}}"
                                 FontFamily="/Assets/#Xbox Fluent"/>
 
-                            <TextBlock  x:Name="NotificationText"
+                            <TextBlock x:Name="NotificationText"
                                 MaxWidth="{DynamicResource {x:Static app:UiScaleKeys.NotificationPanelMaxWidth}}"
                                 FontSize="{DynamicResource {x:Static app:UiScaleKeys.NotificationPanelFontSize}}"
                                 TextWrapping="Wrap">
@@ -200,15 +200,15 @@
 
                     </app:DitheredGradientBorder>
 
-                    <!-- UserAvatar -->
-                    <Image  x:Name="UserAvatar" Grid.Column="3"
+                    <!-- Windows account picture loaded through UIRegistry. -->
+                    <Image x:Name="UserAvatar" Grid.Column="3"
                         Width="{DynamicResource {x:Static app:UiScaleKeys.UserAvatarSize}}"
                         Height="{DynamicResource {x:Static app:UiScaleKeys.UserAvatarSize}}"
                         Stretch="UniformToFill"
                         HorizontalAlignment="Center"
                         VerticalAlignment="Center"/>
 
-                    <!-- Time -->
+                    <!-- Local clock text updated by the application clock. -->
                     <TextBlock x:Name="TimeLabelText" Grid.Column="4"
                         HorizontalAlignment="Right"
                         Effect="{StaticResource TextShadowEffect}"
@@ -217,7 +217,7 @@
 
                 </Grid>
 
-                <!-- ItemsListBox -->
+                <!-- Game carousel using the custom CarouselPanel and CarouselItem template. -->
                 <Grid x:Name="CarouselWrapper" Grid.Row="1" ClipToBounds="True">
                     
                     <ListBox x:Name="ItemsListBox" 
@@ -249,7 +249,7 @@
 
                 </Grid>
 
-                <!-- SelectedGameTitle -->
+                <!-- Selected game title and associated metadata. -->
                 <Grid Grid.Row="2">
                 
                     <StackPanel Orientation="Vertical"
@@ -268,7 +268,7 @@
                         <StackPanel Orientation="Horizontal" 
                             Margin="{DynamicResource {x:Static app:UiScaleKeys.SourcePillMargin}}">
                             
-                            <!-- GameSourcePill -->
+                            <!-- Shortcut source label bound to the current carousel selection. -->
                             <Border x:Name="GameSourcePill"
                                 Style="{StaticResource LightSurfaceStyle}"
                                 CornerRadius="{DynamicResource {x:Static app:UiScaleKeys.SourcePillRadius}}"
@@ -285,7 +285,7 @@
 
                             </Border>
 
-                            <!-- GameCounterPill -->
+                            <!-- Game counter updated through UIRegistry. -->
                             <Border x:Name="GameCounterPill"
                                 Style="{StaticResource DarkSurfaceStyle}"
                                 Padding="{DynamicResource {x:Static app:UiScaleKeys.CounterPillPadding}}"
@@ -316,7 +316,7 @@
 
                             </Border>
 
-                            <!-- LoadingProgress -->
+                            <!-- Loading indicator controlled by application state. -->
                             <ui:ProgressRing x:Name="LoadingProgress" 
                                 Margin="{DynamicResource {x:Static app:UiScaleKeys.CounterPillMargin}}"
                                 Width="{DynamicResource {x:Static app:UiScaleKeys.LoadingProgressSize}}" 
@@ -338,7 +338,7 @@
                 VerticalAlignment="Stretch"
                 IsHitTestVisible="False"/>
 
-            <!-- HintPanel -->
+            <!-- Context-sensitive keyboard and gamepad control hints. -->
             <app:HintPanel x:Name="HintPanel"
                 Grid.Row="3"
                 Panel.ZIndex="105"

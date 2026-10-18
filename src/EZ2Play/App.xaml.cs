@@ -9,6 +9,15 @@ using EZ2Play.App;
 
 namespace EZ2Play.Main
 {
+    /// <summary>
+    /// Manages application startup, shutdown, and global focus behavior.
+    /// </summary>
+    /// <remarks>
+    /// Enforces a single running application instance, processes startup
+    /// arguments, initializes localization and theme, and creates MainWindow.
+    ///
+    /// The named mutex remains owned until application shutdown.
+    /// </remarks>
     public partial class App : Application
     {
         private MainWindow _mainWindow;
@@ -16,12 +25,22 @@ namespace EZ2Play.Main
         private Mutex _singleInstanceMutex;
         private bool _ownsSingleInstanceMutex;
 
+        /// <summary>
+        /// Initializes the application and prevents a second instance.
+        /// </summary>
+        /// <remarks>
+        /// Processes --nosplash, --hotswap, and --nomusic before creating
+        /// MainWindow. The window is initially hidden and displayed
+        /// through its existing startup animation sequence.
+        /// </remarks>
         protected override void OnStartup(StartupEventArgs e)
         {
             // Prevent multiple application instances.
             bool createdNew;
 
-            _singleInstanceMutex = new Mutex(true, @"Local\EZ2Play.SingleInstance", out createdNew);
+            _singleInstanceMutex = new Mutex(
+                true, @"Local\EZ2Play.SingleInstance", out createdNew);
+
             _ownsSingleInstanceMutex = createdNew;
 
             if (!createdNew)
@@ -49,11 +68,16 @@ namespace EZ2Play.Main
 
                 foreach (string arg in e.Args)
                 {
-                    if (string.Equals(arg, "--nosplash", StringComparison.OrdinalIgnoreCase))
+                    if (string.Equals(arg, "--nosplash", 
+                        StringComparison.OrdinalIgnoreCase))
                         noSplash = true;
-                    else if (string.Equals(arg, "--hotswap", StringComparison.OrdinalIgnoreCase))
+
+                    else if (string.Equals(arg, "--hotswap", 
+                        StringComparison.OrdinalIgnoreCase))
                         hotSwap = true;
-                    else if (string.Equals(arg, "--nomusic", StringComparison.OrdinalIgnoreCase))
+                        
+                    else if (string.Equals(arg, "--nomusic", 
+                        StringComparison.OrdinalIgnoreCase))
                         noMusic = true;
                 }
 
@@ -81,6 +105,13 @@ namespace EZ2Play.Main
             }
         }
 
+        /// <summary>
+        /// Finalizes logging and releases the single-instance mutex.
+        /// </summary>
+        /// <remarks>
+        /// Releases the mutex only when this process owns it.
+        /// Preserves the original cleanup order and exception handling.
+        /// </remarks>
         protected override void OnExit(ExitEventArgs e)
         {
             DebugLog.Write("APP", "Application shutdown.");
@@ -105,7 +136,14 @@ namespace EZ2Play.Main
             base.OnExit(e);
         }
 
-        // Disable default focus visuals for non-interactive UI elements.
+        /// <summary>
+        /// Disables default focus visuals for application UI elements.
+        /// </summary>
+        /// <remarks>
+        /// Registered globally through EventManager during startup.
+        /// Non-interactive Rectangle, TextBlock, and Border elements
+        /// are explicitly marked as non-focusable.
+        /// </remarks>
         private void OnAnyElementGotFocus(object sender, RoutedEventArgs e)
         {
             if (sender is FrameworkElement element)

@@ -3,9 +3,20 @@ using System.Reflection;
 
 namespace EZ2Play.App
 {
+    /// <summary>
+    /// Exposes application metadata stored in assembly attributes.
+    /// </summary>
+    /// <remarks>
+    /// Reads metadata generated from EZ2Play.csproj.
+    /// Missing values are returned as empty strings.
+    /// </remarks>
     public static class AppInfo
     {
-        // Read an application metadata value by key.
+        /// <summary>
+        /// Reads an assembly metadata value by its exact key.
+        /// </summary>
+        /// <param name="key">Assembly metadata key.</param>
+        /// <returns>The metadata value, or an empty string if missing.</returns>
         private static string Get(string key)
         {
             return Assembly.GetExecutingAssembly()

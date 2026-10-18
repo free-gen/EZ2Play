@@ -1,8 +1,6 @@
 # <img src="src/EZ2Play/Assets/Logo.png" width="36"> EZ2Play Launcher
 
-[![GitHub release](https://img.shields.io/github/v/release/free-gen/EZ2Play?style=for-the-badge)](https://github.com/free-gen/EZ2Play/releases/latest)
-[![Platform](https://img.shields.io/badge/.Net-0066ff?style=for-the-badge&labelColor=gray)](https://dotnet.microsoft.com)
-[![Framework](https://img.shields.io/badge/WPF--UI-0066ff?style=for-the-badge&labelColor=gray)](https://wpfui.lepo.co/)
+[![GitHub release](https://img.shields.io/github/v/release/free-gen/EZ2Play?style=for-the-badge)](https://github.com/free-gen/EZ2Play/releases/latest) [![Platform](https://img.shields.io/badge/.Net-0066ff?style=for-the-badge&labelColor=gray)](https://dotnet.microsoft.com) [![Framework](https://img.shields.io/badge/WPF--UI-0066ff?style=for-the-badge&labelColor=gray)](https://wpfui.lepo.co/)
 
 EZ2Play is a minimalistic portable fullscreen game launcher for Windows focused on gamepad control, shortcut-based libraries, custom artwork and quick switching between a monitor and TV.
 
@@ -11,26 +9,15 @@ Instead of scanning Steam, Epic Games or installed applications, EZ2Play uses st
 ![Screenshot](res/01.png)
 ![Screenshot](res/02.png)
 
-## Features
+## Highlights
 
-- **Gamepad-first interface** with XInput controller support
-- **Shortcut-based library** using `.lnk` and `.url`
-- **Gamelist / Last Played** library tabs
-- **Lightweight playtime tracking**
-- **SteamGridDB artwork browser**
-- **Square game covers**
-- **Per-game background images**
-- **Animated particle fallback** for games without backgrounds
-- **Directional background transitions with delayed smooth horizontal pan**
-- **Custom PNG / JPG / JPEG artwork**
-- **Quick display switching**
-- **HotSwap mode** for monitor / TV setups
-- **Xbox Guide button support**
-- **Optional EZ2Play Helper**
-- **FPS Monitor integration**
-- **Custom UI sounds and ambient music through `ui.pack`**
-- **English, Russian, German, French and Simplified Chinese**
-- **Portable game library**
+- **Controller-first fullscreen experience**, designed for playing from the couch.
+- **Portable, store-independent game library** built from ordinary Windows `.lnk` and `.url` shortcuts.
+- **Built-in SteamGridDB artwork browser** for finding and downloading game covers and backgrounds without leaving the launcher.
+- **Dynamic game backgrounds** with directional transitions, smooth panning and animated particles when artwork is unavailable.
+- **Monitor / TV switching and HotSwap**, including automatic display switching on launch and restoration on exit.
+- **Xbox Guide button integration** for returning from a foreground game, plus an optional Helper to launch EZ2Play from the controller.
+- **Customizable look and sound** through per-game artwork and an optional `ui.pack` with custom splash and audio files.
 
 ## Usage
 
@@ -131,11 +118,7 @@ If no custom background exists, EZ2Play displays the animated particle backgroun
 
 ## SteamGridDB API Access
 
-EZ2Play normally accesses SteamGridDB through the project's Cloudflare Worker proxy.
-
-The SteamGridDB API key is stored as a Cloudflare Worker secret and is not embedded in the public source code or distributed with the application.
-
-Normal request flow:
+By default, EZ2Play accesses SteamGridDB through the project's Cloudflare Worker. No personal API key is required for normal artwork browsing.
 
 ```text
 EZ2Play
@@ -143,7 +126,9 @@ EZ2Play
   -> SteamGridDB
 ```
 
-If the Worker is unavailable, EZ2Play can fall back to a personal SteamGridDB API key configured in:
+The project's API key is stored as a Cloudflare Worker secret. It is not embedded in the public source code or distributed with the application.
+
+To use **your own SteamGridDB API key** instead, add it to:
 
 ```text
 %APPDATA%\EZ2Play\config.json
@@ -157,9 +142,9 @@ Example:
 }
 ```
 
-The local API key is optional and is only used as a fallback for direct SteamGridDB requests.
+**A configured personal key takes priority:** EZ2Play sends requests directly to SteamGridDB rather than through the Worker. If the direct request fails, it does not automatically retry through the Worker. Remove the key (or leave it empty) to use the Worker again.
 
-If both the Worker and the configured fallback key are unavailable, the artwork browser reports a connection or configuration error.
+If the selected access method is unavailable or returns an error, the artwork browser displays an error notification.
 
 ## Custom Game Source
 
@@ -173,13 +158,17 @@ If no source can be detected, EZ2Play uses `Portable`.
 
 ## Xbox Game Bar and Guide Button
 
-EZ2Play checks whether Xbox Game Bar is installed.
+**Xbox Game Bar is not required for EZ2Play's Guide-button features.** EZ2Play monitors the Guide button even if Xbox Game Bar is installed.
 
-When Xbox Game Bar is available, the Guide button remains controlled by Windows and Game Bar.
+When EZ2Play is running **in the background**, pressing the controller's Guide button sends a standard Windows close request (`WM_CLOSE`) to the current foreground window. This is intended to close the running game or application and return you to the launcher. Some games may ignore the request or show a confirmation dialog.
 
-When Game Bar is unavailable, EZ2Play can use its own Guide-button behavior to close the current foreground application and return to the launcher.
+**Important:** Xbox Game Bar may also react to the Guide button and interfere with this behavior. EZ2Play checks whether Game Bar is installed and displays a warning when it detects a possible conflict. The warning does **not** mean Guide support has been disabled, and EZ2Play does not change your Game Bar settings.
 
-Display switching and HotSwap work independently from Game Bar.
+If the Guide button opens Game Bar or does not behave as expected, we recommend disabling the conflicting Game Bar functionality or uninstalling Game Bar if you do not use it.
+
+The optional **EZ2Play Helper** can launch the launcher using the Guide button when EZ2Play is not running. Game Bar may interfere with that shortcut as well.
+
+Monitor / TV switching and HotSwap work independently of Xbox Game Bar.
 
 ## EZ2Play Helper
 
@@ -325,9 +314,7 @@ Debug logging is compiled out of Release builds.
 
 **You can use crypto or rubles:**
 
-[![OZON](https://img.shields.io/badge/RUB-OZON_BANK-0066ff?style=for-the-badge)](https://finance.ozon.ru/apps/sbp/ozonbankpay/019993bb-a466-72de-bc2c-e7ee85abc8a6)
-
-[![USDT](https://img.shields.io/badge/USDT-TRC_20-009933?style=for-the-badge)](https://tronscan.org/#/address/TZD9FhF1ZusMCN2XfSQrb2jpRBk7YTCzUy)
+[![OZON](https://img.shields.io/badge/RUB-OZON_BANK-0066ff?style=for-the-badge)](https://finance.ozon.ru/apps/sbp/ozonbankpay/019993bb-a466-72de-bc2c-e7ee85abc8a6) [![USDT](https://img.shields.io/badge/USDT-TRC_20-009933?style=for-the-badge)](https://tronscan.org/#/address/TZD9FhF1ZusMCN2XfSQrb2jpRBk7YTCzUy)
 
 ## License
 

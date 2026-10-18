@@ -1,14 +1,33 @@
 using System;
 using System.Diagnostics;
-using System.Runtime.InteropServices;
-using System.Threading;
 using System.IO;
 using System.Media;
+using System.Runtime.InteropServices;
+using System.Threading;
 
+/// <summary>
+/// Monitors the controller Guide button and starts EZ2Play
+/// when a long press is detected.
+/// </summary>
+/// <remarks>
+/// The Helper runs as a single instance and monitors the EZ2Play
+/// process. When EZ2Play starts, a separate thread attempts to
+/// bring its window to the foreground.
+///
+/// The existing polling intervals, Guide-button threshold,
+/// Windows API calls, and error handling are preserved.
+/// </remarks>
 class Program
 {
+    // Prevent multiple Helper instances from running simultaneously.
     private static Mutex _singleInstanceMutex;
 
+    /// <summary>
+    /// Extended XInput controller state returned by export #100.
+    /// </summary>
+    /// <remarks>
+    /// The sequential layout matches the unmanaged XInput structure.
+    /// </remarks>
     [StructLayout(LayoutKind.Sequential)]
     private struct XInputStateEx
     {
@@ -16,6 +35,9 @@ class Program
         public XInputGamepadEx Gamepad;
     }
 
+    /// <summary>
+    /// Controller buttons, triggers, and thumbstick values used by XInput.
+    /// </summary>
     [StructLayout(LayoutKind.Sequential)]
     private struct XInputGamepadEx
     {
@@ -28,9 +50,13 @@ class Program
         public short sThumbRY;
     }
 
+    // Extended XInput export includes the Guide button state.
     [DllImport("xinput1_4.dll", EntryPoint = "#100")]
-    private static extern int XInputGetStateEx(int dwUserIndex, ref XInputStateEx pState);
+    private static extern int XInputGetStateEx(
+        int dwUserIndex,
+        ref XInputStateEx pState);
 
+    // Native window foreground and thread-input operations.
     [DllImport("user32.dll")]
     private static extern bool SetForegroundWindow(IntPtr hWnd);
 
@@ -38,23 +64,37 @@ class Program
     private static extern IntPtr GetForegroundWindow();
 
     [DllImport("user32.dll")]
-    private static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint lpdwProcessId);
+    private static extern uint GetWindowThreadProcessId(
+        IntPtr hWnd,
+        out uint lpdwProcessId);
 
     [DllImport("user32.dll")]
-    private static extern bool AttachThreadInput(uint idAttach, uint idAttachTo, bool fAttach);
+    private static extern bool AttachThreadInput(
+        uint idAttach,
+        uint idAttachTo,
+        bool fAttach);
 
+    // Enumerate visible windows to locate the EZ2Play process window.
     [DllImport("user32.dll")]
-    private static extern bool EnumWindows(EnumWindowsProc lpEnumFunc, IntPtr lParam);
+    private static extern bool EnumWindows(
+        EnumWindowsProc lpEnumFunc,
+        IntPtr lParam);
 
     [DllImport("user32.dll")]
     private static extern bool IsWindowVisible(IntPtr hWnd);
 
+    // Simulate Alt key down/up while requesting foreground focus.
     [DllImport("user32.dll")]
-    private static extern void keybd_event(byte bVk, byte bScan, uint dwFlags, UIntPtr dwExtraInfo);
+    private static extern void keybd_event(
+        byte bVk,
+        byte bScan,
+        uint dwFlags,
+        UIntPtr dwExtraInfo);
 
     [DllImport("kernel32.dll")]
     private static extern uint GetCurrentThreadId();
 
+    // Console functions used for optional diagnostic output.
     [DllImport("kernel32.dll")]
     private static extern IntPtr GetConsoleWindow();
 
@@ -69,12 +109,28 @@ class Program
 
     private delegate bool EnumWindowsProc(IntPtr hWnd, IntPtr lParam);
 
+    // XInput and Windows input constants.
     private const int ERROR_SUCCESS = 0;
     private const ushort XINPUT_GAMEPAD_GUIDE = 0x0400;
     private const string ProcessName = "EZ2Play";
     private const byte VK_MENU = 0x12;
     private const uint KEYEVENTF_KEYUP = 0x0002;
 
+    /// <summary>
+    /// Starts the single-instance Helper and monitors the launcher
+    /// process and controller Guide button.
+    /// </summary>
+    /// <param name="args">
+    /// Helper arguments, including optional -d or --debug and
+    /// arguments passed through to the EZ2Play executable.
+    /// </param>
+    /// <remarks>
+    /// The loop checks the process and Guide button every 100 ms.
+    /// A Guide press held for at least 500 ms starts EZ2Play.
+    ///
+    /// Guide input is not processed while waiting for the
+    /// running EZ2Play process to close.
+    /// </remarks>
     static void Main(string[] args)
     {
         bool createdNew;
@@ -93,22 +149,26 @@ class Program
 
         string launcherArgs = "";
         bool debugMode = false;
-        
-        // Args Filter
+
+        // Keep Helper debug arguments separate from launcher arguments.
         foreach (var arg in args)
         {
-            // For Daemon (Debug)
             if (arg == "-d" || arg == "--debug")
+            {
                 debugMode = true;
-                
-            // For EZ2Play (Any Args)
+            }
             else
+            {
                 launcherArgs += arg + " ";
+            }
         }
+
         launcherArgs = launcherArgs.Trim();
-        
-        string exePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "EZ2Play.exe");
-        
+
+        string exePath = Path.Combine(
+            AppDomain.CurrentDomain.BaseDirectory,
+            "EZ2Play.exe");
+
         if (debugMode)
         {
             AllocConsole();
@@ -118,6 +178,7 @@ class Program
             Console.WriteLine($"Launcher args: [{launcherArgs}]");
         }
 
+        // State of the current Guide-button press and launcher process.
         bool pressed = false;
         DateTime startTime = DateTime.Now;
         bool longPressHandled = false;
@@ -126,19 +187,31 @@ class Program
 
         while (true)
         {
-            bool isRunning = Process.GetProcessesByName(ProcessName).Length > 0;
-            
+            bool isRunning =
+                Process.GetProcessesByName(ProcessName).Length > 0;
+
             if (isRunning && !wasRunning)
             {
-                if (debugMode) Console.WriteLine($" [APP] Application started");
+                if (debugMode)
+                {
+                    Console.WriteLine($" [APP] Application started");
+                }
+
                 waitingForClose = true;
+
+                // Focus the newly detected window without blocking polling.
                 new Thread(() => FocusWindowWithRetry(debugMode)).Start();
             }
             else if (!isRunning && wasRunning)
             {
-                if (debugMode) Console.WriteLine($" [APP] Application closed");
+                if (debugMode)
+                {
+                    Console.WriteLine($" [APP] Application closed");
+                }
+
                 waitingForClose = false;
             }
+
             wasRunning = isRunning;
 
             if (waitingForClose)
@@ -155,13 +228,18 @@ class Program
                 startTime = DateTime.Now;
                 longPressHandled = false;
             }
-            else if (guide && pressed && !longPressHandled && (DateTime.Now - startTime).TotalMilliseconds >= 500)
+            else if (guide && pressed && !longPressHandled &&
+                     (DateTime.Now - startTime).TotalMilliseconds >= 500)
             {
                 longPressHandled = true;
-                if (debugMode) Console.WriteLine(" [BUTTON] Long Press Detected");
+
+                if (debugMode)
+                {
+                    Console.WriteLine(" [BUTTON] Long Press Detected");
+                }
 
                 SystemSounds.Beep.Play();
-                
+
                 if (File.Exists(exePath))
                 {
                     var startInfo = new ProcessStartInfo
@@ -170,6 +248,7 @@ class Program
                         Arguments = launcherArgs,
                         UseShellExecute = true
                     };
+
                     Process.Start(startInfo);
                 }
             }
@@ -182,7 +261,13 @@ class Program
         }
     }
 
-    // EZ2Play Focus
+    /// <summary>
+    /// Checks whether the Guide button is pressed on any of
+    /// the four supported XInput controller slots.
+    /// </summary>
+    /// <returns>
+    /// True when at least one connected controller reports Guide.
+    /// </returns>
     static bool IsGuidePressed()
     {
         for (int userIndex = 0; userIndex < 4; userIndex++)
@@ -202,14 +287,29 @@ class Program
         return false;
     }
 
+    /// <summary>
+    /// Attempts to bring the EZ2Play window to the foreground
+    /// after the launcher process is detected.
+    /// </summary>
+    /// <param name="debugMode">
+    /// Whether to print focus attempts to the diagnostic console.
+    /// </param>
+    /// <remarks>
+    /// Waits 1500 ms before searching for the window, then makes
+    /// up to five attempts separated by 500 ms.
+    ///
+    /// The foreground and application input threads are attached
+    /// only when needed. Attachments and the simulated Alt key
+    /// are released in the original finally block and order.
+    /// </remarks>
     static void FocusWindowWithRetry(bool debugMode)
     {
         Thread.Sleep(1500);
-        
+
         for (int attempt = 1; attempt <= 5; attempt++)
         {
             IntPtr hWnd = FindWindowByProcessName(ProcessName);
-            
+
             if (hWnd != IntPtr.Zero)
             {
                 uint foreThread = 0;
@@ -265,7 +365,7 @@ class Program
                 }
                 finally
                 {
-                    // Detach in reverse order.
+                    // Detach input threads in reverse attachment order.
                     if (appAttached)
                     {
                         AttachThreadInput(
@@ -282,6 +382,7 @@ class Program
                             false);
                     }
 
+                    // Release Alt even when focus operations fail.
                     if (altPressed)
                     {
                         keybd_event(
@@ -293,39 +394,62 @@ class Program
                 }
 
                 if (debugMode)
+                {
                     Console.WriteLine(" [FOCUS] Focus set");
+                }
 
                 return;
             }
-            
+
             Thread.Sleep(500);
         }
-        
-        if (debugMode) Console.WriteLine($" [FOCUS] Failed to find window");
+
+        if (debugMode)
+        {
+            Console.WriteLine($" [FOCUS] Failed to find window");
+        }
     }
 
+    /// <summary>
+    /// Finds the first visible top-level window owned by
+    /// a process with the specified name.
+    /// </summary>
+    /// <param name="processName">Name of the target process.</param>
+    /// <returns>
+    /// Handle of the matching window, or IntPtr.Zero when not found.
+    /// </returns>
+    /// <remarks>
+    /// Window enumeration stops after the first match.
+    /// Errors looking up individual process IDs are ignored.
+    /// </remarks>
     static IntPtr FindWindowByProcessName(string processName)
     {
         IntPtr foundWindow = IntPtr.Zero;
-        
+
         EnumWindows((hwnd, lParam) =>
         {
             if (IsWindowVisible(hwnd))
             {
                 GetWindowThreadProcessId(hwnd, out uint pid);
+
                 try
                 {
-                    if (Process.GetProcessById((int)pid).ProcessName.Equals(processName, StringComparison.OrdinalIgnoreCase))
+                    if (Process.GetProcessById((int)pid).ProcessName.Equals(
+                        processName,
+                        StringComparison.OrdinalIgnoreCase))
                     {
                         foundWindow = hwnd;
                         return false;
                     }
                 }
-                catch { }
+                catch
+                {
+                }
             }
+
             return true;
         }, IntPtr.Zero);
-        
+
         return foundWindow;
     }
 }

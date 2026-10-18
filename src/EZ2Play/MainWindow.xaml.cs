@@ -1,19 +1,28 @@
 using System;
-using System.Windows;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Animation;
 using System.Threading.Tasks;
+using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Interop;
+using System.Windows.Media;
+using System.Windows.Media.Animation;
 using System.Windows.Threading;
 using EZ2Play.App;
 using Wpf.Ui.Controls;
 
 namespace EZ2Play
 {
+    /// <summary>
+    /// Owns the main application window, its components, initialization,
+    /// startup sequence, and shutdown lifecycle.
+    /// </summary>
+    /// <remarks>
+    /// Activity changes, input handling, and layout updates are implemented
+    /// in MainWindow.Activity.cs, MainWindow.Input.cs, and MainWindow.Layout.cs.
+    /// All partial declarations share the same window instance and fields.
+    /// </remarks>
     public partial class MainWindow : FluentWindow
     {
+        // Application components and their shared lifetime.
         private Sound _sound;
         private Input _input;
         private InputHandler _inputHandler;
@@ -31,21 +40,28 @@ namespace EZ2Play
         private GameMetadata _metadata;
         private AppConfig _config;
 
+        // Background refresh and foreground activity state.
         private DispatcherTimer _backgroundRefreshTimer;
         private string _displayedBackgroundShortcutPath;
         private int _backgroundTransitionDirection;
         private bool _isMainScreenActive = false;
         private bool _wasActive;
+
         private DateTime _foregroundCandidateSince = DateTime.MinValue;
+        private DateTime _backgroundCandidateSince = DateTime.MinValue;
+
         private const int ForegroundActivationDelayMs = 600;
+        private const int BackgroundDeactivationDelayMs = 150;
 
         private bool _isEmptyState;
         private bool _hotSwapLaunch;
         private bool _isExiting;
 
+        // State used by MainWindow.Layout.cs.
         private bool _displayLayoutRefreshScheduled;
         private double _lastUiScaleFactor = double.NaN;
 
+        // Overlays use the same selector coordinator.
         private SettingsOverlay _settingsOverlay;
         private ParserOverlay _parserOverlay;
         private SelectorCoordinator _selectorCoordinator;
@@ -59,11 +75,32 @@ namespace EZ2Play
         public Launcher GetLauncher() => _launcher;
         public Sound GetSound() => _sound;
 
+        /// <summary>
+        /// Invalidates cached background artwork for a shortcut.
+        /// </summary>
+        /// <param name="shortcutPath">
+        /// Full path of the shortcut whose background cache is invalidated.
+        /// </param>
+        /// <remarks>
+        /// Delegates cache invalidation to BackgroundController.
+        /// Used after the parser saves updated background artwork.
+        /// </remarks>
         public void InvalidateBackgroundCache(string shortcutPath)
         {
             _backgroundController?.InvalidateBackgroundCache(shortcutPath);
         }
 
+        /// <summary>
+        /// Refreshes the background for the currently selected shortcut.
+        /// </summary>
+        /// <remarks>
+        /// Uses an animated transition when the main screen is active
+        /// and the window is in the foreground. Otherwise, loads
+        /// the background directly.
+        ///
+        /// Stores the displayed shortcut path and resets the
+        /// transition direction after updating the background.
+        /// </remarks>
         public void RefreshSelectedBackground()
         {
             if (_isExiting)
@@ -90,11 +127,23 @@ namespace EZ2Play
             _backgroundTransitionDirection = 0;
         }
 
+        /// <summary>
+        /// Shows or hides the main application's loading indicator.
+        /// </summary>
+        /// <param name="show">
+        /// Whether the loading indicator should be visible.
+        /// </param>
         public void ShowLoadingUI(bool show)
         {
             _uiRegistry.ShowLoading(show);
         }
 
+        /// <summary>
+        /// Initializes the WPF window and application services.
+        /// </summary>
+        /// <remarks>
+        /// The initialization order is significant and must remain unchanged.
+        /// </remarks>
         public MainWindow(bool hotSwap = false)
         {
             InitializeComponent();
@@ -109,6 +158,13 @@ namespace EZ2Play
             InitializeUI();
         }
 
+        /// <summary>
+        /// Registers window input, resize, and layout events.
+        /// </summary>
+        /// <remarks>
+        /// Applies the initial UI scale immediately and updates it
+        /// again after Loaded, when the actual window size is available.
+        /// </remarks>
         private void SubscribeEvents()
         {
             PreviewKeyDown += MainWindow_PreviewKeyDown;
@@ -119,11 +175,17 @@ namespace EZ2Play
             UpdateUiScaleResources(ActualHeight > 0 ? ActualHeight : LayoutScaler.ReferenceHeight);
         }
 
+        /// <summary>
+        /// Suppresses manipulation boundary feedback for the carousel.
+        /// </summary>
         private void OptimizeListBoxPerformance()
         {
             ItemsListBox.ManipulationBoundaryFeedback += (s, e) => e.Handled = true;
         }
 
+        /// <summary>
+        /// Creates the services and overlays owned by the main window.
+        /// </summary>
         private void InitializeComponents()
         {
             _sound = new Sound();
@@ -152,6 +214,11 @@ namespace EZ2Play
             _parserOverlay.Visibility = Visibility.Collapsed;
         }
 
+        /// <summary>
+        /// Connects UIRegistry to named XAML elements and initializes
+        /// the splash screen, notifications, loading indicator,
+        /// and background controller.
+        /// </summary>
         private void InitializeUIRegistry()
         {
             _uiRegistry = new UIRegistry
@@ -177,6 +244,13 @@ namespace EZ2Play
                 _particlesCanvas);
         }
 
+        /// <summary>
+        /// Creates the game launcher and tab controller.
+        /// </summary>
+        /// <remarks>
+        /// Connects selection changes to deferred background refresh
+        /// and initializes the selected carousel item.
+        /// </remarks>
         private void InitializeLauncher()
         {
             _launcher = new Launcher(ItemsListBox, _uiRegistry.SelectedGameTitle, this, _sound);
@@ -196,11 +270,24 @@ namespace EZ2Play
             InitializeCarouselSelectedItem();
         }
 
+        /// <summary>
+        /// Changes the context displayed by the shared hint panel.
+        /// </summary>
+        /// <param name="mode">
+        /// Hint mode corresponding to the active application screen.
+        /// </param>
         public void SetHintsMode(HintPanel.HintMode mode)
         {
             HintPanel.Mode = mode;
         }
 
+        /// <summary>
+        /// Initializes the deferred background refresh timer and
+        /// subscribes to carousel item container generation.
+        /// </summary>
+        /// <remarks>
+        /// The background refresh interval remains 500 milliseconds.
+        /// </remarks>
         private void InitializeTimers()
         {
             _backgroundRefreshTimer = new DispatcherTimer(DispatcherPriority.Normal)
@@ -213,6 +300,13 @@ namespace EZ2Play
                 ItemContainerGenerator_StatusChanged;
         }
 
+        /// <summary>
+        /// Schedules a background refresh after a selection change.
+        /// </summary>
+        /// <remarks>
+        /// Restarts the existing timer so rapid selection changes
+        /// do not immediately trigger individual background updates.
+        /// </remarks>
         private void ScheduleBackgroundRefresh()
         {
             if (_isExiting || !_isMainScreenActive || _isEmptyState) return;
@@ -221,6 +315,13 @@ namespace EZ2Play
             _backgroundRefreshTimer.Start();
         }
 
+        /// <summary>
+        /// Refreshes the selected background after the timer fires.
+        /// </summary>
+        /// <remarks>
+        /// Skips inactive or empty application states and avoids
+        /// refreshing an already displayed shortcut background.
+        /// </remarks>
         private void BackgroundRefreshTimer_Tick(object sender, EventArgs e)
         {
             _backgroundRefreshTimer.Stop();
@@ -236,6 +337,13 @@ namespace EZ2Play
             RefreshSelectedBackground();
         }
 
+        /// <summary>
+        /// Applies localization and initializes visible UI information.
+        /// </summary>
+        /// <remarks>
+        /// The window starts fully transparent before the startup
+        /// animation. Clock and account picture initialization follow.
+        /// </remarks>
         private void InitializeUI()
         {
             Locals.ApplyLocalization(this);
@@ -245,110 +353,9 @@ namespace EZ2Play
             _uiRegistry.LoadUserAvatar();
         }
 
-        private void UpdateAppActivity(bool isActive)
-        {
-            if (_isExiting || !_isMainScreenActive || isActive == _wasActive)
-                return;
-
-            _wasActive = isActive;
-
-            if (isActive)
-                OnBecameActive();
-            else
-                OnBecameInactive();
-        }
-
-        private void OnBecameActive()
-        {
-            _sound.PlayBackgroundMusic(Sound.FadeDurationMs * 3);
-            SystemProvider.HideCursor();
-            _backgroundController.Show(true);
-
-            _metadata.Stop();
-            UpdatePlaytimeUI();
-
-            if (_tabsController.IsLastPlayed)
-            {
-                _launcher.SortByLastPlayed();
-            }
-        }
-
-        private void OnBecameInactive()
-        {
-            _sound.StopBackgroundMusicSafe(Sound.FadeDurationMs);
-            _uiRegistry.ShowLoading(false);
-            SystemProvider.ShowCursor();
-            _backgroundController.Show(false);
-        }
-
-        private void MainWindow_KeyDown(object sender, KeyEventArgs e)
-        {
-            _input.HandleKeyDown(e.Key);
-        }
-
-        private void MainWindow_KeyUp(object sender, KeyEventArgs e)
-        {
-            _input.HandleKeyUp(e.Key);
-        }
-
-        private void SetupInputEvents()
-        {
-            _inputHandler.OnMoveSelection += direction =>
-            {
-                if (_isExiting)
-                    return;
-
-                _backgroundTransitionDirection = Math.Sign(direction);
-                _launcher.MoveSelection(direction);
-            };
-
-            _inputHandler.OnLaunchSelected += () =>
-            {
-                if (_isExiting) return;
-
-                _launcher.LaunchSelected();
-            };
-
-            _inputHandler.OnSwitchToGamelist += () =>
-            {
-                if (_isExiting) return;
-                _tabsController.SwitchToGamelist();
-            };
-
-            _inputHandler.OnSwitchToLastPlayed += () =>
-            {
-                if (_isExiting) return;
-                _tabsController.SwitchToLastPlayed();
-            };
-
-            _inputHandler.OnOpenSettings += () =>
-            {
-                if (_isExiting || !_isMainScreenActive || _isEmptyState) return;
-
-                _settingsOverlay.Open();
-            };
-
-            _inputHandler.OnSettingsBack += () => _settingsOverlay.Back();
-            _inputHandler.OnSettingsConfirm += () => _settingsOverlay.Confirm();
-
-            _inputHandler.OnSettingsNavigate += (dir) => _settingsOverlay.Navigate(dir, true);
-            _inputHandler.OnSettingsNavigateVertical += (dir) => _settingsOverlay.Navigate(dir, false);
-
-            _inputHandler.OnOpenParser += () =>
-            {
-                if (_isExiting || !_isMainScreenActive) return;
-
-                _parserOverlay.Open();
-            };
-
-            _inputHandler.OnParserBack += () => _parserOverlay.Back();
-            _inputHandler.OnParserConfirm += () => _parserOverlay.Confirm();
-            _inputHandler.OnParserSearch += () => _parserOverlay.Search();
-            _inputHandler.OnParserNavigateHorizontal += dir => _parserOverlay.NavigateHorizontal(dir);
-            _inputHandler.OnParserNavigateVertical += dir => _parserOverlay.NavigateVertical(dir);
-            _inputHandler.OnParserSwitchTab += dir => _parserOverlay.SwitchAssetTab(dir);
-        }
-
+        /// <summary>
+        /// Updates the playtime presentation for the selected shortcut.
+        /// </summary>
         private void UpdatePlaytimeUI()
         {
             if (_launcher.Shortcuts.Length == 0)
@@ -376,45 +383,13 @@ namespace EZ2Play
             }
         }
 
-        private void InitializeCarouselSelectedItem()
-        {
-            CarouselAnimation.InitializeSelectedItem(ItemsListBox);
-        }
-
-        private void ItemContainerGenerator_StatusChanged(object sender, EventArgs e)
-        {
-            if (ItemsListBox.ItemContainerGenerator.Status !=
-                System.Windows.Controls.Primitives.GeneratorStatus.ContainersGenerated)
-            {
-                return;
-            }
-
-            if (CarouselAnimation.RetryPendingSelection(ItemsListBox))
-                return;
-
-            InitializeCarouselSelectedItem();
-        }
-
-        private void UpdateUiScaleResources(double windowHeight)
-        {
-            double scale = LayoutScaler.GetScaleFactor(windowHeight);
-            if (Math.Abs(_lastUiScaleFactor - scale) < 0.0001) return;
-
-            LayoutScaler.ApplyUiScaleToDictionary(this.Resources, windowHeight);
-            _lastUiScaleFactor = scale;
-        }
-
-        private void OnGamepadConnectionChanged(bool connected, string deviceName)
-        {
-            IsGamepadConnected = connected;
-            _uiRegistry.RefreshHintIcons(connected);
-
-            if (connected)
-            {
-                _uiRegistry.Notifications.HotPlug(0, 3, deviceName);
-            }
-        }
-
+        /// <summary>
+        /// Handles carousel selection changes and refreshes playtime.
+        /// </summary>
+        /// <remarks>
+        /// Launcher owns selection animation while MainWindow
+        /// remains responsible for updating playtime information.
+        /// </remarks>
         private void ItemsListBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             var listBox = sender as ListBox;
@@ -425,11 +400,22 @@ namespace EZ2Play
             UpdatePlaytimeUI();
         }
 
+        /// <summary>
+        /// Completes initialization after the splash screen and starts
+        /// application input, activity monitoring, and the main selector.
+        /// </summary>
         private void StartPostSplash()
         {
             _launcher.LoadShortcuts();
 
             _isEmptyState = _launcher.Shortcuts.Length == 0;
+
+            // Select input routing based on library availability.
+            _inputHandler.SetMode(
+                _isEmptyState
+                    ? InputHandler.InputMode.Empty
+                    : InputHandler.InputMode.Main);
+
             _uiRegistry.SetEmptyState(_isEmptyState);
 
             if (!_isEmptyState)
@@ -447,6 +433,13 @@ namespace EZ2Play
             UpdateAppActivity(SystemProvider.IsForeground());
         }
 
+        /// <summary>
+        /// Displays the main screen using the original fade-in animation.
+        /// </summary>
+        /// <remarks>
+        /// The animation lasts 300 milliseconds with cubic ease-out.
+        /// Background visibility is updated after animation completion.
+        /// </remarks>
         private void ShowMainScreenWithAnimation()
         {
             var baseGrid = FindName("MainScreenGrid") as System.Windows.Controls.Grid;
@@ -465,18 +458,25 @@ namespace EZ2Play
             baseGrid.BeginAnimation(UIElement.OpacityProperty, fadeIn);
         }
 
+        /// <summary>
+        /// Displays startup notifications for Debug, Xbox Game Bar,
+        /// and HotSwap when their conditions are satisfied.
+        /// </summary>
+        /// <remarks>
+        /// The Game Bar warning is shown whenever the package
+        /// is detected during application startup.
+        ///
+        /// AppConfig continues to track HotSwap notifications.
+        /// </remarks>
         private void ShowStartupNotifications()
         {
             // Debug build notification
             _uiRegistry.Notifications.Debug(1, 3);
 
-            // Xbox Game Bar notification
-            bool gamebarInstalled = SystemProvider.IsXboxGameBarInstalled();
-
-            if (_config.ShouldShowGamebarNotification(gamebarInstalled))
+            // Warn about possible Guide conflicts only when Game Bar is installed.
+            if (SystemProvider.IsXboxGameBarInstalled())
             {
-                _uiRegistry.Notifications.GameBar(1, 8, gamebarInstalled);
-                _config.MarkGamebarNotificationShown(gamebarInstalled);
+                _uiRegistry.Notifications.GameBarWarning(1, 8);
             }
 
             // HotSwap notification
@@ -487,11 +487,25 @@ namespace EZ2Play
             }
         }
 
+        /// <summary>
+        /// Displays an error notification requested by ParserOverlay.
+        /// </summary>
+        /// <param name="text">
+        /// Error message to display.
+        /// </param>
         public void ShowParserErrorNotification(string text)
         {
             _uiRegistry.Notifications.Error(text, 0, 3);
         }
 
+        /// <summary>
+        /// Starts foreground activity polling and connects the input handlers.
+        /// </summary>
+        /// <remarks>
+        /// Foreground activation requires a 600 ms confirmation.
+        /// Foreground loss requires a 150 ms confirmation to
+        /// prevent transient focus changes from resetting the UI.
+        /// </remarks>
         private void StartApplication()
         {
             SystemProvider.SetDisplaySleepBlocked(true);
@@ -512,11 +526,31 @@ namespace EZ2Play
                 {
                     _foregroundCandidateSince = DateTime.MinValue;
 
-                    if (_wasActive)
+                    if (!_wasActive)
+                        return;
+
+                    DateTime backgroundNow = DateTime.UtcNow;
+
+                    // Ignore brief foreground interruptions.
+                    if (_backgroundCandidateSince == DateTime.MinValue)
+                    {
+                        _backgroundCandidateSince = backgroundNow;
+                        return;
+                    }
+
+                    // Suspend the application only after the
+                    // foreground loss has been confirmed.
+                    if ((backgroundNow - _backgroundCandidateSince).TotalMilliseconds
+                        >= BackgroundDeactivationDelayMs)
+                    {
                         UpdateAppActivity(false);
+                    }
 
                     return;
                 }
+
+                // Cancel a pending deactivation when focus returns.
+                _backgroundCandidateSince = DateTime.MinValue;
 
                 if (_wasActive)
                     return;
@@ -547,6 +581,12 @@ namespace EZ2Play
             _uiRegistry.RefreshHintIcons(IsGamepadConnected);
         }
 
+        /// <summary>
+        /// Begins the original shutdown sequence.
+        /// </summary>
+        /// <remarks>
+        /// The delayed Close runs after 2000 ms on the window dispatcher.
+        /// </remarks>
         public void ExitApplication()
         {
             _dispatcherPulseTimer?.Stop();
@@ -569,6 +609,19 @@ namespace EZ2Play
             Task.Delay(2000).ContinueWith(_ => Dispatcher.Invoke(Close));
         }
 
+        /// <summary>
+        /// Displays the application through its startup animation.
+        /// </summary>
+        /// <param name="skipSplash">
+        /// Whether to skip the normal splash screen.
+        /// </param>
+        /// <remarks>
+        /// Initializes the main screen and activates the window after
+        /// the startup animation callback.
+        ///
+        /// System keyboard warm-up is scheduled separately using
+        /// DispatcherPriority.ApplicationIdle.
+        /// </remarks>
         public void ShowWithAnimation(bool skipSplash = false)
         {
             ShowInTaskbar = true;
@@ -588,67 +641,17 @@ namespace EZ2Play
             });
         }
 
-        private void RefreshActiveSelector()
-        {
-            if (_isExiting) return;
-
-            if (_settingsOverlay?.Visibility == Visibility.Visible)
-                _settingsOverlay.RefreshSelector();
-            else if (_parserOverlay?.Visibility == Visibility.Visible)
-                _parserOverlay.RefreshSelector();
-            else
-                _selectorCoordinator?.UpdateMain();
-        }
-
-        private void ScheduleDisplayLayoutRefresh()
-        {
-            if (_displayLayoutRefreshScheduled || _isExiting) return;
-            _displayLayoutRefreshScheduled = true;
-
-            Dispatcher.BeginInvoke(new Action(() =>
-            {
-                if (!_isExiting && ActualHeight > 0)
-                {
-                    UpdateUiScaleResources(ActualHeight);
-                    ItemsListBox?.InvalidateMeasure();
-                }
-
-                Dispatcher.BeginInvoke(new Action(() =>
-                {
-                    _displayLayoutRefreshScheduled = false;
-                    if (_isExiting || ActualHeight <= 0) return;
-
-                    InitializeCarouselSelectedItem();
-                    RefreshActiveSelector();
-                    _backgroundController?.RefreshPan();
-                }), DispatcherPriority.Loaded);
-            }), DispatcherPriority.Loaded);
-        }
-
-        private void OnWindowSizeChanged(object sender, SizeChangedEventArgs e)
-        {
-            ScheduleDisplayLayoutRefresh();
-        }
-
-        protected override void OnActivated(EventArgs e)
-        {
-            base.OnActivated(e);
-
-            if (ActualHeight > 0)
-            {
-                UpdateUiScaleResources(ActualHeight);
-                Dispatcher.BeginInvoke(new Action(RefreshActiveSelector), DispatcherPriority.Loaded);
-            }
-        }
-
-        protected override void OnDeactivated(EventArgs e)
-        {
-            base.OnDeactivated(e);
-
-            _foregroundCandidateSince = DateTime.MinValue;
-            UpdateAppActivity(false);
-        }
-
+        /// <summary>
+        /// Releases window-owned services in their original order.
+        /// </summary>
+        /// <remarks>
+        /// Stops activity and background timers, disposes the selector
+        /// and application components, then restores Windows display
+        /// sleep and cursor behavior.
+        ///
+        /// The disposal sequence and the call to base.OnClosed
+        /// must remain unchanged.
+        /// </remarks>
         protected override void OnClosed(EventArgs e)
         {
             _dispatcherPulseTimer?.Stop();
@@ -673,6 +676,17 @@ namespace EZ2Play
             base.OnClosed(e);
         }
 
+        /// <summary>
+        /// Registers the native window handle and Windows message hook.
+        /// </summary>
+        /// <remarks>
+        /// Makes the HWND available to SystemProvider and attaches
+        /// Display.WndProc to the WPF HwndSource.
+        ///
+        /// The original exception handling is preserved because
+        /// registration of the message hook is performed inside
+        /// the existing guarded block.
+        /// </remarks>
         protected override void OnSourceInitialized(EventArgs e)
         {
             base.OnSourceInitialized(e);
@@ -686,27 +700,6 @@ namespace EZ2Play
 
             catch
             {
-            }
-        }
-
-        protected override void OnDpiChanged(DpiScale oldDpi, DpiScale newDpi)
-        {
-            base.OnDpiChanged(oldDpi, newDpi);
-            ScheduleDisplayLayoutRefresh();
-        }
-
-        private void MainWindow_PreviewKeyDown(object sender, KeyEventArgs e)
-        {
-            if (_isEmptyState && e.Key == Key.Escape)
-            {
-                e.Handled = true;
-                ExitApplication();
-                return;
-            }
-
-            if (e.Key == Key.Tab)
-            {
-                e.Handled = true;
             }
         }
     }
