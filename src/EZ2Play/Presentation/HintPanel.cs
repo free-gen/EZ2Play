@@ -129,7 +129,7 @@ namespace EZ2Play.App
                     new SolidColorBrush(Color.FromRgb(0xD3, 0xD3, 0xD3))),
 
                 ["BtnXbox"] = (
-                    "\uE673",
+                    "\uE373",
                     null,
                     new SolidColorBrush(Color.FromRgb(0xD3, 0xD3, 0xD3))),
 
@@ -289,7 +289,7 @@ namespace EZ2Play.App
         {
             var icon = _buttonIcons[buttonKey];
 
-            // Gamepad icons are rendered as Xbox font glyphs.
+            // // Gamepad icons are rendered using the embedded EZ2Play icon font.
             if (Device == InputDevice.Gamepad && icon.glyph != null)
             {
                 var viewbox = new Viewbox();
