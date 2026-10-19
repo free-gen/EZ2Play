@@ -20,7 +20,7 @@
                 <Setter Property="VerticalAlignment" Value="Center"/>
             </Style>
 
-            <FontFamily x:Key="XboxFont">/Assets/#Xbox Fluent</FontFamily>
+            <FontFamily x:Key="IconFont">/Assets/#EZ2Play Icons</FontFamily>
 
             <!-- Shared brushes and styles for overlay surfaces and selection. -->
             <SolidColorBrush x:Key="OverlayBackdropBrush" Color="#B4000000"/>

@@ -94,47 +94,47 @@ namespace EZ2Play.App
             _buttonIcons = new Dictionary<string, (string, string, Brush)>
             {
                 ["BtnA"] = (
-                    "\uE3CE",
+                    "\uE369",
                     "KeyEnter",
                     new SolidColorBrush(Color.FromRgb(0x30, 0xC8, 0x30))),
 
                 ["BtnB"] = (
-                    "\uE3CD",
+                    "\uE36A",
                     "KeyEscape",
                     new SolidColorBrush(Color.FromRgb(0xEB, 0x1E, 0x00))),
 
                 ["BtnX"] = (
-                    "\uE3CB",
+                    "\uE36B",
                     "KeyX",
                     new SolidColorBrush(Color.FromRgb(0x00, 0xA0, 0xE0))),
 
                 ["BtnY"] = (
-                    "\uE3CC",
+                    "\uE36C",
                     "KeyY",
                     new SolidColorBrush(Color.FromRgb(0xFF, 0xB9, 0x00))),
 
                 ["BtnLb"] = (
-                    "\uE3ED",
+                    "\uE36D",
                     null,
                     new SolidColorBrush(Color.FromRgb(0xD3, 0xD3, 0xD3))),
 
                 ["BtnRb"] = (
-                    "\uE3EB",
+                    "\uE36E",
                     null,
                     new SolidColorBrush(Color.FromRgb(0xD3, 0xD3, 0xD3))),
 
                 ["BtnStart"] = (
-                    "\uE3EC",
+                    "\uE372",
                     "KeyEscape",
                     new SolidColorBrush(Color.FromRgb(0xD3, 0xD3, 0xD3))),
 
                 ["BtnXbox"] = (
-                    "\uE636",
+                    "\uE673",
                     null,
                     new SolidColorBrush(Color.FromRgb(0xD3, 0xD3, 0xD3))),
 
                 ["BtnXboxFill"] = (
-                    "\uE3E3",
+                    "\uE390",
                     null,
                     new SolidColorBrush(Color.FromRgb(0xD3, 0xD3, 0xD3)))
             };
@@ -304,7 +304,7 @@ namespace EZ2Play.App
                 viewbox.Child = new TextBlock
                 {
                     Text = icon.glyph,
-                    FontFamily = (FontFamily)Application.Current.Resources["XboxFont"],
+                    FontFamily = (FontFamily)Application.Current.Resources["IconFont"],
                     Foreground = icon.color
                 };
 

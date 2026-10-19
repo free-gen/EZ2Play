@@ -83,7 +83,7 @@ namespace EZ2Play.App
                 SetDescriptionWithIcon(
                     SettingsAutorunAppDesc,
                     "SettingsAutorunAppDesc",
-                    "\uE3E3");
+                    "\uE390");
 
                 RefreshDisplayList();
 
@@ -725,7 +725,7 @@ namespace EZ2Play.App
                     var icon = new TextBlock
                     {
                         Text = iconGlyph,
-                        FontFamily = new FontFamily("Xbox Fluent"),
+                        FontFamily = (FontFamily)Application.Current.FindResource("IconFont"),
                         RenderTransform = new TranslateTransform(0, 4)
                     };
 

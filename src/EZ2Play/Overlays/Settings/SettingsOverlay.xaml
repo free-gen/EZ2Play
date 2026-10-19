@@ -390,7 +390,7 @@
                             VerticalAlignment="Center"
                             Foreground="{DynamicResource ControlStrongStrokeColorDefaultBrush}"
                             FontSize="{DynamicResource {x:Static app:UiScaleKeys.OverlaySecondaryFontSize}}"
-                            FontFamily="Xbox Fluent">&#xE3B2;</TextBlock>
+                            FontFamily="{StaticResource IconFont}">&#xE306;</TextBlock>
 
                     </Grid>
 

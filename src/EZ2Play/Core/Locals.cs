@@ -293,6 +293,15 @@ namespace EZ2Play.App
                 "已安装 Xbox Game Bar，可能会干扰 Guide 按钮。\n建议禁用或卸载它。"
             },
 
+            ["MessageUpdateAvailable"] = new[]
+            {
+                "A new EZ2Play version is available: v{0}\nDownload it from GitHub Releases.",
+                "Доступна новая версия EZ2Play: v{0}\nСкачайте обновление в разделе Releases на GitHub.",
+                "Eine neue EZ2Play-Version ist verfügbar: v{0}\nLade das Update unter GitHub Releases herunter.",
+                "Une nouvelle version d'EZ2Play est disponible : v{0}\nTéléchargez-la depuis GitHub Releases.",
+                "EZ2Play 有新版本：v{0}\n请前往 GitHub Releases 下载更新。"
+            },
+
             ["MessageDebugBuild"] = new[]
             {
                 "Debug build is running.\nDiagnostic logging is enabled.",

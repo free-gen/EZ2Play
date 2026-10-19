@@ -9,7 +9,7 @@
     
     <AppName>EZ2Play</AppName>
     <AppDescription>EZ2Play Game Launcher</AppDescription>
-    <Version>1.4.0</Version>
+    <Version>1.4.1</Version>
 
     <Company>FreeGen</Company>
     <Copyright>Copyright © FreeGen</Copyright>
@@ -64,7 +64,7 @@
     <EmbeddedResource Include="Assets/Ambient.mp3" />
 
     <Resource Include="Assets/Manrope-VariableFont_wght.ttf" />
-    <Resource Include="Assets/XboxFluent.ttf" />
+    <Resource Include="Assets/EZ2PlayIcons.ttf" />
     <Resource Include="Assets/Logo.png" />
   </ItemGroup>
 

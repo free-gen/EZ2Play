@@ -25,7 +25,7 @@ namespace EZ2Play.App
     public class Notifications
     {
         // Default icon used when no specific icon is provided.
-        private const string DefaultIcon = "\uE686";
+        private const string DefaultIcon = "\uE3BF";
 
         // Notification UI elements.
         private Border _NotificationPanel;
@@ -240,7 +240,7 @@ namespace EZ2Play.App
                 Locals.GetString("MessageDebugBuild"),
                 delaySeconds,
                 displaySeconds,
-                "\uE7B2",
+                "\uE3D0",
                 Done));
         }
 
@@ -253,7 +253,7 @@ namespace EZ2Play.App
                 Locals.GetString("MessageHotSwap"),
                 delaySeconds,
                 displaySeconds,
-                "\uE5A2",
+                "\uE3B7",
                 Done));
         }
 
@@ -275,7 +275,7 @@ namespace EZ2Play.App
                     msg,
                     delaySeconds,
                     displaySeconds,
-                    "\uE314",
+                    "\uE2E9",
                     Done);
             });
         }
@@ -297,7 +297,30 @@ namespace EZ2Play.App
                 Locals.GetString("MessageGameBarWarning"),
                 delaySeconds,
                 displaySeconds,
-                "\uE927",
+                "\uE3A2",
+                Done));
+        }
+
+        /// <summary>
+        /// Queues a notification when a newer EZ2Play
+        /// release is available on GitHub.
+        /// </summary>
+        /// <remarks>
+        /// Uses the existing notification queue to avoid
+        /// overlapping startup and update notifications.
+        /// </remarks>
+        public void UpdateAvailable(
+            string version,
+            double delaySeconds,
+            double displaySeconds)
+        {
+            Enqueue(() => Show(
+                string.Format(
+                    Locals.GetString("MessageUpdateAvailable"),
+                    version),
+                delaySeconds,
+                displaySeconds,
+                "\uE3E2",
                 Done));
         }
 
@@ -314,7 +337,7 @@ namespace EZ2Play.App
                 text,
                 delaySeconds,
                 displaySeconds,
-                "\uE91B",
+                "\uE343",
                 Done));
         }
     }

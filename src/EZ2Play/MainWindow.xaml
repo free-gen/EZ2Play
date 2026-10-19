@@ -183,7 +183,7 @@
                             <TextBlock x:Name="NotificationIcon"
                                 FontSize="{DynamicResource {x:Static app:UiScaleKeys.NotificationPanelIconSize}}"
                                 Margin="{DynamicResource {x:Static app:UiScaleKeys.NotificationPanelMargin}}"
-                                FontFamily="/Assets/#Xbox Fluent"/>
+                                FontFamily="{StaticResource IconFont}"/>
 
                             <TextBlock x:Name="NotificationText"
                                 MaxWidth="{DynamicResource {x:Static app:UiScaleKeys.NotificationPanelMaxWidth}}"
@@ -299,7 +299,7 @@
 
                                     <TextBlock  FontSize="{DynamicResource {x:Static app:UiScaleKeys.CounterPillIconSize}}"
                                         Margin="{DynamicResource {x:Static app:UiScaleKeys.CounterPillIconMargin}}"
-                                        FontFamily="/Assets/#Xbox Fluent">&#xE7FB;</TextBlock>
+                                        FontFamily="{StaticResource IconFont}">&#xE34E;</TextBlock>
                                     
                                     <TextBlock x:Name="GameCounterText"
                                         FontSize="{DynamicResource {x:Static app:UiScaleKeys.CounterPillFontSize}}"

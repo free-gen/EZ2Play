@@ -431,6 +431,9 @@ namespace EZ2Play
             _selectorCoordinator.ShowMain();
 
             UpdateAppActivity(SystemProvider.IsForeground());
+
+            // Check GitHub Releases without delaying startup.
+            CheckForUpdatesAsync();
         }
 
         /// <summary>
@@ -484,6 +487,43 @@ namespace EZ2Play
             {
                 _uiRegistry.Notifications.HotSwap(2, 8);
                 _config.MarkHotSwapNotificationShown(true);
+            }
+        }
+
+        /// <summary>
+        /// Checks for a newer stable release after startup.
+        /// </summary>
+        /// <remarks>
+        /// Network failures are logged without interrupting
+        /// the launcher or displaying an error to the user.
+        /// The continuation returns to the WPF UI thread.
+        /// </remarks>
+        private async void CheckForUpdatesAsync()
+        {
+            try
+            {
+                string version =
+                    await UpdateChecker.GetNewerVersionAsync();
+
+                if (string.IsNullOrEmpty(version) ||
+                    _isExiting ||
+                    !IsVisible ||
+                    _isEmptyState)
+                {
+                    return;
+                }
+
+                _uiRegistry?.Notifications?.UpdateAvailable(
+                    version,
+                    0,
+                    8);
+            }
+            catch (Exception ex)
+            {
+                DebugLog.Error(
+                    "Updates",
+                    ex,
+                    "Failed to check GitHub Releases.");
             }
         }
 
